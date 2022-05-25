@@ -1,0 +1,50 @@
+name: AbbaCaving
+main: com.github.colebennett.abbacaving.AbbaCavingPlugin
+version: 1.0
+author: Cole
+api-version: 1.16
+softdepend: [LuckPerms, MVdWPlaceholderAPI, PlaceholderAPI, FeatherBoard, WorldBorder, Redis]
+commands:
+  acreload:
+    description: Reloads the configuration.
+  bcastnp:
+    description: Broadcast a message.
+    aliases: [bcast]
+  forcestart:
+    description: Force starts the game.
+    permission: abbacaving.forcestart
+    permission-message: You are not allowed to do this.
+    aliases: [fs]
+  nightvision:
+    description: Night vision toggle.
+    permission: abbacaving.nightvision
+    permission-message: You are not allowed to toggle night vision.
+    aliases: [nv]
+  stats:
+    description: Display a player's stats.
+    permission: abbacaving.stats
+    permission-message: You are not allowed to view stats.
+  points:
+    description: Display a player's points.
+    permission: abbacaving.points
+    permission-message: You are not allowed to view points.
+permissions:
+  abbacaving.*:
+    description: Gives access to all Abba Caving commands.
+    children:
+      abbacaving.forcestart: true
+      abbacaving.nightvision: true
+      abbacaving.stats: true
+      abbacaving.points: true
+  abbacaving.forcestart:
+    description: Permission to force start a game.
+    default: op
+  abbacaving.nightvision:
+    description: Permission to view points.
+    default: op
+  abbacaving.stats:
+    description: Permission to view a player's stats.
+    default: op
+  abbacaving.points:
+    description: Permission to view points.
+    default: op

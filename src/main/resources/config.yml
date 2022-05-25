@@ -1,0 +1,169 @@
+lang:
+  cannot-mine-near-spawn: "<red>You must move further away from the spawn to start mining!"
+  new-high-score: "<green><player> <gray>surpassed their highest score of <green><score><gray>!"
+  player-died: "<green><player> <gray>died and has been eliminated!"
+  player-respawned: "<green><player> <gray>died and has respawned!"
+  grace-period-ended: "<dark_aqua>Grace period has ended. You will now take damage!"
+  remaining-players: "<green><count> <gray>player<optional-s> remain!"
+  game-objective: "<gray>Objective: <bold><gradient:green:blue>Mine the most valuable ores!</gradient></bold>"
+  game-starting: "<gray>Starting in <green><seconds> <gray>second<optional-s>!"
+  game-started: "<gray>The game has started"
+  game-ended: "<gray>The game has ended!"
+  game-ending: "<gray>Ending in <green><amount> <gray><time-type>!"
+  game-win: "<green><player> <gray>won the game with <green><score> <gray>point<optional-s>!"
+  gained-points: "<green>+<amount> <gray>point<optional-s>! (<green><reward><gray>)"
+  player-found-item: "<green><player> <gray>found <article><item>!"
+  player-joined: "<green><player> <gray>joined the game!"
+  player-left: "<green><player> <gray>left the game!"
+  ore-not-worth-points: "<gray><ore> is not worth any points."
+
+server:
+  # Mode for this server: "GAME" to run as a game server, "LOBBY" to run on a lobby server
+  mode: GAME
+
+permissions:
+  # Allow a player to join a full lobby when the game is waiting or starting.
+  join-full: "abbacaving.join.full"
+  # Respawn a player automatically (once per game) if they die and reset their points.
+  respawn: "abbacaving.game.respawn"
+
+# List of server names to teleport players to after leaving the game.
+lobby-servers:
+  - Lobby-1
+
+database:
+  host: localhost
+  user: minecraft
+  password: secret
+  name: AbbaCaving
+
+redis:
+  host: localhost
+  port: 6379
+  password: secret
+
+# The names of FeatherBoard scoreboards to used based on game state.
+scoreboards:
+  waiting:
+    default:
+      scoreboard-name: waiting
+  starting:
+    default:
+      scoreboard-name: starting
+  running:
+    default:
+      scoreboard-name: running-default
+    donor:
+      scoreboard-name: running-donor
+      permission: "abbacaving.scoreboard.running.donor"
+  done:
+    default:
+      scoreboard-name: done
+
+join-location:
+  world: world
+  x: 0.0
+  y: 80.0
+  z: 0.0
+  yaw: 0.0
+  pitch: 0.0
+
+cave-generator:
+  generator-mode: false
+  enabled: true # if false, use the pre-built maps
+  sxz: 400      # Horizontal stretch (larger number = wider cave)
+  sy: 90        # Vertical stretch (larger number = taller cave)
+  cutoff: 62    # Minimum Perlin density cutoff (-100 to 100)
+  miny: 6       # Lower bound of cave zone
+  maxy: 50      # Upper bound of cave zone
+  border-size: 750
+  spawn-spacing: 50
+  spawns: 50
+
+# If specified, load map archives from this directory (absolute path).
+maps-directory: /home/minecraft/GenServers/AbbaGen/output/maps
+# If specified, load spawn locations from this YAML file (absolute path).
+spawns-file: /home/minecraft/GenServers/AbbaGen/output/spawns.yml
+
+game:
+  players-required-to-start: 1
+  duration-seconds: 120
+  start-countdown-seconds: 10
+  grace-period-duration-seconds: 30
+  # Set protected-spawn-radius to 0 to disable.
+  protected-spawn-radius: 0
+  player-health: 40
+  min-score-to-broadcast-new-record: 50
+  ores:
+    - name: "Redstone Ore"
+      value:
+        exact: 1
+      block: REDSTONE_ORE
+      drop: REDSTONE
+    - name: "Lapis Ore"
+      value:
+        exact: 1
+      block: LAPIS_ORE
+      drop: INK_SAC
+    - name: "Gold Ore"
+      value:
+        exact: 3
+      block: GOLD_ORE
+      drop: GOLD_INGOT
+    - name: "Nether Gold Ore"
+      value:
+        exact: 4
+      block: NETHER_GOLD_ORE
+      drop: NETHER_GOLD_ORE
+      probability: 0.05
+    - name: "Nether Quartz Ore"
+      value:
+        exact: 4
+      block: NETHER_QUARTZ_ORE
+      drop: NETHER_QUARTZ_ORE
+      probability: 0.05
+    - name: "Diamond Ore"
+      value:
+        exact: 5
+      block: DIAMOND_ORE
+      drop: DIAMOND
+    - name: "Emerald Ore"
+      value:
+        exact: 7
+      block: EMERALD_ORE
+      drop: EMERALD
+  loot-items:
+    - name: "Nametag"
+      article: "a"
+      value:
+        exact: 20
+      item: NAME_TAG
+    - name: "Horse Armor"
+      article: ""
+      value:
+        min: 7
+        max: 15
+      item: LEATHER_HORSE_ARMOR
+    - name: "Horse Armor"
+      article: ""
+      value:
+        min: 7
+        max: 15
+      item: IRON_HORSE_ARMOR
+    - name: "Horse Armor"
+      article: ""
+      value:
+        min: 7
+        max: 15
+      item: GOLDEN_HORSE_ARMOR
+    - name: "Horse Armor"
+      article: ""
+      value:
+        min: 7
+        max: 15
+      item: DIAMOND_HORSE_ARMOR
+    - name: "Golden Apple"
+      article: "a
+      value:
+        exact: 20
+      item: GOLDEN_APPLE
