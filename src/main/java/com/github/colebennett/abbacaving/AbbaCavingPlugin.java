@@ -13,9 +13,10 @@ import com.github.colebennett.abbacaving.placeholders.GamePlaceholders;
 import com.github.colebennett.abbacaving.placeholders.LobbyPlaceholders;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
-import joptsimple.internal.Strings;
-import net.kyori.adventure.platform.bukkit.BukkitAudiences;
+import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
+import net.kyori.adventure.text.minimessage.tag.Tag;
+import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
 import net.luckperms.api.LuckPerms;
 import net.luckperms.api.model.user.User;
 import net.luckperms.api.node.Node;
@@ -120,7 +121,7 @@ public class AbbaCavingPlugin extends JavaPlugin {
                 sender.sendMessage(ChatColor.RED + "You do not have permission to do this.");
                 return false;
             }
-            broadcast(Strings.join(args, " "));
+            broadcast(String.join(" ", args));
             return true;
         });
     }
@@ -130,7 +131,7 @@ public class AbbaCavingPlugin extends JavaPlugin {
         if (jedis != null) {
             String serversKey = AbbaCavingPlugin.REDIS_TAG + ":servers";
             jedis.srem(serversKey, getServerId());
-            String serverList = Strings.join(jedis.smembers(serversKey), ",");
+            String serverList = String.join(",", jedis.smembers(serversKey));
             jedis.publish(AbbaCavingPlugin.REDIS_TAG, String.format("%s,%s", serversKey, serverList));
             getLogger().info("[Redis] Updated server list: " + serverList);
 
@@ -231,26 +232,43 @@ public class AbbaCavingPlugin extends JavaPlugin {
     }
 
     public void broadcast(String message) {
-        BukkitAudiences audiences = BukkitAudiences.create(this);
-        audiences.players().sendMessage(MiniMessage.get().parse(message));
+        Bukkit.getServer().sendMessage(MiniMessage.miniMessage().deserialize(message));
         getLogger().info("Broadcast: \"" + message + "\"");
     }
 
-    public void broadcast(String message, Map<String, String> placeholders) {
-        BukkitAudiences audiences = BukkitAudiences.create(this);
-        audiences.players().sendMessage(MiniMessage.get().parse(message, placeholders));
+    public void broadcast(String message, Map<String, Component> placeholders) {
+        final List<TagResolver> resolvers = new ArrayList<>();
+
+        for (final Map.Entry<String, Component> entry : placeholders.entrySet()) {
+            resolvers.add(TagResolver.resolver(entry.getKey(), Tag.inserting(entry.getValue())));
+        }
+
+        this.broadcast(message, resolvers.toArray(new TagResolver[]{}));
+    }
+
+    public void broadcast(String message, TagResolver... placeholders) {
+        Bukkit.getServer().sendMessage(MiniMessage.miniMessage().deserialize(message, placeholders));
     }
 
     public void message(CommandSender sender, String message) {
-        BukkitAudiences audiences = BukkitAudiences.create(this);
-        audiences.sender(sender).sendMessage(MiniMessage.get().parse(message));
+        sender.sendMessage(MiniMessage.miniMessage().deserialize(message));
     }
 
     public void message(CommandSender sender, String message, Map<String, String> placeholders) {
-        placeholders.put("name", sender.getName());
+        final List<TagResolver> resolvers = new ArrayList<>();
 
-        BukkitAudiences audiences = BukkitAudiences.create(this);
-        audiences.sender(sender).sendMessage(MiniMessage.get().parse(message, placeholders));
+        for (final Map.Entry<String, String> entry : placeholders.entrySet()) {
+            resolvers.add(TagResolver.resolver(entry.getKey(), Tag.inserting(Component.text(entry.getValue()))));
+        }
+
+        this.message(sender, message, resolvers.toArray(new TagResolver[]{}));
+    }
+
+    public void message(CommandSender sender, String message, TagResolver... placeholders) {
+        final TagResolver name = TagResolver.resolver("name", Tag.inserting(Component.text(sender.getName())));
+        final TagResolver resolvers = TagResolver.resolver(TagResolver.resolver(placeholders), name);
+
+        sender.sendMessage(MiniMessage.miniMessage().deserialize(message, resolvers));
     }
 
     public void updateGameInfo(String subKey, String value) {

@@ -3,6 +3,7 @@ package com.github.colebennett.abbacaving.listeners;
 import com.github.colebennett.abbacaving.AbbaCavingPlugin;
 import com.github.colebennett.abbacaving.game.CaveLoot;
 import com.github.colebennett.abbacaving.game.GamePlayer;
+import net.kyori.adventure.text.Component;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -35,10 +36,10 @@ public class InventoryListener implements Listener {
 
                         gp.addScore(lootItem.getValue(), lootItem.getName());
 
-                        plugin.broadcast(plugin.getMessage("player-found-item"), new HashMap<String, String>() {{
-                            put("player", player.getDisplayName());
-                            put("item", lootItem.getName());
-                            put("article", lootItem.getArticle().isEmpty() ? "" : lootItem.getArticle() + " ");
+                        plugin.broadcast(plugin.getMessage("player-found-item"), new HashMap<>() {{
+                            put("player", player.displayName());
+                            put("item", Component.text(lootItem.getName()));
+                            put("article", Component.text(lootItem.getArticle().isEmpty() ? "" : lootItem.getArticle() + " "));
                         }});
                     }
                 }

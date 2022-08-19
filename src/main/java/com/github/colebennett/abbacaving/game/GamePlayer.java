@@ -2,6 +2,7 @@ package com.github.colebennett.abbacaving.game;
 
 import com.github.colebennett.abbacaving.AbbaCavingPlugin;
 import com.github.colebennett.abbacaving.util.Util;
+import net.kyori.adventure.text.Component;
 import org.bukkit.Location;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
@@ -112,7 +113,7 @@ public class GamePlayer  {
         player.setExp(exp >= 1f ? 0 : exp);
 
         player.playSound(player.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1f, 1f);
-        plugin.message(player, plugin.getMessage("gained-points"), new HashMap<String, String>(){{
+        plugin.message(player, plugin.getMessage("gained-points"), new HashMap<>() {{
             put("amount", Integer.toString(amount));
             put("reward", rewardName);
             put("optional-s", amount != 1 ? "s" : "");
@@ -122,9 +123,9 @@ public class GamePlayer  {
             if (!surpassedHighestScore) {
                 surpassedHighestScore = true;
                 if (highestScore >= plugin.getConfig().getInt("game.min-score-to-broadcast-new-record")) {
-                    plugin.broadcast(plugin.getMessage("new-high-score"), new HashMap<String, String>(){{
-                        put("player",  player.getName());
-                        put("score", Util.addCommas(highestScore));
+                    plugin.broadcast(plugin.getMessage("new-high-score"), new HashMap<>() {{
+                        put("player", Component.text(player.getName()));
+                        put("score", Component.text(Util.addCommas(highestScore)));
                     }});
                 }
             }

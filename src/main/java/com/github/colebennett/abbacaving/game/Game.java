@@ -4,10 +4,8 @@ import be.maximvdw.featherboard.api.FeatherBoardAPI;
 import com.github.colebennett.abbacaving.AbbaCavingPlugin;
 import com.github.colebennett.abbacaving.util.Util;
 import com.github.colebennett.abbacaving.worldgen.GiantCavePopulator;
-import dev.netherite.redis.spigot.RedisApi;
-import io.netty.util.internal.ThreadLocalRandom;
-import joptsimple.internal.Strings;
-import net.kyori.adventure.platform.bukkit.BukkitAudiences;
+import java.util.concurrent.ThreadLocalRandom;
+import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.bukkit.*;
 import org.bukkit.configuration.ConfigurationSection;
@@ -61,7 +59,7 @@ public class Game {
 
         String key = AbbaCavingPlugin.REDIS_TAG + ":servers";
         plugin.getJedis().sadd(key, plugin.getServerId());
-        String serverList = Strings.join(plugin.getJedis().smembers(key), ",");
+        String serverList = String.join(",", plugin.getJedis().smembers(key));
         plugin.getJedis().publish(AbbaCavingPlugin.REDIS_TAG, String.format("%s,%s", key, serverList));
         plugin.getLogger().info("[Redis] Updated server list: " + serverList);
 
@@ -90,8 +88,8 @@ public class Game {
 
     public void addPlayer(GamePlayer gp) {
         if (players.put(gp.getPlayer().getName(), gp) == null) {
-            plugin.broadcast(plugin.getMessage("player-joined"), new HashMap<String, String>() {{
-                put("player", gp.getPlayer().getDisplayName());
+            plugin.broadcast(plugin.getMessage("player-joined"), new HashMap<>() {{
+                put("player", gp.getPlayer().displayName());
             }});
 
             resetPlayer(gp.getPlayer());
@@ -120,21 +118,21 @@ public class Game {
                 gp.setSpawn(loc);
                 player.teleport(loc);
 
-                plugin.broadcast(plugin.getMessage("player-respawned"), new HashMap<String, String>() {{
-                    put("player", player.getDisplayName());
+                plugin.broadcast(plugin.getMessage("player-respawned"), new HashMap<>() {{
+                    put("player", player.displayName());
                 }});
             } else {
                 players.remove(player.getName());
                 leaderboard.remove(gp);
                 updateLeaderboard();
 
-                plugin.broadcast(plugin.getMessage("player-died"), new HashMap<String, String>() {{
-                    put("player", player.getDisplayName());
+                plugin.broadcast(plugin.getMessage("player-died"), new HashMap<>() {{
+                    put("player", player.displayName());
                 }});
                 if (players.size() > 1) {
-                    plugin.broadcast(plugin.getMessage("remaining-players"), new HashMap<String, String>() {{
-                        put("count", Integer.toString(players.size()));
-                        put("optional-s", players.size() != 1 ? "s" : "");
+                    plugin.broadcast(plugin.getMessage("remaining-players"), new HashMap<>() {{
+                        put("count", Component.text(players.size()));
+                        put("optional-s", Component.text(players.size() != 1 ? "s" : ""));
                     }});
                 }
                 gp.setIsDead(true);
@@ -145,8 +143,8 @@ public class Game {
             leaderboard.remove(gp);
             updateLeaderboard();
 
-            plugin.broadcast(plugin.getMessage("player-left"), new HashMap<String, String>() {{
-                put("player", player.getDisplayName());
+            plugin.broadcast(plugin.getMessage("player-left"), new HashMap<>() {{
+                put("player", player.displayName());
             }});
         }
 
@@ -194,8 +192,7 @@ public class Game {
             }
         } else if (state == GameState.STARTING) {
             if (counter >= 0) {
-                BukkitAudiences audiences = BukkitAudiences.create(plugin);
-                audiences.all().sendActionBar(MiniMessage.get().parse("<gray>Starting In: <green>" + counter));
+                Bukkit.getServer().sendActionBar(MiniMessage.miniMessage().deserialize("<gray>Starting In: <green>" + counter));
             }
 
             if (counter == 0) {
@@ -203,9 +200,9 @@ public class Game {
             } else {
                 if ((counter % 60 == 0 || counter == 30 || counter == 15
                         || counter == 10 || counter <= 5)) {
-                    plugin.broadcast(plugin.getMessage("game-starting"), new HashMap<String, String>() {{
-                        put("seconds", Integer.toString(counter));
-                        put("optional-s", counter != 1 ? "s" : "");
+                    plugin.broadcast(plugin.getMessage("game-starting"), new HashMap<>() {{
+                        put("seconds", Component.text(counter));
+                        put("optional-s", Component.text(counter != 1 ? "s" : ""));
                     }});
                 }
             }
@@ -213,15 +210,14 @@ public class Game {
             int gameDurationSeconds = plugin.getConfig().getInt("game.duration-seconds");
             int gracePeriodSeconds = plugin.getConfig().getInt("game.grace-period-duration-seconds");
 
-            BukkitAudiences audiences = BukkitAudiences.create(plugin);
             if (counter > 0) {
                 if (gracePeriod) {
-                    audiences.all().sendActionBar(MiniMessage.get().parse("<dark_aqua>Grace Period"));
+                    Bukkit.getServer().sendActionBar(MiniMessage.miniMessage().deserialize("<dark_aqua>Grace Period"));
                 } else {
-                    audiences.all().sendActionBar(MiniMessage.get().parse("<gray>Ending In: <green>" + counter));
+                    Bukkit.getServer().sendActionBar(MiniMessage.miniMessage().deserialize("<gray>Ending In: <green>" + counter));
                 }
             } else if (counter == 0) {
-                audiences.all().sendActionBar(MiniMessage.get().parse("<red>Game Over"));
+                Bukkit.getServer().sendActionBar(MiniMessage.miniMessage().deserialize("<red>Game Over"));
             }
 
             if (counter == gameDurationSeconds - gracePeriodSeconds) {
@@ -231,15 +227,15 @@ public class Game {
                     || counter == 10 || counter <= 5) && counter != 0) {
                 int minutes = counter / 60;
                 if (minutes > 0 && minutes <= 5) {
-                    plugin.broadcast(plugin.getMessage("game-ending"), new HashMap<String, String>() {{
-                        put("amount", Integer.toString(minutes));
-                        put("time-type", minutes == 1 ? "minute" : "minutes");
+                    plugin.broadcast(plugin.getMessage("game-ending"), new HashMap<>() {{
+                        put("amount", Component.text(minutes));
+                        put("time-type", Component.text(minutes == 1 ? "minute" : "minutes"));
                     }});
                     playSound(Sound.UI_BUTTON_CLICK);
                 } else if (counter <= 30) {
-                    plugin.broadcast(plugin.getMessage("game-ending"), new HashMap<String, String>() {{
-                        put("amount", Integer.toString(counter));
-                        put("time-type", counter == 1 ? "second" : "seconds");
+                    plugin.broadcast(plugin.getMessage("game-ending"), new HashMap<>() {{
+                        put("amount", Component.text(counter));
+                        put("time-type", Component.text(counter == 1 ? "second" : "seconds"));
                     }});
                     playSound(Sound.UI_BUTTON_CLICK);
                 }
@@ -312,10 +308,10 @@ public class Game {
         playSound(Sound.BLOCK_NOTE_BLOCK_SNARE);
         setState(GameState.RUNNING);
 
-        String serverName = RedisApi.instance().getServerName();
-        String newName = serverName.replace("pregame", "ingame");
-        RedisApi.instance().unregisterServer(serverName);
-        RedisApi.instance().renameServer(newName);
+//        String serverName = RedisApi.instance().getServerName();
+//        String newName = serverName.replace("pregame", "ingame");
+//        RedisApi.instance().unregisterServer(serverName);
+//        RedisApi.instance().renameServer(newName);
         String ip = plugin.getServer().getIp();
         if (ip.isEmpty()) {
             try (final DatagramSocket socket = new DatagramSocket()) {
@@ -329,7 +325,7 @@ public class Game {
         if (ip.isEmpty()) {
             ip = "localhost";
         }
-        RedisApi.instance().registerServer(newName, ip, Integer.toString(plugin.getServer().getPort()));
+//        RedisApi.instance().registerServer(newName, ip, Integer.toString(plugin.getServer().getPort()));
     }
 
     private void stop() {
@@ -338,10 +334,10 @@ public class Game {
         if (leaderboard.size() > 0) {
             Entry<GamePlayer, Integer> winner = leaderboard.entrySet().iterator().next();
             winner.getKey().setWins(winner.getKey().getWins() + 1);
-            plugin.broadcast(plugin.getMessage("game-win"), new HashMap<String, String>() {{
-                put("player", winner.getKey().getPlayer().getDisplayName());
-                put("score", Util.addCommas(winner.getValue()));
-                put("optional-s", winner.getKey().getScore() != 1 ? "s" : "");
+            plugin.broadcast(plugin.getMessage("game-win"), new HashMap<>() {{
+                put("player", winner.getKey().getPlayer().displayName());
+                put("score", Component.text(Util.addCommas(winner.getValue())));
+                put("optional-s", Component.text(winner.getKey().getScore() != 1 ? "s" : ""));
             }});
 
             Bukkit.broadcastMessage("");
