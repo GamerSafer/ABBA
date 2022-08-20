@@ -38,6 +38,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import redis.clients.jedis.Jedis;
 
 public class Game {
 
@@ -68,10 +69,12 @@ public class Game {
         plugin.updateGameInfo("slots", Integer.toString(plugin.getServer().getMaxPlayers()));
 
         final String key = AbbaCavingPlugin.REDIS_TAG + ":servers";
-        plugin.jedis().sadd(key, plugin.serverId());
-        final String serverList = String.join(",", plugin.jedis().smembers(key));
-        plugin.jedis().publish(AbbaCavingPlugin.REDIS_TAG, String.format("%s,%s", key, serverList));
-        plugin.getLogger().info("[Redis] Updated server list: " + serverList);
+        try (final Jedis jedis = plugin.jedis()) {
+            jedis.sadd(key, plugin.serverId());
+            final String serverList = String.join(",", jedis.smembers(key));
+            jedis.publish(AbbaCavingPlugin.REDIS_TAG, String.format("%s,%s", key, serverList));
+            plugin.getLogger().info("[Redis] Updated server list: " + serverList);
+        }
 
         plugin.getServer().getScheduler().runTaskTimer(plugin, this::nextTick, 0, 20);
     }
