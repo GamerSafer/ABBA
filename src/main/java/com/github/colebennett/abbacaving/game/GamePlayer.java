@@ -2,7 +2,7 @@ package com.github.colebennett.abbacaving.game;
 
 import com.github.colebennett.abbacaving.AbbaCavingPlugin;
 import com.github.colebennett.abbacaving.util.Util;
-import java.util.HashMap;
+import java.util.Map;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Location;
 import org.bukkit.Sound;
@@ -112,22 +112,20 @@ public class GamePlayer {
         this.player.setExp(exp >= 1f ? 0 : exp);
 
         this.player.playSound(this.player.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1f, 1f);
-        this.plugin.message(this.player, this.plugin.configMessage("gained-points"), new HashMap<>() {{
-                this.put("amount", Integer.toString(amount));
-                this.put("reward", rewardName);
-                this.put("optional-s", amount != 1 ? "s" : "");
-            }}
-        );
+        this.plugin.message(this.player, this.plugin.configMessage("gained-points"), Map.of(
+                "amount", Integer.toString(amount),
+                "reward", rewardName,
+                "optional-s", amount != 1 ? "s" : ""
+        ));
 
         if (this.score > this.highestScore) {
             if (!this.surpassedHighestScore) {
                 this.surpassedHighestScore = true;
                 if (this.highestScore >= this.plugin.getConfig().getInt("game.min-score-to-broadcast-new-record")) {
-                    this.plugin.broadcast(this.plugin.configMessage("new-high-score"), new HashMap<>() {{
-                            this.put("player", Component.text(GamePlayer.this.player.getName()));
-                            this.put("score", Component.text(Util.addCommas(GamePlayer.this.highestScore)));
-                        }}
-                    );
+                    this.plugin.broadcast(this.plugin.configMessage("new-high-score"), Map.of(
+                       "player", this.player.displayName(),
+                       "score", Component.text(Util.addCommas(GamePlayer.this.highestScore))
+                    ));
                 }
             }
             this.highestScore = this.score;
