@@ -184,11 +184,6 @@
         <!-- https://checkstyle.org/config_javadoc.html#NonEmptyAtclauseDescription -->
         <module name="NonEmptyAtclauseDescription"/>
 
-        <!-- https://checkstyle.org/config_whitespace.html#NoWhitespaceAfter -->
-        <module name="NoWhitespaceAfter">
-            <property name="allowLineBreaks" value="false"/>
-        </module>
-
         <!-- https://checkstyle.org/config_whitespace.html#NoWhitespaceBefore -->
         <module name="NoWhitespaceBefore">
             <property name="allowLineBreaks" value="true"/>

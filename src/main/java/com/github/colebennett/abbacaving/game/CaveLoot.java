@@ -1,22 +1,24 @@
 package com.github.colebennett.abbacaving.game;
 
-import org.bukkit.Material;
-
 import java.util.concurrent.ThreadLocalRandom;
+import org.bukkit.Material;
 
 public class CaveLoot {
 
-    private final String name, article;
-    private final Integer exactValue, minValue, maxValue;
+    private final String name;
+    private final String article;
+    private final Integer exactValue;
+    private final Integer minValue;
+    private final Integer maxValue;
     private final Material itemType;
 
     public CaveLoot(
-        String name,
-        String article,
-        Integer exactValue,
-        Integer minValue,
-        Integer maxValue,
-        Material itemType
+            final String name,
+            final String article,
+            final Integer exactValue,
+            final Integer minValue,
+            final Integer maxValue,
+            final Material itemType
     ) {
         this.name = name;
         this.article = article;
@@ -26,25 +28,26 @@ public class CaveLoot {
         this.itemType = itemType;
     }
 
-    public String getName() {
-        return name;
+    public String name() {
+        return this.name;
     }
 
-    public String getArticle() {
-        return article;
+    public String article() {
+        return this.article;
     }
 
-    public int getValue() {
-        if (exactValue != null) {
-            return exactValue;
+    public int value() {
+        if (this.exactValue != null) {
+            return this.exactValue;
         }
-        if (minValue != null && maxValue != null) {
-            return minValue + ThreadLocalRandom.current().nextInt((maxValue - minValue) + 1);
+        if (this.minValue != null && this.maxValue != null) {
+            return this.minValue + ThreadLocalRandom.current().nextInt((this.maxValue - this.minValue) + 1);
         }
         return 0;
     }
 
-    public Material getItemType() {
-        return itemType;
+    public Material itemType() {
+        return this.itemType;
     }
+
 }

@@ -15,32 +15,33 @@ public class StatsCommand implements CommandExecutor {
 
     private final AbbaCavingPlugin plugin;
 
-    public StatsCommand(AbbaCavingPlugin plugin) {
+    public StatsCommand(final AbbaCavingPlugin plugin) {
         this.plugin = plugin;
     }
 
     @Override
-    public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
-        Player player = (Player) sender;
+    public boolean onCommand(@NotNull final CommandSender sender, @NotNull final Command command, @NotNull final String label, @NotNull final String[] args) {
+        final Player player = (Player) sender;
 
-        GamePlayer gp;
+        final GamePlayer gp;
         if (args.length == 1) {
-            Player target = Bukkit.getPlayer(args[0]);
+            final Player target = Bukkit.getPlayer(args[0]);
             if (target == null) {
                 sender.sendMessage(ChatColor.RED + "Player not online: " + args[0]);
                 return false;
             }
 
-            gp = plugin.getGame().getPlayer(target);
-            plugin.message(player, "<dark_aqua><bold>" + target.getName().toUpperCase() + "'s STATS:");
+            gp = this.plugin.currentGame().player(target);
+            this.plugin.message(player, "<dark_aqua><bold>" + target.getName().toUpperCase() + "'s STATS:");
         } else {
-            gp = plugin.getGame().getPlayer(player);
-            plugin.message(player, "<dark_aqua><bold>YOUR STATS:");
+            gp = this.plugin.currentGame().player(player);
+            this.plugin.message(player, "<dark_aqua><bold>YOUR STATS:");
         }
 
-        plugin.message(player, " <gray>Wins: <green>" + Util.addCommas(gp.getWins()));
-        plugin.message(player, " <gray>Highest Score: <green>" + Util.addCommas(gp.getHighestScore()));
-        plugin.message(player, " <gray>Ores Mined: <green>" + Util.addCommas(gp.getTotalOresMined()));
+        this.plugin.message(player, " <gray>Wins: <green>" + Util.addCommas(gp.wins()));
+        this.plugin.message(player, " <gray>Highest Score: <green>" + Util.addCommas(gp.highestScore()));
+        this.plugin.message(player, " <gray>Ores Mined: <green>" + Util.addCommas(gp.totalOresMined()));
         return true;
     }
+
 }

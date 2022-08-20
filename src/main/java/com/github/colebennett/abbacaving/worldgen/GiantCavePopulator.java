@@ -2,6 +2,12 @@ package com.github.colebennett.abbacaving.worldgen;
 
 import com.github.colebennett.abbacaving.AbbaCavingPlugin;
 import com.wimbli.WorldBorder.Events.WorldBorderFillFinishedEvent;
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Random;
 import org.bukkit.Chunk;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -14,13 +20,6 @@ import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.generator.BlockPopulator;
-
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Random;
 
 public class GiantCavePopulator extends BlockPopulator implements Listener {
 
@@ -36,11 +35,11 @@ public class GiantCavePopulator extends BlockPopulator implements Listener {
     private final int caveBandMax; // maxy
 
     private final BlockFace[] faces = {
-            BlockFace.UP,
-            BlockFace.NORTH,
-            BlockFace.SOUTH,
-            BlockFace.EAST,
-            BlockFace.WEST
+        BlockFace.UP,
+        BlockFace.NORTH,
+        BlockFace.SOUTH,
+        BlockFace.EAST,
+        BlockFace.WEST
     };
 
     private final AbbaCavingPlugin plugin;
@@ -50,62 +49,62 @@ public class GiantCavePopulator extends BlockPopulator implements Listener {
 
     private final List<Chunk> chunks = new ArrayList<>();
     private final List<Location> spawnCandidates = new ArrayList<>();
+    int chunkId = 0;
+    boolean stop = false;
 
-    public GiantCavePopulator(AbbaCavingPlugin plugin, World world) {
+    public GiantCavePopulator(final AbbaCavingPlugin plugin, final World world) {
         this.plugin = plugin;
         this.world = world;
 
-        sxz = plugin.getConfig().getDouble("cave-generator.sxz");
-        sy = plugin.getConfig().getDouble("cave-generator.sy");
-        cutoff = plugin.getConfig().getInt("cave-generator.cutoff");
-        caveBandMin = plugin.getConfig().getInt("cave-generator.miny");
-        caveBandMax = plugin.getConfig().getInt("cave-generator.maxy");
+        this.sxz = plugin.getConfig().getDouble("cave-generator.sxz");
+        this.sy = plugin.getConfig().getDouble("cave-generator.sy");
+        this.cutoff = plugin.getConfig().getInt("cave-generator.cutoff");
+        this.caveBandMin = plugin.getConfig().getInt("cave-generator.miny");
+        this.caveBandMax = plugin.getConfig().getInt("cave-generator.maxy");
 
-        plugin.getLogger().info("sxz: " + sxz);
-        plugin.getLogger().info("sy: " + sy);
-        plugin.getLogger().info("cutoff: " + cutoff);
-        plugin.getLogger().info("caveBandMin: " + caveBandMin);
-        plugin.getLogger().info("caveBandMax: " + caveBandMax);
+        plugin.getLogger().info("sxz: " + this.sxz);
+        plugin.getLogger().info("sy: " + this.sy);
+        plugin.getLogger().info("cutoff: " + this.cutoff);
+        plugin.getLogger().info("caveBandMin: " + this.caveBandMin);
+        plugin.getLogger().info("caveBandMax: " + this.caveBandMax);
 
-        material = Material.AIR;
-        toucher = new BlockToucher(plugin);
+        this.material = Material.AIR;
+        this.toucher = new BlockToucher(plugin);
     }
 
-    int chunkId = 0;
-
     @Override
-    public void populate(World world, Random random, Chunk source) {
-        if (stop)return;
+    public void populate(final World world, final Random random, final Chunk source) {
+        if (this.stop) return;
 
-        GiantCaveRandom gcRandom = new GiantCaveRandom(source, caveBandMin, caveBandMax, sxz, sy, cutoff);
+        final GiantCaveRandom gcRandom = new GiantCaveRandom(source, this.caveBandMin, this.caveBandMax, this.sxz, this.sy, this.cutoff);
 
         for (int x = 0; x < 16; x++) {
             for (int z = 0; z < 16; z++) {
-                for (int y = caveBandMax; y >= caveBandMin; y--) {
+                for (int y = this.caveBandMax; y >= this.caveBandMin; y--) {
                     if (gcRandom.isInGiantCave(x, y, z)) {
-                        Block block = source.getBlock(x, y, z);
-                        Block blockUp1 = block.getRelative(BlockFace.UP);
-                        Block blockUp2 = blockUp1.getRelative(BlockFace.UP);
-                        Block blockUp3 = blockUp2.getRelative(BlockFace.UP);
+                        final Block block = source.getBlock(x, y, z);
+                        final Block blockUp1 = block.getRelative(BlockFace.UP);
+                        final Block blockUp2 = blockUp1.getRelative(BlockFace.UP);
+                        final Block blockUp3 = blockUp2.getRelative(BlockFace.UP);
 
-                        if (isHoldingBackOcean(block) || isHoldingBackOcean(blockUp1)) {
+                        if (this.isHoldingBackOcean(block) || this.isHoldingBackOcean(blockUp1)) {
                             continue;
                         }
 
-                        if (isHoldingBackOcean(blockUp2) || isHoldingBackOcean(blockUp3)) {
+                        if (this.isHoldingBackOcean(blockUp2) || this.isHoldingBackOcean(blockUp3)) {
                             // Support the ocean with stone to keep the bottom from falling out.
                             if (block.getType().hasGravity()) { // sand or gravel
                                 block.setType(Material.STONE, false);
                                 blockUp1.setType(Material.STONE, false);
                             }
                         } else {
-                            block.setType(material, false);
-                            toucher.touch(block);
+                            block.setType(this.material, false);
+                            this.toucher.touch(block);
 
-//                            if (random.nextDouble() < 0.05) {
-//                                blockUp1.setType(Material.NETHER_GOLD_ORE);
-//                                toucher.touch(blockUp1);
-//                            }
+                            //if (random.nextDouble() < 0.05) {
+                            //    blockUp1.setType(Material.NETHER_GOLD_ORE);
+                            //    toucher.touch(blockUp1);
+                            //}
                         }
                     }
                 }
@@ -113,21 +112,21 @@ public class GiantCavePopulator extends BlockPopulator implements Listener {
         }
 
         int perChunk = 0;
-        chunkId++;
+        this.chunkId++;
 
-        if (chunks.size() < 1000 && chunkId % 5 == 0) {
+        if (this.chunks.size() < 1000 && this.chunkId % 5 == 0) {
             for (int x = 4; x < 12; x++) {
                 for (int z = 4; z < 12; z++) {
-                    for (int y = caveBandMin; y <= caveBandMax / 2; y++) {
-                        Block block = source.getBlock(x, y, z);
+                    for (int y = this.caveBandMin; y <= this.caveBandMax / 2; y++) {
+                        final Block block = source.getBlock(x, y, z);
                         if (block.getY() >= block.getWorld().getHighestBlockYAt(block.getLocation())) {
                             continue;
                         }
 
-                        Block down = block.getRelative(BlockFace.DOWN);
+                        final Block down = block.getRelative(BlockFace.DOWN);
                         if (block.getType() == Material.AIR && down.getType().isSolid()) {
                             boolean ok = true;
-                            for (BlockFace face : faces) {
+                            for (final BlockFace face : this.faces) {
                                 if (block.getRelative(face).getType() != Material.AIR) {
                                     ok = false;
                                     break;
@@ -135,7 +134,7 @@ public class GiantCavePopulator extends BlockPopulator implements Listener {
                             }
 
                             if (ok) {
-                                spawnCandidates.add(block.getLocation());
+                                this.spawnCandidates.add(block.getLocation());
                                 if (++perChunk == 20) {
                                     return;
                                 }
@@ -145,27 +144,25 @@ public class GiantCavePopulator extends BlockPopulator implements Listener {
                     }
                 }
             }
-            chunks.add(source);
+            this.chunks.add(source);
         }
 
-        if (chunkId % 500 == 0) {
-            plugin.getLogger().info(chunks.size() + " chunks, " + spawnCandidates.size() + " spawn candidates");
+        if (this.chunkId % 500 == 0) {
+            this.plugin.getLogger().info(this.chunks.size() + " chunks, " + this.spawnCandidates.size() + " spawn candidates");
         }
     }
 
-    boolean stop = false;
-
     private void findSpawns() {
-        stop=true;
-        plugin.getLogger().info("Finding spawns...");
-        int minSpawns = plugin.getConfig().getInt("cave-generator.spawns");
-        int spacing = plugin.getConfig().getInt("cave-generator.spawn-spacing");
-        List<Location> spawns = new ArrayList<>();
+        this.stop = true;
+        this.plugin.getLogger().info("Finding spawns...");
+        final int minSpawns = this.plugin.getConfig().getInt("cave-generator.spawns");
+        final int spacing = this.plugin.getConfig().getInt("cave-generator.spawn-spacing");
+        final List<Location> spawns = new ArrayList<>();
 
-        Collections.shuffle(spawnCandidates);
-        for (Location candidate : spawnCandidates) {
+        Collections.shuffle(this.spawnCandidates);
+        for (final Location candidate : this.spawnCandidates) {
             boolean farEnough = true;
-            for (Location spawn : spawns) {
+            for (final Location spawn : spawns) {
                 if (spawn.distance(candidate) < spacing) {
                     farEnough = false;
                     break;
@@ -174,20 +171,20 @@ public class GiantCavePopulator extends BlockPopulator implements Listener {
 
             if (!farEnough) continue;
 
-            int bx = candidate.getBlockX();
-            int by = candidate.getBlockY();
-            int bz = candidate.getBlockZ();
+            final int bx = candidate.getBlockX();
+            final int by = candidate.getBlockY();
+            final int bz = candidate.getBlockZ();
 
-            int checkDistance = 25;
-            Block[] checks = new Block[] {
-                    candidate.getBlock().getRelative(bx + checkDistance, by, bz),
-                    candidate.getBlock().getRelative(bx - checkDistance, by, bz),
-                    candidate.getBlock().getRelative(bx, by, bz + checkDistance),
-                    candidate.getBlock().getRelative(bx, by, bz - checkDistance),
+            final int checkDistance = 25;
+            final Block[] checks = new Block[] {
+                candidate.getBlock().getRelative(bx + checkDistance, by, bz),
+                candidate.getBlock().getRelative(bx - checkDistance, by, bz),
+                candidate.getBlock().getRelative(bx, by, bz + checkDistance),
+                candidate.getBlock().getRelative(bx, by, bz - checkDistance),
             };
 
             boolean inOpenArea = true;
-            for (Block b : checks) {
+            for (final Block b : checks) {
                 if (b.getType() != Material.AIR) {
                     inOpenArea = false;
                     break;
@@ -199,26 +196,26 @@ public class GiantCavePopulator extends BlockPopulator implements Listener {
             }
 
             spawns.add(candidate);
-            plugin.getLogger().info("cave spawn location : " + candidate + " (total: " + spawns.size() + ")");
+            this.plugin.getLogger().info("cave spawn location : " + candidate + " (total: " + spawns.size() + ")");
             if (spawns.size() == minSpawns) {
                 break;
             }
         }
 
-        saveConfig(spawns);
+        this.saveConfig(spawns);
     }
 
-    private boolean isHoldingBackOcean(Block block) {
-        return isSurfaceWater(block) || isNextToSurfaceWater(block);
+    private boolean isHoldingBackOcean(final Block block) {
+        return this.isSurfaceWater(block) || this.isNextToSurfaceWater(block);
     }
 
-    private boolean isNextToSurfaceWater(Block block) {
-        for (BlockFace face : faces) {
-            Block adjacent = block.getRelative(face);
+    private boolean isNextToSurfaceWater(final Block block) {
+        for (final BlockFace face : this.faces) {
+            final Block adjacent = block.getRelative(face);
             // Don't look at neighboring chunks to prevent runaway chunk generation.
             // Use block coordinates to compute chunk coordinates to prevent loading chunks.
             if (block.getX() >> 4 == adjacent.getX() >> 4 && block.getZ() >> 4 == adjacent.getZ() >> 4) {
-                if (isSurfaceWater(adjacent)) {
+                if (this.isSurfaceWater(adjacent)) {
                     return true;
                 }
             }
@@ -228,7 +225,7 @@ public class GiantCavePopulator extends BlockPopulator implements Listener {
 
     private boolean isSurfaceWater(Block block) {
         // Walk the column of blocks above block looking sea level.
-        while (isWater(block)) {
+        while (this.isWater(block)) {
             if (block.getY() >= block.getWorld().getSeaLevel() - 1) {
                 return true;
             }
@@ -237,46 +234,47 @@ public class GiantCavePopulator extends BlockPopulator implements Listener {
         return false;
     }
 
-    private boolean isWater(Block block) {
-        Material material = block.getType();
+    private boolean isWater(final Block block) {
+        final Material material = block.getType();
         return material == Material.WATER ||
                 material == Material.ICE ||
                 material == Material.BLUE_ICE ||
                 material == Material.PACKED_ICE;
     }
 
-    private void saveConfig(List<Location> spawns) {
-        FileConfiguration config = new YamlConfiguration();
-        File file = new File(plugin.getDataFolder(), "spawns.yml");
+    private void saveConfig(final List<Location> spawns) {
+        final FileConfiguration config = new YamlConfiguration();
+        final File file = new File(this.plugin.getDataFolder(), "spawns.yml");
         if (file.exists()) {
             try {
                 config.load(file);
-                plugin.getLogger().info("Loaded existing file: " + file.getAbsolutePath());
-            } catch (IOException | InvalidConfigurationException e) {
+                this.plugin.getLogger().info("Loaded existing file: " + file.getAbsolutePath());
+            } catch (final IOException | InvalidConfigurationException e) {
                 e.printStackTrace();
             }
         }
 
-        List<String> spawnList = new ArrayList<>();
-        for (Location spawn : spawns) {
+        final List<String> spawnList = new ArrayList<>();
+        for (final Location spawn : spawns) {
             spawnList.add(String.format("%d,%d,%d",
                     spawn.getBlockX(),
                     spawn.getBlockY(),
                     spawn.getBlockZ()));
         }
-        config.set(world.getName(), spawnList);
+        config.set(this.world.getName(), spawnList);
 
         try {
             config.save(file);
-            plugin.getLogger().info("Saved " + spawns.size() + " spawn locations for " + world.getName() + " to " + file.getAbsolutePath());
-        } catch (IOException e) {
+            this.plugin.getLogger().info("Saved " + spawns.size() + " spawn locations for " + this.world.getName() + " to " + file.getAbsolutePath());
+        } catch (final IOException e) {
             e.printStackTrace();
         }
     }
 
     @EventHandler
-    public void onWorldBorderFillFinished(WorldBorderFillFinishedEvent event) {
-        findSpawns();
-        plugin.getServer().getScheduler().runTaskLater(plugin, () -> plugin.getServer().shutdown(), 20 * 5);
+    public void onWorldBorderFillFinished(final WorldBorderFillFinishedEvent event) {
+        this.findSpawns();
+        this.plugin.getServer().getScheduler().runTaskLater(this.plugin, () -> this.plugin.getServer().shutdown(), 20 * 5);
     }
+
 }

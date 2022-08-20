@@ -13,32 +13,32 @@ public class BlockPlaceListener implements Listener {
 
     private final AbbaCavingPlugin plugin;
 
-    public BlockPlaceListener(AbbaCavingPlugin plugin) {
+    public BlockPlaceListener(final AbbaCavingPlugin plugin) {
         this.plugin = plugin;
     }
 
     @EventHandler
-    public void onBlockPlace(BlockPlaceEvent event) {
+    public void onBlockPlace(final BlockPlaceEvent event) {
         if (event.getPlayer().getWorld().getName().equals("world")) {
             event.setCancelled(true);
             return;
         }
 
-        if (plugin.getGame().getState() != GameState.RUNNING) {
+        if (this.plugin.currentGame().gameState() != GameState.RUNNING) {
             event.setCancelled(true);
             return;
         }
 
-        Location loc = event.getBlock().getLocation();
-        for (Location spawn : plugin.getGame().getSpawns()) {
-            if (!plugin.canAccess(loc, spawn)) {
+        final Location loc = event.getBlock().getLocation();
+        for (final Location spawn : this.plugin.currentGame().spawnLocations()) {
+            if (!this.plugin.canAccess(loc, spawn)) {
                 event.setCancelled(true);
-                plugin.message(event.getPlayer(), plugin.getMessage("cannot-mine-near-spawn"));
+                this.plugin.message(event.getPlayer(), this.plugin.configMessage("cannot-mine-near-spawn"));
                 return;
             }
         }
 
-        ItemStack item = event.getItemInHand();
+        final ItemStack item = event.getItemInHand();
         if (item.getType() == Material.TORCH || item.getType() == Material.CRAFTING_TABLE) {
             item.setAmount(1);
             if (event.getPlayer().getInventory().getItemInMainHand().getType() == item.getType()) {
@@ -48,4 +48,5 @@ public class BlockPlaceListener implements Listener {
             }
         }
     }
+
 }

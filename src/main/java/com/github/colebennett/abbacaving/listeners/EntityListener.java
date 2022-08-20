@@ -12,20 +12,21 @@ public class EntityListener implements Listener {
 
     private final AbbaCavingPlugin plugin;
 
-    public EntityListener(AbbaCavingPlugin plugin) {
+    public EntityListener(final AbbaCavingPlugin plugin) {
         this.plugin = plugin;
     }
 
     @EventHandler
-    public void onItemSpawn(ItemSpawnEvent event) {
+    public void onItemSpawn(final ItemSpawnEvent event) {
         event.setCancelled(true);
     }
 
     @EventHandler
-    public void onCreatureSpawn(CreatureSpawnEvent event) {
+    public void onCreatureSpawn(final CreatureSpawnEvent event) {
         if (event.getEntityType() != EntityType.DROPPED_ITEM
-                && plugin.getGame().getState() != GameState.RUNNING) {
+                && this.plugin.currentGame().gameState() != GameState.RUNNING) {
             event.setCancelled(true);
         }
     }
+
 }

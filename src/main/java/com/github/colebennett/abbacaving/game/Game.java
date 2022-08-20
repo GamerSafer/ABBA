@@ -4,10 +4,32 @@ import be.maximvdw.featherboard.api.FeatherBoardAPI;
 import com.github.colebennett.abbacaving.AbbaCavingPlugin;
 import com.github.colebennett.abbacaving.util.Util;
 import com.github.colebennett.abbacaving.worldgen.GiantCavePopulator;
+import java.io.ByteArrayOutputStream;
+import java.io.DataOutputStream;
+import java.io.File;
+import java.io.IOException;
+import java.net.DatagramSocket;
+import java.net.InetAddress;
+import java.net.SocketException;
+import java.net.UnknownHostException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.concurrent.ThreadLocalRandom;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
-import org.bukkit.*;
+import org.bukkit.Bukkit;
+import org.bukkit.GameMode;
+import org.bukkit.Location;
+import org.bukkit.Material;
+import org.bukkit.Sound;
+import org.bukkit.World;
+import org.bukkit.WorldCreator;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Entity;
@@ -17,307 +39,303 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
-import java.io.ByteArrayOutputStream;
-import java.io.DataOutputStream;
-import java.io.File;
-import java.io.IOException;
-import java.net.DatagramSocket;
-import java.net.InetAddress;
-import java.net.SocketException;
-import java.net.UnknownHostException;
-import java.util.*;
-import java.util.Map.Entry;
-
 public class Game {
 
     private final AbbaCavingPlugin plugin;
     private final Map<String, List<Location>> mapSpawns;
     private final Map<String, GamePlayer> players = new HashMap<>();
+    private final boolean generateMap;
     private List<Location> spawns = new ArrayList<>();
     private Map<GamePlayer, Integer> leaderboard = new LinkedHashMap<>();
-
     private GiantCavePopulator caveGenerator;
     private int counter;
     private boolean gracePeriod;
     private GameState state;
-    private final boolean generateMap;
 
-    public Game(AbbaCavingPlugin plugin, Map<String, List<Location>> mapSpawns) {
+    public Game(final AbbaCavingPlugin plugin, final Map<String, List<Location>> mapSpawns) {
         this.plugin = plugin;
         this.mapSpawns = mapSpawns;
 
-        generateMap = plugin.getConfig().getBoolean("cave-generator.enabled");
-        if (generateMap) {
-            generateWorld();
+        this.generateMap = plugin.getConfig().getBoolean("cave-generator.enabled");
+        if (this.generateMap) {
+            this.generateWorld();
         } else {
-            loadRandomMap();
+            this.loadRandomMap();
         }
 
-        setState(GameState.WAITING);
-        setCounter(0);
+        this.gameState(GameState.WAITING);
+        this.counter(0);
         plugin.updateGameInfo("slots", Integer.toString(plugin.getServer().getMaxPlayers()));
 
-        String key = AbbaCavingPlugin.REDIS_TAG + ":servers";
-        plugin.getJedis().sadd(key, plugin.getServerId());
-        String serverList = String.join(",", plugin.getJedis().smembers(key));
-        plugin.getJedis().publish(AbbaCavingPlugin.REDIS_TAG, String.format("%s,%s", key, serverList));
+        final String key = AbbaCavingPlugin.REDIS_TAG + ":servers";
+        plugin.jedis().sadd(key, plugin.serverId());
+        final String serverList = String.join(",", plugin.jedis().smembers(key));
+        plugin.jedis().publish(AbbaCavingPlugin.REDIS_TAG, String.format("%s,%s", key, serverList));
         plugin.getLogger().info("[Redis] Updated server list: " + serverList);
 
         plugin.getServer().getScheduler().runTaskTimer(plugin, this::nextTick, 0, 20);
     }
 
-    public Map<GamePlayer, Integer> getLeaderboard() {
-        return leaderboard;
+    public Map<GamePlayer, Integer> leaderboard() {
+        return this.leaderboard;
     }
 
     public boolean isGracePeriod() {
-       return gracePeriod;
+        return this.gracePeriod;
     }
 
-    public GameState getState() {
-       return state;
+    public GameState gameState() {
+        return this.state;
     }
 
-    public List<Location> getSpawns() {
-        return spawns;
-    }
+    private void gameState(final GameState state) {
+        this.state = state;
+        this.plugin.updateGameInfo("state", state.name());
 
-    public Collection<GamePlayer> getPlayers() {
-        return players.values();
-    }
-
-    public void addPlayer(GamePlayer gp) {
-        if (players.put(gp.getPlayer().getName(), gp) == null) {
-            plugin.broadcast(plugin.getMessage("player-joined"), new HashMap<>() {{
-                put("player", gp.getPlayer().displayName());
-            }});
-
-            resetPlayer(gp.getPlayer());
-            updateScoreboard(gp.getPlayer());
-
-            plugin.updateGameInfo("players", Integer.toString(players.size()));
+        for (final GamePlayer gp : this.players.values()) {
+            this.updateScoreboard(gp.player());
         }
     }
 
-    public GamePlayer removePlayer(Player player, boolean quit) {
-        GamePlayer gp = players.get(player.getName());
+    public List<Location> spawnLocations() {
+        return this.spawns;
+    }
+
+    public Collection<GamePlayer> players() {
+        return this.players.values();
+    }
+
+    public void addPlayer(final GamePlayer gp) {
+        if (this.players.put(gp.player().getName(), gp) == null) {
+            this.plugin.broadcast(this.plugin.configMessage("player-joined"), new HashMap<>() {{
+                    this.put("player", gp.player().displayName());
+                }}
+            );
+
+            this.resetPlayer(gp.player());
+            this.updateScoreboard(gp.player());
+
+            this.plugin.updateGameInfo("players", Integer.toString(this.players.size()));
+        }
+    }
+
+    public GamePlayer removePlayer(final Player player, final boolean quit) {
+        final GamePlayer gp = this.players.get(player.getName());
         if (gp == null) return null;
 
-        resetPlayer(player);
+        this.resetPlayer(player);
 
         if (!quit) {
-            if (plugin.hasPermission(player, "respawn") && !gp.hasRespawned()) {
-                gp.setHasRespawned(true);
-                gp.setScore(0);
-                gp.setBucketUses(0);
-                updateLeaderboard();
-                setStartingInventory(player);
+            if (this.plugin.hasPermission(player, "respawn") && !gp.hasRespawned()) {
+                gp.hasRespawned(true);
+                gp.score(0);
+                gp.bucketUses(0);
+                this.updateLeaderboard();
+                this.startingInventory(player);
 
-                Location loc = spawns.get(ThreadLocalRandom.current().nextInt(spawns.size()));
-                loc.setWorld(plugin.getServer().getWorld(plugin.getGameWorldName()));
-                gp.setSpawn(loc);
+                final Location loc = this.spawns.get(ThreadLocalRandom.current().nextInt(this.spawns.size()));
+                loc.setWorld(this.plugin.getServer().getWorld(this.plugin.gameWorldName()));
+                gp.spawnLocation(loc);
                 player.teleport(loc);
 
-                plugin.broadcast(plugin.getMessage("player-respawned"), new HashMap<>() {{
-                    put("player", player.displayName());
-                }});
+                this.plugin.broadcast(this.plugin.configMessage("player-respawned"), new HashMap<>() {{
+                        this.put("player", player.displayName());
+                    }}
+                );
             } else {
-                players.remove(player.getName());
-                leaderboard.remove(gp);
-                updateLeaderboard();
+                this.players.remove(player.getName());
+                this.leaderboard.remove(gp);
+                this.updateLeaderboard();
 
-                plugin.broadcast(plugin.getMessage("player-died"), new HashMap<>() {{
-                    put("player", player.displayName());
-                }});
-                if (players.size() > 1) {
-                    plugin.broadcast(plugin.getMessage("remaining-players"), new HashMap<>() {{
-                        put("count", Component.text(players.size()));
-                        put("optional-s", Component.text(players.size() != 1 ? "s" : ""));
-                    }});
+                this.plugin.broadcast(this.plugin.configMessage("player-died"), new HashMap<>() {{
+                        this.put("player", player.displayName());
+                    }}
+                );
+                if (this.players.size() > 1) {
+                    this.plugin.broadcast(this.plugin.configMessage("remaining-players"), new HashMap<>() {{
+                            this.put("count", Component.text(Game.this.players.size()));
+                            this.put("optional-s", Component.text(Game.this.players.size() != 1 ? "s" : ""));
+                        }}
+                    );
                 }
-                gp.setIsDead(true);
-                sendToLobby(player);
+                gp.isDead(true);
+                this.sendToLobby(player);
             }
         } else {
-            players.remove(player.getName());
-            leaderboard.remove(gp);
-            updateLeaderboard();
+            this.players.remove(player.getName());
+            this.leaderboard.remove(gp);
+            this.updateLeaderboard();
 
-            plugin.broadcast(plugin.getMessage("player-left"), new HashMap<>() {{
-                put("player", player.displayName());
-            }});
+            this.plugin.broadcast(this.plugin.configMessage("player-left"), new HashMap<>() {{
+                    this.put("player", player.displayName());
+                }}
+            );
         }
 
-        plugin.updateGameInfo("players", Integer.toString(players.size()));
+        this.plugin.updateGameInfo("players", Integer.toString(this.players.size()));
         return gp;
     }
 
-    public GamePlayer getPlayer(Player player) {
-       for (GamePlayer gp : players.values()) {
-           if (gp.getPlayer().getUniqueId().equals(player.getUniqueId())) {
-               return gp;
-           }
-       }
-       return null;
-    }
-
-    public void updateScore(GamePlayer gp) {
-        leaderboard.put(gp, gp.getScore());
-        updateLeaderboard();
-    }
-
-    private void setCounter(int counter) {
-        this.counter = counter;
-        plugin.updateGameInfo("counter", Integer.toString(counter));
-    }
-
-    private void setState(GameState state) {
-        this.state = state;
-        plugin.updateGameInfo("state", state.name());
-
-        for (GamePlayer gp : players.values()) {
-            updateScoreboard(gp.getPlayer());
+    public GamePlayer player(final Player player) {
+        for (final GamePlayer gp : this.players.values()) {
+            if (gp.player().getUniqueId().equals(player.getUniqueId())) {
+                return gp;
+            }
         }
+        return null;
+    }
+
+    public void updateScore(final GamePlayer gp) {
+        this.leaderboard.put(gp, gp.score());
+        this.updateLeaderboard();
+    }
+
+    private void counter(final int counter) {
+        this.counter = counter;
+        this.plugin.updateGameInfo("counter", Integer.toString(counter));
     }
 
     private void nextTick() {
-        if (state == GameState.WAITING) {
-            if (players.values().size() >= plugin.getConfig().getInt("game.players-required-to-start")) {
-//                if (caveGenerator != null && !caveGenerator.isReady()) {
-//                    plugin.getLogger().info("Waiting for the world to be generated...");
-//                } else {
-//                    preStart();
-//                }
-                preStart();
+        if (this.state == GameState.WAITING) {
+            if (this.players.values().size() >= this.plugin.getConfig().getInt("game.players-required-to-start")) {
+                //                if (caveGenerator != null && !caveGenerator.isReady()) {
+                //                    plugin.getLogger().info("Waiting for the world to be generated...");
+                //                } else {
+                //                    preStart();
+                //                }
+                this.preStart();
             }
-        } else if (state == GameState.STARTING) {
-            if (counter >= 0) {
-                Bukkit.getServer().sendActionBar(MiniMessage.miniMessage().deserialize("<gray>Starting In: <green>" + counter));
+        } else if (this.state == GameState.STARTING) {
+            if (this.counter >= 0) {
+                Bukkit.getServer().sendActionBar(MiniMessage.miniMessage().deserialize("<gray>Starting In: <green>" + this.counter));
             }
 
-            if (counter == 0) {
-                start();
+            if (this.counter == 0) {
+                this.start();
             } else {
-                if ((counter % 60 == 0 || counter == 30 || counter == 15
-                        || counter == 10 || counter <= 5)) {
-                    plugin.broadcast(plugin.getMessage("game-starting"), new HashMap<>() {{
-                        put("seconds", Component.text(counter));
-                        put("optional-s", Component.text(counter != 1 ? "s" : ""));
-                    }});
+                if (this.counter % 60 == 0 || this.counter == 30 || this.counter == 15
+                        || this.counter == 10 || this.counter <= 5) {
+                    this.plugin.broadcast(this.plugin.configMessage("game-starting"), new HashMap<>() {{
+                            this.put("seconds", Component.text(Game.this.counter));
+                            this.put("optional-s", Component.text(Game.this.counter != 1 ? "s" : ""));
+                        }}
+                    );
                 }
             }
-        } else if (state == GameState.RUNNING) {
-            int gameDurationSeconds = plugin.getConfig().getInt("game.duration-seconds");
-            int gracePeriodSeconds = plugin.getConfig().getInt("game.grace-period-duration-seconds");
+        } else if (this.state == GameState.RUNNING) {
+            final int gameDurationSeconds = this.plugin.getConfig().getInt("game.duration-seconds");
+            final int gracePeriodSeconds = this.plugin.getConfig().getInt("game.grace-period-duration-seconds");
 
-            if (counter > 0) {
-                if (gracePeriod) {
+            if (this.counter > 0) {
+                if (this.gracePeriod) {
                     Bukkit.getServer().sendActionBar(MiniMessage.miniMessage().deserialize("<dark_aqua>Grace Period"));
                 } else {
-                    Bukkit.getServer().sendActionBar(MiniMessage.miniMessage().deserialize("<gray>Ending In: <green>" + counter));
+                    Bukkit.getServer().sendActionBar(MiniMessage.miniMessage().deserialize("<gray>Ending In: <green>" + this.counter));
                 }
-            } else if (counter == 0) {
+            } else if (this.counter == 0) {
                 Bukkit.getServer().sendActionBar(MiniMessage.miniMessage().deserialize("<red>Game Over"));
             }
 
-            if (counter == gameDurationSeconds - gracePeriodSeconds) {
-                gracePeriod = false;
-                plugin.broadcast(plugin.getMessage("grace-period-ended"));
-            } else if ((counter % 60 == 0 || counter == 30 || counter == 15
-                    || counter == 10 || counter <= 5) && counter != 0) {
-                int minutes = counter / 60;
+            if (this.counter == gameDurationSeconds - gracePeriodSeconds) {
+                this.gracePeriod = false;
+                this.plugin.broadcast(this.plugin.configMessage("grace-period-ended"));
+            } else if ((this.counter % 60 == 0 || this.counter == 30 || this.counter == 15
+                    || this.counter == 10 || this.counter <= 5) && this.counter != 0) {
+                final int minutes = this.counter / 60;
                 if (minutes > 0 && minutes <= 5) {
-                    plugin.broadcast(plugin.getMessage("game-ending"), new HashMap<>() {{
-                        put("amount", Component.text(minutes));
-                        put("time-type", Component.text(minutes == 1 ? "minute" : "minutes"));
-                    }});
-                    playSound(Sound.UI_BUTTON_CLICK);
-                } else if (counter <= 30) {
-                    plugin.broadcast(plugin.getMessage("game-ending"), new HashMap<>() {{
-                        put("amount", Component.text(counter));
-                        put("time-type", Component.text(counter == 1 ? "second" : "seconds"));
-                    }});
-                    playSound(Sound.UI_BUTTON_CLICK);
+                    this.plugin.broadcast(this.plugin.configMessage("game-ending"), new HashMap<>() {{
+                            this.put("amount", Component.text(minutes));
+                            this.put("time-type", Component.text(minutes == 1 ? "minute" : "minutes"));
+                        }}
+                    );
+                    this.playSound(Sound.UI_BUTTON_CLICK);
+                } else if (this.counter <= 30) {
+                    this.plugin.broadcast(this.plugin.configMessage("game-ending"), new HashMap<>() {{
+                            this.put("amount", Component.text(Game.this.counter));
+                            this.put("time-type", Component.text(Game.this.counter == 1 ? "second" : "seconds"));
+                        }}
+                    );
+                    this.playSound(Sound.UI_BUTTON_CLICK);
                 }
-            } else if (counter == 0) {
-                stop();
+            } else if (this.counter == 0) {
+                this.stop();
             }
         }
 
-        if (state == GameState.STARTING || state == GameState.RUNNING) {
-            if (counter <= 10 || counter % 5 == 0) {
-                plugin.updateGameInfo("counter", Integer.toString(counter));
+        if (this.state == GameState.STARTING || this.state == GameState.RUNNING) {
+            if (this.counter <= 10 || this.counter % 5 == 0) {
+                this.plugin.updateGameInfo("counter", Integer.toString(this.counter));
             }
         }
-        counter--;
+        this.counter--;
     }
 
     public void preStart() {
-        setCounter(plugin.getConfig().getInt("game.start-countdown-seconds"));
-        setState(GameState.STARTING);
+        this.counter(this.plugin.getConfig().getInt("game.start-countdown-seconds"));
+        this.gameState(GameState.STARTING);
     }
 
     public void start() {
-        gracePeriod = true;
-        int gracePeriodSeconds = plugin.getConfig().getInt("game.duration-seconds");
-        setCounter(gracePeriodSeconds);
-        plugin.broadcast(plugin.getMessage("game-started"));
+        this.gracePeriod = true;
+        final int gracePeriodSeconds = this.plugin.getConfig().getInt("game.duration-seconds");
+        this.counter(gracePeriodSeconds);
+        this.plugin.broadcast(this.plugin.configMessage("game-started"));
 
-        List<Location> spawnsToUse = new ArrayList<>(spawns);
+        final List<Location> spawnsToUse = new ArrayList<>(this.spawns);
 
-        Iterator<Location> itr = spawnsToUse.iterator();
+        final Iterator<Location> itr = spawnsToUse.iterator();
         while (itr.hasNext()) {
-            Location spawn = itr.next();
+            final Location spawn = itr.next();
             if (spawn.getY() >= 50) {
-                plugin.getLogger().info(spawn + " spawn is too high");
+                this.plugin.getLogger().info(spawn + " spawn is too high");
                 itr.remove();
             }
         }
-        plugin.getLogger().info("Spawns to use: " + spawnsToUse.size());
+        this.plugin.getLogger().info("Spawns to use: " + spawnsToUse.size());
 
-        for (GamePlayer gp : players.values()) {
+        for (final GamePlayer gp : this.players.values()) {
             Location loc = null;
-            if (!generateMap) {
+            if (!this.generateMap) {
                 if (!spawnsToUse.isEmpty()) {
                     loc = spawnsToUse.remove(ThreadLocalRandom.current().nextInt(spawnsToUse.size()));
                 } else {
-                    loc = spawns.remove(ThreadLocalRandom.current().nextInt(spawns.size()));
+                    loc = this.spawns.remove(ThreadLocalRandom.current().nextInt(this.spawns.size()));
                 }
-                loc.setWorld(plugin.getServer().getWorld(plugin.getGameWorldName()));
+                loc.setWorld(this.plugin.getServer().getWorld(this.plugin.gameWorldName()));
             } else {
-//                loc = caveGenerator.getSpawns().get(ThreadLocalRandom.current().nextInt(caveGenerator.getSpawns().size()));
-//                loc.getChunk().load(true);
-//                spawns.add(loc);
+                //                loc = caveGenerator.getSpawns().get(ThreadLocalRandom.current().nextInt(caveGenerator.getSpawns().size()));
+                //                loc.getChunk().load(true);
+                //                spawns.add(loc);
             }
 
-            plugin.getLogger().info("Teleporting " + gp.getPlayer().getName() + " to " + loc);
-            gp.setSpawn(loc);
-            gp.getPlayer().teleport(loc);
+            this.plugin.getLogger().info("Teleporting " + gp.player().getName() + " to " + loc);
+            gp.spawnLocation(loc);
+            gp.player().teleport(loc);
 
-            leaderboard.put(gp, 0);
-            resetPlayer(gp.getPlayer());
-            gp.setScore(0);
-            gp.setBucketUses(0);
-            setStartingInventory(gp.getPlayer());
-            gp.getPlayer().setGameMode(GameMode.SURVIVAL);
+            this.leaderboard.put(gp, 0);
+            this.resetPlayer(gp.player());
+            gp.score(0);
+            gp.bucketUses(0);
+            this.startingInventory(gp.player());
+            gp.player().setGameMode(GameMode.SURVIVAL);
         }
 
-        updateLeaderboard();
+        this.updateLeaderboard();
 
-        plugin.broadcast(plugin.getMessage("game-objective"));
-        playSound(Sound.BLOCK_NOTE_BLOCK_SNARE);
-        setState(GameState.RUNNING);
+        this.plugin.broadcast(this.plugin.configMessage("game-objective"));
+        this.playSound(Sound.BLOCK_NOTE_BLOCK_SNARE);
+        this.gameState(GameState.RUNNING);
 
-//        String serverName = RedisApi.instance().getServerName();
-//        String newName = serverName.replace("pregame", "ingame");
-//        RedisApi.instance().unregisterServer(serverName);
-//        RedisApi.instance().renameServer(newName);
-        String ip = plugin.getServer().getIp();
+        //        String serverName = RedisApi.instance().getServerName();
+        //        String newName = serverName.replace("pregame", "ingame");
+        //        RedisApi.instance().unregisterServer(serverName);
+        //        RedisApi.instance().renameServer(newName);
+        String ip = this.plugin.getServer().getIp();
         if (ip.isEmpty()) {
             try (final DatagramSocket socket = new DatagramSocket()) {
                 socket.connect(InetAddress.getByName("8.8.8.8"), 10002);
                 ip = socket.getLocalAddress().getHostAddress();
-            } catch (UnknownHostException | SocketException e) {
+            } catch (final UnknownHostException | SocketException e) {
                 e.printStackTrace();
             }
         }
@@ -325,150 +343,153 @@ public class Game {
         if (ip.isEmpty()) {
             ip = "localhost";
         }
-//        RedisApi.instance().registerServer(newName, ip, Integer.toString(plugin.getServer().getPort()));
+        //RedisApi.instance().registerServer(newName, ip, Integer.toString(plugin.getServer().getPort()));
     }
 
     private void stop() {
-        plugin.broadcast(plugin.getMessage("game-ended"));
+        this.plugin.broadcast(this.plugin.configMessage("game-ended"));
 
-        if (leaderboard.size() > 0) {
-            Entry<GamePlayer, Integer> winner = leaderboard.entrySet().iterator().next();
-            winner.getKey().setWins(winner.getKey().getWins() + 1);
-            plugin.broadcast(plugin.getMessage("game-win"), new HashMap<>() {{
-                put("player", winner.getKey().getPlayer().displayName());
-                put("score", Component.text(Util.addCommas(winner.getValue())));
-                put("optional-s", Component.text(winner.getKey().getScore() != 1 ? "s" : ""));
-            }});
+        if (this.leaderboard.size() > 0) {
+            final Entry<GamePlayer, Integer> winner = this.leaderboard.entrySet().iterator().next();
+            winner.getKey().wins(winner.getKey().wins() + 1);
+            this.plugin.broadcast(this.plugin.configMessage("game-win"), new HashMap<>() {{
+                    this.put("player", winner.getKey().player().displayName());
+                    this.put("score", Component.text(Util.addCommas(winner.getValue())));
+                    this.put("optional-s", Component.text(winner.getKey().score() != 1 ? "s" : ""));
+                }}
+            );
 
             Bukkit.broadcastMessage("");
-            plugin.broadcast("<dark_aqua><bold>TOP PLAYERS</bold>");
-            List<GamePlayer> sorted = new ArrayList<>(leaderboard.keySet());
+            this.plugin.broadcast("<dark_aqua><bold>TOP PLAYERS</bold>");
+            final List<GamePlayer> sorted = new ArrayList<>(this.leaderboard.keySet());
             for (int i = 0; i < Math.min(sorted.size(), 5); i++) {
-                GamePlayer gp = sorted.get(i);
-                plugin.broadcast("<gray>#" + (i + 1) + ": <green>" + gp.getPlayer().getDisplayName() + " <gray>- " + Util.addCommas(leaderboard.get(gp)));
+                final GamePlayer gp = sorted.get(i);
+                this.plugin.broadcast("<gray>#" + (i + 1) + ": <green>" + gp.player().getDisplayName() + " <gray>- " + Util.addCommas(this.leaderboard.get(gp)));
             }
         } else {
-            plugin.broadcast("<green>The game has ended in a draw!");
+            this.plugin.broadcast("<green>The game has ended in a draw!");
         }
 
-        for (GamePlayer gp : players.values()) {
-            resetPlayer(gp.getPlayer());
+        for (final GamePlayer gp : this.players.values()) {
+            this.resetPlayer(gp.player());
         }
 
-        setState(GameState.DONE);
-        setCounter(0);
+        this.gameState(GameState.DONE);
+        this.counter(0);
 
-        plugin.broadcast("<green>Server restarting in 10 seconds...");
+        this.plugin.broadcast("<green>Server restarting in 10 seconds...");
 
-        plugin.getServer().getScheduler().runTaskLater(plugin, () -> {
-            for (GamePlayer gp : players.values()) {
-                sendToLobby(gp.getPlayer());
+        this.plugin.getServer().getScheduler().runTaskLater(this.plugin, () -> {
+            for (final GamePlayer gp : this.players.values()) {
+                this.sendToLobby(gp.player());
             }
 
-            plugin.getLogger().info("Shutting the server down in 5 seconds...");
-            plugin.getServer().getScheduler().runTaskLater(plugin, () -> {
-                plugin.getLogger().info("Shutting the the server down");
-                plugin.getServer().shutdown();
+            this.plugin.getLogger().info("Shutting the server down in 5 seconds...");
+            this.plugin.getServer().getScheduler().runTaskLater(this.plugin, () -> {
+                this.plugin.getLogger().info("Shutting the the server down");
+                this.plugin.getServer().shutdown();
             }, 20 * 5);
         }, 20 * 10);
     }
 
     private void generateWorld() {
-        plugin.getLogger().info("Deleting existing world...");
-        World currentWorld = Bukkit.getWorld(plugin.getGameWorldName());
+        this.plugin.getLogger().info("Deleting existing world...");
+        final World currentWorld = Bukkit.getWorld(this.plugin.gameWorldName());
         if (currentWorld != null) {
             Util.deleteWorld(currentWorld);
         } else {
-            Util.deleteWorld(new File(plugin.getGameWorldName()));
+            Util.deleteWorld(new File(this.plugin.gameWorldName()));
         }
-        plugin.getLogger().info("Done");
+        this.plugin.getLogger().info("Done");
 
-        plugin.getLogger().info("Creating new world...");
-        World world = plugin.getServer().createWorld(new WorldCreator(plugin.getGameWorldName()));
+        this.plugin.getLogger().info("Creating new world...");
+        final World world = this.plugin.getServer().createWorld(new WorldCreator(this.plugin.gameWorldName()));
 
-        plugin.getLogger().info("Attaching cave populator to world \"" + world.getName() + "\"");
-        caveGenerator = new GiantCavePopulator(plugin, world);
-        world.getPopulators().add(caveGenerator);
-        plugin.getLogger().info("Done");
+        this.plugin.getLogger().info("Attaching cave populator to world \"" + world.getName() + "\"");
+        this.caveGenerator = new GiantCavePopulator(this.plugin, world);
+        world.getPopulators().add(this.caveGenerator);
+        this.plugin.getLogger().info("Done");
 
-//        if (plugin.getServer().getPluginManager().isPluginEnabled("WorldBorder")) {
-//            int ticks = 1;
-//            int defaultPadding = CoordXZ.chunkToBlock(13);
-//            WorldFillTask fillTask = new WorldFillTask(Bukkit.getServer(), null, world.getName(), defaultPadding, 1, ticks, true);
-//            int taskId = plugin.getServer().getScheduler().scheduleSyncRepeatingTask(plugin, fillTask, ticks, ticks);
-//            plugin.getLogger().info("Created world fill task: id=" + taskId);
-//        }
+        //        if (plugin.getServer().getPluginManager().isPluginEnabled("WorldBorder")) {
+        //            int ticks = 1;
+        //            int defaultPadding = CoordXZ.chunkToBlock(13);
+        //            WorldFillTask fillTask = new WorldFillTask(Bukkit.getServer(), null, world.getName(), defaultPadding, 1, ticks, true);
+        //            int taskId = plugin.getServer().getScheduler().scheduleSyncRepeatingTask(plugin, fillTask, ticks, ticks);
+        //            plugin.getLogger().info("Created world fill task: id=" + taskId);
+        //        }
     }
 
     private void loadRandomMap() {
-        String mapsDirAbsPath = plugin.getConfig().getString("maps-directory", "");
-        File mapsDir;
+        final String mapsDirAbsPath = this.plugin.getConfig().getString("maps-directory", "");
+        final File mapsDir;
         if (!mapsDirAbsPath.isEmpty()) {
             mapsDir = new File(mapsDirAbsPath);
         } else {
-            mapsDir = new File(plugin.getDataFolder(), "maps");
+            mapsDir = new File(this.plugin.getDataFolder(), "maps");
         }
 
-        File[] mapArchives = mapsDir.listFiles();
-        File mapArchive = mapArchives[ThreadLocalRandom.current().nextInt(mapArchives.length)];
+        final File[] mapArchives = mapsDir.listFiles();
+        final File mapArchive = mapArchives[ThreadLocalRandom.current().nextInt(mapArchives.length)];
         if (!mapArchive.exists()) {
-            plugin.getLogger().warning("Map archive not found: " + mapArchive.getPath());
+            this.plugin.getLogger().warning("Map archive not found: " + mapArchive.getPath());
             return;
         }
 
-        plugin.getLogger().info("Loading map '" + mapArchive.getName() + "'...");
-        String mapName = mapArchive.getName().substring(0, mapArchive.getName().lastIndexOf('.'));
-        spawns = mapSpawns.get(mapName);
-        plugin.getLogger().info("Loaded " + spawns.size() + " spawns(s) for map " + mapName);
+        this.plugin.getLogger().info("Loading map '" + mapArchive.getName() + "'...");
+        final String mapName = mapArchive.getName().substring(0, mapArchive.getName().lastIndexOf('.'));
+        this.spawns = this.mapSpawns.get(mapName);
+        this.plugin.getLogger().info("Loaded " + this.spawns.size() + " spawns(s) for map " + mapName);
 
-        World world = Util.loadMap(mapArchive, plugin.getGameWorldName());
+        final World world = Util.loadMap(mapArchive, this.plugin.gameWorldName());
 
-        int removed = 0, items = 0;
-        for (Entity e : world.getEntities()) {
+        int removed = 0;
+        int items = 0;
+
+        for (final Entity e : world.getEntities()) {
             if (e.getType() == EntityType.DROPPED_ITEM) {
                 items++;
             }
             removed++;
             e.remove();
         }
-        plugin.getLogger().info("Removed " + removed + " entities (" + items + " were items)");
-        plugin.getLogger().info("Created map from " + mapArchive);
+        this.plugin.getLogger().info("Removed " + removed + " entities (" + items + " were items)");
+        this.plugin.getLogger().info("Created map from " + mapArchive);
     }
 
-    private void playSound(Sound sound) {
-        for (GamePlayer gp : players.values()) {
-            gp.getPlayer().playSound(gp.getPlayer().getLocation(), sound, 1f, 1f);
+    private void playSound(final Sound sound) {
+        for (final GamePlayer gp : this.players.values()) {
+            gp.player().playSound(gp.player().getLocation(), sound, 1f, 1f);
         }
     }
 
-    private void setStartingInventory(Player player) {
-        Inventory inv = player.getInventory();
+    private void startingInventory(final Player player) {
+        final Inventory inv = player.getInventory();
 
-        ItemStack pickaxe = new ItemStack(Material.DIAMOND_PICKAXE);
-        ItemMeta pickaxeMeta = pickaxe.getItemMeta();
+        final ItemStack pickaxe = new ItemStack(Material.DIAMOND_PICKAXE);
+        final ItemMeta pickaxeMeta = pickaxe.getItemMeta();
         pickaxeMeta.setUnbreakable(true);
         pickaxe.setItemMeta(pickaxeMeta);
         pickaxe.addUnsafeEnchantment(Enchantment.SILK_TOUCH, 1);
 
-        ItemStack bow = new ItemStack(Material.BOW);
-        ItemMeta bowMeta = bow.getItemMeta();
+        final ItemStack bow = new ItemStack(Material.BOW);
+        final ItemMeta bowMeta = bow.getItemMeta();
         bowMeta.setUnbreakable(true);
         bow.setItemMeta(bowMeta);
         bow.addUnsafeEnchantment(Enchantment.ARROW_INFINITE, 1);
 
-        ItemStack shield = new ItemStack(Material.SHIELD);
+        final ItemStack shield = new ItemStack(Material.SHIELD);
         shield.setDurability((short) 168);
         player.getInventory().setItemInOffHand(shield);
 
-        inv.addItem(Util.setDisplayName(pickaxe, "&a&lStarter Pickaxe"));
-        inv.addItem(Util.setDisplayName(new ItemStack(Material.IRON_SWORD), "&a&lStarter Sword"));
-        inv.addItem(Util.setDisplayName(bow, "&a&lInfinite Bow"));
-        inv.addItem(Util.setDisplayName(new ItemStack(Material.IRON_SHOVEL), "&a&lStarter Shovel"));
-        inv.addItem(Util.setDisplayName(new ItemStack(Material.COOKED_BEEF), "&a&lInfinite Steak Supply"));
+        inv.addItem(Util.displayName(pickaxe, "&a&lStarter Pickaxe"));
+        inv.addItem(Util.displayName(new ItemStack(Material.IRON_SWORD), "&a&lStarter Sword"));
+        inv.addItem(Util.displayName(bow, "&a&lInfinite Bow"));
+        inv.addItem(Util.displayName(new ItemStack(Material.IRON_SHOVEL), "&a&lStarter Shovel"));
+        inv.addItem(Util.displayName(new ItemStack(Material.COOKED_BEEF), "&a&lInfinite Steak Supply"));
         inv.addItem(new ItemStack(Material.COBBLESTONE, 32));
         inv.addItem(new ItemStack(Material.WATER_BUCKET));
-        inv.addItem(Util.setDisplayName(new ItemStack(Material.CRAFTING_TABLE), "&a&lInfinite Crafting Table"));
-        inv.addItem(Util.setDisplayName(new ItemStack(Material.TORCH), "&a&lInfinite Torch"));
+        inv.addItem(Util.displayName(new ItemStack(Material.CRAFTING_TABLE), "&a&lInfinite Crafting Table"));
+        inv.addItem(Util.displayName(new ItemStack(Material.TORCH), "&a&lInfinite Torch"));
         inv.setItem(35, new ItemStack(Material.ARROW, 1));
 
         player.getInventory().setHelmet(new ItemStack(Material.IRON_HELMET));
@@ -477,8 +498,8 @@ public class Game {
         player.getInventory().setBoots(new ItemStack(Material.IRON_BOOTS));
     }
 
-    public void resetPlayer(Player player) {
-        int maxHealth = plugin.getConfig().getInt("game.player-health");
+    public void resetPlayer(final Player player) {
+        final int maxHealth = this.plugin.getConfig().getInt("game.player-health");
         player.setMaxHealth(maxHealth);
         player.setHealth(maxHealth);
         player.setFoodLevel(20);
@@ -489,54 +510,55 @@ public class Game {
     }
 
     private void updateLeaderboard() {
-        leaderboard = Util.sortByValue(leaderboard, true);
+        this.leaderboard = Util.sortByValue(this.leaderboard, true);
     }
 
-    private void showFeatherBoard(Player player, String name) {
-        if (plugin.getServer().getPluginManager().getPlugin("FeatherBoard") != null) {
+    private void showFeatherBoard(final Player player, final String name) {
+        if (this.plugin.getServer().getPluginManager().getPlugin("FeatherBoard") != null) {
             FeatherBoardAPI.showScoreboard(player, name);
         } else {
-            plugin.getLogger().warning("FeatherBoard plugin not found");
+            this.plugin.getLogger().warning("FeatherBoard plugin not found");
         }
     }
 
-    private void updateScoreboard(Player player) {
-        if (plugin.getLuckPermsApi() != null) {
-            ConfigurationSection configSection = plugin.getConfig().getConfigurationSection("scoreboards");
-            String stateName = state.name().toLowerCase();
-            String defaultScoreboardName = configSection.getString(stateName + ".default.scoreboard-name");
-            String donorScoreboardName = configSection.getString(stateName + ".donor.scoreboard-name", "");
-            String donorScoreboardPerm = configSection.getString(stateName + ".donor.permission", "");
+    private void updateScoreboard(final Player player) {
+        if (this.plugin.luckPermsAPI() != null) {
+            final ConfigurationSection configSection = this.plugin.getConfig().getConfigurationSection("scoreboards");
+            final String stateName = this.state.name().toLowerCase();
+            final String defaultScoreboardName = configSection.getString(stateName + ".default.scoreboard-name");
+            final String donorScoreboardName = configSection.getString(stateName + ".donor.scoreboard-name", "");
+            final String donorScoreboardPerm = configSection.getString(stateName + ".donor.permission", "");
 
             String scoreboardName = defaultScoreboardName;
 
             if (!donorScoreboardPerm.isEmpty()) {
-                if (plugin.hasPermission(player, donorScoreboardPerm)) {
+                if (this.plugin.hasPermission(player, donorScoreboardPerm)) {
                     scoreboardName = donorScoreboardName;
                 }
             }
 
-            showFeatherBoard(player, scoreboardName);
+            this.showFeatherBoard(player, scoreboardName);
         }
     }
 
-    private void sendToLobby(Player player) {
-        List<String> lobbyServers = plugin.getConfig().getStringList("lobby-servers");
-        String selectedServer = lobbyServers.get(ThreadLocalRandom.current().nextInt(lobbyServers.size()));
+    private void sendToLobby(final Player player) {
+        final List<String> lobbyServers = this.plugin.getConfig().getStringList("lobby-servers");
+        final String selectedServer = lobbyServers.get(ThreadLocalRandom.current().nextInt(lobbyServers.size()));
 
-        plugin.message(player, "<green>Sending you to " + selectedServer);
-        plugin.getLogger().info(String.format("Sending %s to %s...", player.getName(), selectedServer));
+        this.plugin.message(player, "<green>Sending you to " + selectedServer);
+        this.plugin.getLogger().info(String.format("Sending %s to %s...", player.getName(), selectedServer));
 
         try (
-                ByteArrayOutputStream b = new ByteArrayOutputStream();
-                DataOutputStream out = new DataOutputStream(b)
+                final ByteArrayOutputStream b = new ByteArrayOutputStream();
+                final DataOutputStream out = new DataOutputStream(b)
         ) {
             out.writeUTF("Connect");
             out.writeUTF(selectedServer);
-            player.sendPluginMessage(plugin, "BungeeCord", b.toByteArray());
+            player.sendPluginMessage(this.plugin, "BungeeCord", b.toByteArray());
 
-        } catch (IOException e) {
+        } catch (final IOException e) {
             e.printStackTrace();
         }
     }
+
 }

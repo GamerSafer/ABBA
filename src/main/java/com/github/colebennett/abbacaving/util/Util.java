@@ -1,36 +1,52 @@
 package com.github.colebennett.abbacaving.util;
 
-import org.bukkit.*;
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.text.DecimalFormat;
+import java.util.Enumeration;
+import java.util.LinkedHashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
+import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
+import org.bukkit.GameRule;
+import org.bukkit.Location;
+import org.bukkit.World;
+import org.bukkit.WorldCreator;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.codehaus.plexus.archiver.tar.TarGZipUnArchiver;
 import org.codehaus.plexus.logging.console.ConsoleLoggerManager;
 
-import java.io.*;
-import java.text.DecimalFormat;
-import java.util.*;
-import java.util.Map.Entry;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipFile;
+// TODO: modernize, replace legacy with components
+public final class Util {
 
-public class Util {
+    private static final DecimalFormat commaFormat = new DecimalFormat("#,###");
 
-    private Util() {}
+    private Util() {
+    }
 
-    public static boolean inBounds(Location location, Location bound1, Location bound2) {
+    public static boolean inBounds(final Location location, final Location bound1, final Location bound2) {
         return Math.min(bound1.getX(), bound2.getX()) <= location.getX() && location.getX() <= Math.max(bound1.getX(), bound2.getX()) &&
                 Math.min(bound1.getY(), bound2.getY()) <= location.getY() && location.getY() <= Math.max(bound1.getY(), bound2.getY()) &&
                 Math.min(bound1.getZ(), bound2.getZ()) <= location.getZ() && location.getZ() <= Math.max(bound1.getZ(), bound2.getZ());
     }
 
-    private static final DecimalFormat commaFormat = new DecimalFormat("#,###");
-
-    public static String addCommas(Object obj) {
+    public static String addCommas(final Object obj) {
         return commaFormat.format(obj);
     }
 
-    public static ItemStack setDisplayName(ItemStack item, String displayName) {
-        ItemMeta meta = item.getItemMeta();
+    public static ItemStack displayName(final ItemStack item, final String displayName) {
+        final ItemMeta meta = item.getItemMeta();
         if (meta == null)
             return item;
         meta.setDisplayName(colorize(displayName));
@@ -38,18 +54,18 @@ public class Util {
         return item;
     }
 
-    public static String colorize(String str) {
+    public static String colorize(final String str) {
         return ChatColor.translateAlternateColorCodes('&', str);
     }
 
-    public static World loadMap(File archive, String mapName) {
-        File folder = new File(Bukkit.getWorldContainer(), mapName);
+    public static World loadMap(final File archive, final String mapName) {
+        final File folder = new File(Bukkit.getWorldContainer(), mapName);
         if (folder.exists()) {
             deleteWorld(folder);
         }
 
-        TarGZipUnArchiver ua = new TarGZipUnArchiver();
-        ConsoleLoggerManager manager = new ConsoleLoggerManager();
+        final TarGZipUnArchiver ua = new TarGZipUnArchiver();
+        final ConsoleLoggerManager manager = new ConsoleLoggerManager();
         manager.initialize();
         ua.enableLogging(manager.getLoggerForComponent("bla"));
         ua.setSourceFile(archive);
@@ -57,7 +73,7 @@ public class Util {
         ua.setDestDirectory(folder);
         ua.extract();
 
-        World world = Bukkit.createWorld(new WorldCreator(mapName));
+        final World world = Bukkit.createWorld(new WorldCreator(mapName));
         world.setTime(0);
         world.setStorm(false);
         world.setThundering(false);
@@ -66,61 +82,61 @@ public class Util {
         return world;
     }
 
-    public static void unzip(File file, String newFolderName) throws IOException {
-        String fileName = file.getName();
-        int exindex = fileName.lastIndexOf(".");
-        String dirName = fileName.substring(0, exindex);
+    public static void unzip(final File file, final String newFolderName) throws IOException {
+        final String fileName = file.getName();
+        final int exindex = fileName.lastIndexOf(".");
+        final String dirName = fileName.substring(0, exindex);
 
-        File toDir = new File(file.getParent(), dirName + "/");
+        final File toDir = new File(file.getParent(), dirName + "/");
         unzip(file, toDir, newFolderName);
     }
 
-    public static void unzip(File file, File toDir, String newFolderName) throws IOException {
+    public static void unzip(final File file, final File toDir, final String newFolderName) throws IOException {
         toDir.mkdirs();
         if (!toDir.exists()) {
             throw new IllegalStateException();
         }
-        ZipFile zipFile = new ZipFile(file);
-        Enumeration<? extends ZipEntry> entries = zipFile.entries();
+        final ZipFile zipFile = new ZipFile(file);
+        final Enumeration<? extends ZipEntry> entries = zipFile.entries();
 
         int len;
-        byte[] read = new byte[1024];
+        final byte[] read = new byte[1024];
         String base = null;
         while (entries.hasMoreElements()) {
-            ZipEntry ze = entries.nextElement();
+            final ZipEntry ze = entries.nextElement();
             if (base == null) {
                 base = ze.getName().split("/")[0];
             }
 
-            File outFile = new File(toDir, ze.getName());
+            final File outFile = new File(toDir, ze.getName());
             if (ze.isDirectory()) {
                 outFile.mkdirs();
             } else {
                 BufferedInputStream bis = null;
                 BufferedOutputStream bos = null;
                 try {
-                    InputStream is = zipFile.getInputStream(ze);
+                    final InputStream is = zipFile.getInputStream(ze);
                     bis = new BufferedInputStream(is);
                     bos = new BufferedOutputStream(new FileOutputStream(outFile));
                     while ((len = bis.read(read)) != -1) {
                         bos.write(read, 0, len);
                     }
-                } catch (FileNotFoundException e) {
+                } catch (final FileNotFoundException e) {
                     throw e;
-                } catch (IOException e) {
+                } catch (final IOException e) {
                     e.printStackTrace();
                 } finally {
                     try {
                         if (bis != null) {
                             bis.close();
                         }
-                    } catch (IOException ignored) {
+                    } catch (final IOException ignored) {
                     }
                     try {
                         if (bos != null) {
                             bos.close();
                         }
-                    } catch (IOException ignored) {
+                    } catch (final IOException ignored) {
                     }
                 }
             }
@@ -130,17 +146,17 @@ public class Util {
         }
     }
 
-    public static void deleteWorld(World world) {
+    public static void deleteWorld(final World world) {
         deleteWorld(world.getWorldFolder());
     }
 
-    public static void deleteWorld(File worldDir) {
-        File[] fs = worldDir.listFiles();
+    public static void deleteWorld(final File worldDir) {
+        final File[] fs = worldDir.listFiles();
         if (fs == null)
             return;
-        for (File f : fs) {
+        for (final File f : fs) {
             if (f.isDirectory()) {
-                for (File ff : f.listFiles()) {
+                for (final File ff : f.listFiles()) {
                     ff.delete();
                 }
                 f.delete();
@@ -152,19 +168,24 @@ public class Util {
     }
 
     public static <K, V extends Comparable<? super V>> Map<K, V> sortByValue(
-            Map<K, V> map, final boolean desc) {
-        List<Entry<K, V>> entries = new LinkedList<>(map.entrySet());
-        Collections.sort(entries, (o1, o2) -> {
+            final Map<K, V> map, final boolean desc) {
+        final List<Entry<K, V>> entries = new LinkedList<>(map.entrySet());
+
+        entries.sort((o1, o2) -> {
             if (desc) {
                 return o2.getValue().compareTo(o1.getValue());
             } else {
                 return o1.getValue().compareTo(o2.getValue());
             }
         });
-        Map<K, V> result = new LinkedHashMap<>(entries.size());
-        for (Entry<K, V> entry : entries) {
+
+        final Map<K, V> result = new LinkedHashMap<>(entries.size());
+
+        for (final Entry<K, V> entry : entries) {
             result.put(entry.getKey(), entry.getValue());
         }
+
         return result;
     }
+
 }

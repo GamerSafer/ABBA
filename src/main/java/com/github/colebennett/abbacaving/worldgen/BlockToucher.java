@@ -1,21 +1,20 @@
 package com.github.colebennett.abbacaving.worldgen;
 
+import java.util.ArrayDeque;
+import java.util.Queue;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.plugin.Plugin;
 
-import java.util.ArrayDeque;
-import java.util.Queue;
-
 public class BlockToucher {
 
     private static final BlockFace[] faces = {
-            BlockFace.SELF,
-            BlockFace.UP,
-            BlockFace.NORTH,
-            BlockFace.SOUTH,
-            BlockFace.EAST,
-            BlockFace.WEST
+        BlockFace.SELF,
+        BlockFace.UP,
+        BlockFace.NORTH,
+        BlockFace.SOUTH,
+        BlockFace.EAST,
+        BlockFace.WEST
     };
 
     private static final int TOUCHES_PER_TICK = 50;
@@ -24,43 +23,44 @@ public class BlockToucher {
     private final Queue<Block> needsTouching = new ArrayDeque<>();
     private boolean running;
 
-    BlockToucher(Plugin plugin) {
+    BlockToucher(final Plugin plugin) {
         this.plugin = plugin;
     }
 
-    public Queue<Block> getQueue() {
-        return needsTouching;
+    public Queue<Block> blockQueue() {
+        return this.needsTouching;
     }
 
-    public void touch(Block block) {
-        needsTouching.add(block);
+    public void touch(final Block block) {
+        this.needsTouching.add(block);
 
-        if (!running && plugin.isEnabled()) {
-            running = true;
-            plugin.getServer().getScheduler().scheduleSyncDelayedTask(plugin, new TouchTask());
+        if (!this.running && this.plugin.isEnabled()) {
+            this.running = true;
+            this.plugin.getServer().getScheduler().scheduleSyncDelayedTask(this.plugin, new TouchTask());
         }
     }
 
     private class TouchTask implements Runnable {
         @Override
         public void run() {
-            if (needsTouching.isEmpty()) {
-                running = false;
+            if (BlockToucher.this.needsTouching.isEmpty()) {
+                BlockToucher.this.running = false;
                 return;
             }
 
             for (int i = 0; i < TOUCHES_PER_TICK; i++) {
-                if (!needsTouching.isEmpty()) {
-                    Block block = needsTouching.remove();
-                    for (BlockFace face : faces) {
+                if (!BlockToucher.this.needsTouching.isEmpty()) {
+                    final Block block = BlockToucher.this.needsTouching.remove();
+                    for (final BlockFace face : faces) {
                         block.getRelative(face).getState().update(true, true);
                     }
                 }
             }
 
-            if (plugin.isEnabled()) {
-                plugin.getServer().getScheduler().scheduleSyncDelayedTask(plugin, this);
+            if (BlockToucher.this.plugin.isEnabled()) {
+                BlockToucher.this.plugin.getServer().getScheduler().scheduleSyncDelayedTask(BlockToucher.this.plugin, this);
             }
         }
     }
+
 }

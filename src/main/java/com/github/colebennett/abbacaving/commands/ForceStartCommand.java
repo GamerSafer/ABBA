@@ -11,17 +11,18 @@ public class ForceStartCommand implements CommandExecutor {
 
     private final AbbaCavingPlugin plugin;
 
-    public ForceStartCommand(AbbaCavingPlugin plugin) {
+    public ForceStartCommand(final AbbaCavingPlugin plugin) {
         this.plugin = plugin;
     }
 
     @Override
-    public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
-        if (plugin.getGame().getState() != GameState.WAITING) {
-            plugin.message(sender, "<red>Game is not in the waiting state.");
+    public boolean onCommand(@NotNull final CommandSender sender, @NotNull final Command command, @NotNull final String label, @NotNull final String[] args) {
+        if (this.plugin.currentGame().gameState() != GameState.WAITING) {
+            this.plugin.message(sender, "<red>Game is not in the waiting state.");
             return false;
         }
-        plugin.getGame().preStart();
+        this.plugin.currentGame().preStart();
         return true;
     }
+
 }

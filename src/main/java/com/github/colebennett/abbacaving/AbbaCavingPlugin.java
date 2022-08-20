@@ -5,14 +5,41 @@ import com.github.colebennett.abbacaving.commands.ForceStartCommand;
 import com.github.colebennett.abbacaving.commands.NightVisionCommand;
 import com.github.colebennett.abbacaving.commands.PointsCommand;
 import com.github.colebennett.abbacaving.commands.StatsCommand;
-import com.github.colebennett.abbacaving.game.*;
-import com.github.colebennett.abbacaving.listeners.*;
-import com.github.colebennett.abbacaving.util.Util;
-import com.github.colebennett.abbacaving.worldgen.GiantCavePopulator;
+import com.github.colebennett.abbacaving.game.CaveLoot;
+import com.github.colebennett.abbacaving.game.CaveOre;
+import com.github.colebennett.abbacaving.game.Game;
+import com.github.colebennett.abbacaving.game.GamePlayer;
+import com.github.colebennett.abbacaving.game.GameState;
+import com.github.colebennett.abbacaving.listeners.BlockBreakListener;
+import com.github.colebennett.abbacaving.listeners.BlockPlaceListener;
+import com.github.colebennett.abbacaving.listeners.EntityListener;
+import com.github.colebennett.abbacaving.listeners.InventoryListener;
+import com.github.colebennett.abbacaving.listeners.PlayerListener;
 import com.github.colebennett.abbacaving.placeholders.GamePlaceholders;
 import com.github.colebennett.abbacaving.placeholders.LobbyPlaceholders;
+import com.github.colebennett.abbacaving.util.Util;
+import com.github.colebennett.abbacaving.worldgen.GiantCavePopulator;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
+import java.io.File;
+import java.io.IOException;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
+import java.util.concurrent.Executors;
+import java.util.stream.Collectors;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.kyori.adventure.text.minimessage.tag.Tag;
@@ -36,22 +63,9 @@ import org.bukkit.plugin.java.JavaPlugin;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPubSub;
 
-import java.io.File;
-import java.io.IOException;
-import java.sql.*;
-import java.util.*;
-import java.util.Map.Entry;
-import java.util.concurrent.Executors;
-import java.util.stream.Collectors;
-
 public class AbbaCavingPlugin extends JavaPlugin {
 
-    private enum ServerMode {
-        GAME, LOBBY
-    }
-
     public static final String REDIS_TAG = "abbacaving";
-
     private Set<CaveOre> ores;
     private Set<CaveLoot> loot;
     private Map<String, List<Location>> mapSpawns;
@@ -59,27 +73,28 @@ public class AbbaCavingPlugin extends JavaPlugin {
     private Jedis jedis;
     private LuckPerms luckPermsApi;
     private HikariDataSource dataSource;
+    private Map<String, ServerInfo> servers;
 
     @Override
     public void onEnable() {
-        saveDefaultConfig();
+        this.saveDefaultConfig();
 
-        if (getConfig().getBoolean("cave-generator.generator-mode")) {
-            getLogger().info("Generator mode");
+        if (this.getConfig().getBoolean("cave-generator.generator-mode")) {
+            this.getLogger().info("Generator mode");
 
-            for (World world : getServer().getWorlds()) {
+            for (final World world : this.getServer().getWorlds()) {
                 if (world.getName().startsWith("abbacaving")) {
-                    getLogger().info("Attaching giant cave populator to world \"" + world.getName() + "\"");
-                    GiantCavePopulator cavePopulator = new GiantCavePopulator(this, world);
-                    getServer().getPluginManager().registerEvents(cavePopulator, this);
+                    this.getLogger().info("Attaching giant cave populator to world \"" + world.getName() + "\"");
+                    final GiantCavePopulator cavePopulator = new GiantCavePopulator(this, world);
+                    this.getServer().getPluginManager().registerEvents(cavePopulator, this);
                     world.getPopulators().add(cavePopulator);
 
-                    int borderSize = getConfig().getInt("cave-generator.border-size");
-                    getServer().dispatchCommand(getServer().getConsoleSender(), "wb shape square");
-                    getServer().dispatchCommand(getServer().getConsoleSender(), "wb fillautosave 0");
-                    getServer().dispatchCommand(getServer().getConsoleSender(), "wb " + world.getName() + " set " + borderSize + " " + borderSize + " 0 0");
-                    getServer().dispatchCommand(getServer().getConsoleSender(), "wb " + world.getName() + " fill 500 112");
-                    getServer().dispatchCommand(getServer().getConsoleSender(), "wb fill confirm");
+                    final int borderSize = this.getConfig().getInt("cave-generator.border-size");
+                    this.getServer().dispatchCommand(this.getServer().getConsoleSender(), "wb shape square");
+                    this.getServer().dispatchCommand(this.getServer().getConsoleSender(), "wb fillautosave 0");
+                    this.getServer().dispatchCommand(this.getServer().getConsoleSender(), "wb " + world.getName() + " set " + borderSize + " " + borderSize + " 0 0");
+                    this.getServer().dispatchCommand(this.getServer().getConsoleSender(), "wb " + world.getName() + " fill 500 112");
+                    this.getServer().dispatchCommand(this.getServer().getConsoleSender(), "wb fill confirm");
                     break;
                 }
             }
@@ -87,123 +102,123 @@ public class AbbaCavingPlugin extends JavaPlugin {
             return;
         }
 
-        ServerMode serverMode = ServerMode.valueOf(getConfig().getString("server.mode"));
-        getLogger().info("Server mode: " + serverMode.name());
+        final ServerMode serverMode = ServerMode.valueOf(this.getConfig().getString("server.mode"));
+        this.getLogger().info("Server mode: " + serverMode.name());
 
-        getServer().getMessenger().registerOutgoingPluginChannel(this, "BungeeCord");
+        this.getServer().getMessenger().registerOutgoingPluginChannel(this, "BungeeCord");
 
-        jedis = new Jedis(
-                getConfig().getString("redis.host"),
-                getConfig().getInt("redis.port"));
-        jedis.auth(getConfig().getString("redis.password"));
+        this.jedis = new Jedis(
+                this.getConfig().getString("redis.host"),
+                this.getConfig().getInt("redis.port"));
+        this.jedis.auth(this.getConfig().getString("redis.password"));
 
         switch (serverMode) {
             case GAME:
-                initGameMode();
+                this.initGameMode();
                 break;
             case LOBBY:
-                initLobbyMode();
+                this.initLobbyMode();
                 break;
         }
 
-        getCommand("acreload").setExecutor((sender, command, label, args) -> {
+        this.getCommand("acreload").setExecutor((sender, command, label, args) -> {
             if (!(sender.isOp())) {
                 sender.sendMessage(ChatColor.RED + "You do not have permission to do this.");
                 return false;
             }
-            reloadConfig();
+            this.reloadConfig();
             sender.sendMessage("Reloaded configuration");
             return true;
         });
 
-        getCommand("bcastnp").setExecutor((sender, command, label, args) -> {
+        this.getCommand("bcastnp").setExecutor((sender, command, label, args) -> {
             if (!(sender.isOp())) {
                 sender.sendMessage(ChatColor.RED + "You do not have permission to do this.");
                 return false;
             }
-            broadcast(String.join(" ", args));
+            this.broadcast(String.join(" ", args));
             return true;
         });
     }
 
     @Override
     public void onDisable() {
-        if (jedis != null) {
-            String serversKey = AbbaCavingPlugin.REDIS_TAG + ":servers";
-            jedis.srem(serversKey, getServerId());
-            String serverList = String.join(",", jedis.smembers(serversKey));
-            jedis.publish(AbbaCavingPlugin.REDIS_TAG, String.format("%s,%s", serversKey, serverList));
-            getLogger().info("[Redis] Updated server list: " + serverList);
+        if (this.jedis != null) {
+            final String serversKey = AbbaCavingPlugin.REDIS_TAG + ":servers";
+            this.jedis.srem(serversKey, this.serverId());
+            final String serverList = String.join(",", this.jedis.smembers(serversKey));
+            this.jedis.publish(AbbaCavingPlugin.REDIS_TAG, String.format("%s,%s", serversKey, serverList));
+            this.getLogger().info("[Redis] Updated server list: " + serverList);
 
-            String keyPrefix = String.format("%s:server:%s:", REDIS_TAG, getServerId());
-            jedis.del(
+            final String keyPrefix = String.format("%s:server:%s:", REDIS_TAG, this.serverId());
+            this.jedis.del(
                     keyPrefix + "state",
                     keyPrefix + "players",
                     keyPrefix + "slots",
                     keyPrefix + "counter");
-            getLogger().info("[Redis] Removed data for server " + getServerId());
+            this.getLogger().info("[Redis] Removed data for server " + this.serverId());
         }
     }
 
-    public String getServerId() {
-        return Integer.toString(getServer().getPort());
+    public String serverId() {
+        return Integer.toString(this.getServer().getPort());
     }
 
-    public Game getGame() {
-        return game;
+    public Game currentGame() {
+        return this.game;
     }
 
-    public Jedis getJedis() {
-        return jedis;
+    public Jedis jedis() {
+        return this.jedis;
     }
 
-    public LuckPerms getLuckPermsApi() {
-        return luckPermsApi;
+    public LuckPerms luckPermsAPI() {
+        return this.luckPermsApi;
     }
 
-    public String getGameWorldName() {
-        return getDescription().getName();
+    public String gameWorldName() {
+        return this.getDescription().getName();
     }
 
-    public CaveOre caveOreFromDrop(Material type) {
-        for (CaveOre ore : ores) {
-            if (ore.getDrop().getType() == type) {
+    public CaveOre caveOreFromDrop(final Material type) {
+        for (final CaveOre ore : this.ores) {
+            if (ore.itemDrop().getType() == type) {
                 return ore;
             }
         }
         return null;
     }
 
-    public CaveOre caveOreFromBlock(Material type) {
-        for (CaveOre ore : ores) {
-            if (ore.getOre() == type) {
+    public CaveOre caveOreFromBlock(final Material type) {
+        for (final CaveOre ore : this.ores) {
+            if (ore.ore() == type) {
                 return ore;
             }
         }
         return null;
     }
 
-    public CaveLoot lootFromItem(Material type) {
-        for (CaveLoot lootItem : loot) {
-            if (lootItem.getItemType() == type) {
+    public CaveLoot lootFromItem(final Material type) {
+        for (final CaveLoot lootItem : this.loot) {
+            if (lootItem.itemType() == type) {
                 return lootItem;
             }
         }
         return null;
     }
 
-    public boolean hasPermission(Player player, String permissionName) {
+    public boolean hasPermission(final Player player, final String permissionName) {
         if (player.isOp()) return true;
 
-        if (luckPermsApi == null) {
-            getLogger().warning("Not hooked into LuckPerms");
+        if (this.luckPermsApi == null) {
+            this.getLogger().warning("Not hooked into LuckPerms");
             return false;
         }
 
-        String permissionNode = getConfig().getString("permissions." + permissionName);
+        final String permissionNode = this.getConfig().getString("permissions." + permissionName);
 
-        User user = luckPermsApi.getUserManager().getUser(player.getUniqueId());
-        for (Node node : user.getDistinctNodes()) {
+        final User user = this.luckPermsApi.getUserManager().getUser(player.getUniqueId());
+        for (final Node node : user.getDistinctNodes()) {
             if (node.getValue() && node.getKey().equalsIgnoreCase(permissionNode)) {
                 return true;
             }
@@ -212,8 +227,8 @@ public class AbbaCavingPlugin extends JavaPlugin {
         return false;
     }
 
-    public boolean canAccess(Location loc, Location spawn) {
-        int radius = getConfig().getInt("game.protected-spawn-radius");
+    public boolean canAccess(final Location loc, final Location spawn) {
+        final int radius = this.getConfig().getInt("game.protected-spawn-radius");
         if (radius < 1) return true;
 
         return !Util.inBounds(loc,
@@ -227,16 +242,16 @@ public class AbbaCavingPlugin extends JavaPlugin {
                         spawn.getZ() + radius));
     }
 
-    public String getMessage(String name) {
-        return getConfig().getString("lang." + name);
+    public String configMessage(final String name) {
+        return this.getConfig().getString("lang." + name);
     }
 
-    public void broadcast(String message) {
+    public void broadcast(final String message) {
         Bukkit.getServer().sendMessage(MiniMessage.miniMessage().deserialize(message));
-        getLogger().info("Broadcast: \"" + message + "\"");
+        this.getLogger().info("Broadcast: \"" + message + "\"");
     }
 
-    public void broadcast(String message, Map<String, Component> placeholders) {
+    public void broadcast(final String message, final Map<String, Component> placeholders) {
         final List<TagResolver> resolvers = new ArrayList<>();
 
         for (final Map.Entry<String, Component> entry : placeholders.entrySet()) {
@@ -246,15 +261,15 @@ public class AbbaCavingPlugin extends JavaPlugin {
         this.broadcast(message, resolvers.toArray(new TagResolver[]{}));
     }
 
-    public void broadcast(String message, TagResolver... placeholders) {
+    public void broadcast(final String message, final TagResolver... placeholders) {
         Bukkit.getServer().sendMessage(MiniMessage.miniMessage().deserialize(message, placeholders));
     }
 
-    public void message(CommandSender sender, String message) {
+    public void message(final CommandSender sender, final String message) {
         sender.sendMessage(MiniMessage.miniMessage().deserialize(message));
     }
 
-    public void message(CommandSender sender, String message, Map<String, String> placeholders) {
+    public void message(final CommandSender sender, final String message, final Map<String, String> placeholders) {
         final List<TagResolver> resolvers = new ArrayList<>();
 
         for (final Map.Entry<String, String> entry : placeholders.entrySet()) {
@@ -264,159 +279,154 @@ public class AbbaCavingPlugin extends JavaPlugin {
         this.message(sender, message, resolvers.toArray(new TagResolver[]{}));
     }
 
-    public void message(CommandSender sender, String message, TagResolver... placeholders) {
+    public void message(final CommandSender sender, final String message, final TagResolver... placeholders) {
         final TagResolver name = TagResolver.resolver("name", Tag.inserting(Component.text(sender.getName())));
         final TagResolver resolvers = TagResolver.resolver(TagResolver.resolver(placeholders), name);
 
         sender.sendMessage(MiniMessage.miniMessage().deserialize(message, resolvers));
     }
 
-    public void updateGameInfo(String subKey, String value) {
-        if (jedis == null) {
-            getLogger().warning("Not currently connected to a Redis instance");
+    public void updateGameInfo(final String subKey, final String value) {
+        if (this.jedis == null) {
+            this.getLogger().warning("Not currently connected to a Redis instance");
             return;
         }
 
-        String key = String.format("%s:server:%s:%s", REDIS_TAG, getServerId(), subKey);
-        jedis.set(key, value);
-        jedis.publish(REDIS_TAG, String.format("%s,%s", key, value));
-//        getLogger().info(String.format("[Redis] Set %s = %s", key, value));
+        final String key = String.format("%s:server:%s:%s", REDIS_TAG, this.serverId(), subKey);
+        this.jedis.set(key, value);
+        this.jedis.publish(REDIS_TAG, String.format("%s,%s", key, value));
+        //getLogger().info(String.format("[Redis] Set %s = %s", key, value));
     }
 
     private void initGameMode() {
-        loadData();
+        this.loadData();
 
-        getServer().getPluginManager().registerEvents(new BlockBreakListener(this),this);
-        getServer().getPluginManager().registerEvents(new BlockPlaceListener(this),this);
-        getServer().getPluginManager().registerEvents(new EntityListener(this),this);
-        getServer().getPluginManager().registerEvents(new PlayerListener(this),this);
-        getServer().getPluginManager().registerEvents(new InventoryListener(this),this);
+        this.getServer().getPluginManager().registerEvents(new BlockBreakListener(this), this);
+        this.getServer().getPluginManager().registerEvents(new BlockPlaceListener(this), this);
+        this.getServer().getPluginManager().registerEvents(new EntityListener(this), this);
+        this.getServer().getPluginManager().registerEvents(new PlayerListener(this), this);
+        this.getServer().getPluginManager().registerEvents(new InventoryListener(this), this);
 
-        getServer().getScheduler().runTaskAsynchronously(this, this::createTable);
+        this.getServer().getScheduler().runTaskAsynchronously(this, this::createTable);
 
-        registerGamePlaceholders();
+        this.registerGamePlaceholders();
 
-        RegisteredServiceProvider<LuckPerms> provider = Bukkit.getServicesManager().getRegistration(LuckPerms.class);
+        final RegisteredServiceProvider<LuckPerms> provider = Bukkit.getServicesManager().getRegistration(LuckPerms.class);
         if (provider != null) {
-            luckPermsApi = provider.getProvider();
-            getLogger().info("Hooked into " + provider.getPlugin().getName());
+            this.luckPermsApi = provider.getProvider();
+            this.getLogger().info("Hooked into " + provider.getPlugin().getName());
         }
 
-        getCommand("nightvision").setExecutor(new NightVisionCommand());
-        getCommand("forcestart").setExecutor(new ForceStartCommand(this));
-        getCommand("stats").setExecutor(new StatsCommand(this));
-        getCommand("points").setExecutor(new PointsCommand(this));
+        this.getCommand("nightvision").setExecutor(new NightVisionCommand());
+        this.getCommand("forcestart").setExecutor(new ForceStartCommand(this));
+        this.getCommand("stats").setExecutor(new StatsCommand(this));
+        this.getCommand("points").setExecutor(new PointsCommand(this));
 
-        game = new Game(this, mapSpawns);
-        dataSource = initDataSource();
+        this.game = new Game(this, this.mapSpawns);
+        this.dataSource = this.initDataSource();
     }
 
-    public Set<CaveOre> getOres() {
-        return ores;
+    public Set<CaveOre> ores() {
+        return this.ores;
     }
 
-    private Map<String, ServerInfo> servers;
-
-    public Map<String, ServerInfo> getServers() {
-        return servers;
+    public Map<String, ServerInfo> servers() {
+        return this.servers;
     }
 
-    public static final class ServerInfo {
-        public GameState state;
-        public int playerCount, counter, slots;
-    }
-
-    private ServerInfo getServerInfo(String serverId) {
-        ServerInfo info = servers.get(serverId);
+    private ServerInfo serverInfo(final String serverId) {
+        ServerInfo info = this.servers.get(serverId);
         if (info == null) {
             info = new ServerInfo();
-            servers.put(serverId, info);
+            this.servers.put(serverId, info);
         }
         return info;
     }
 
     private void initLobbyMode() {
-        servers = new HashMap<>();
+        this.servers = new HashMap<>();
 
-        Set<String> serverIds = jedis.smembers(REDIS_TAG + ":servers");
-        getLogger().info("[Redis] Loaded server list: " + serverIds.toString());
+        final Set<String> serverIds = this.jedis.smembers(REDIS_TAG + ":servers");
+        this.getLogger().info("[Redis] Loaded server list: " + serverIds.toString());
 
-        for (String serverId : serverIds) {
-            ServerInfo info = getServerInfo(serverId);
+        for (final String serverId : serverIds) {
+            final ServerInfo info = this.serverInfo(serverId);
 
-            String stateValue = jedis.get(String.format("%s:server:%s:state", REDIS_TAG, serverId));
+            final String stateValue = this.jedis.get(String.format("%s:server:%s:state", REDIS_TAG, serverId));
             if (stateValue != null) {
                 info.state = GameState.valueOf(stateValue);
             } else {
-                getLogger().warning("[Redis] No state entry found for server %s" + serverId);
+                this.getLogger().warning("[Redis] No state entry found for server %s" + serverId);
             }
 
-            String playerCountValue = jedis.get(String.format("%s:server:%s:players", REDIS_TAG, serverId));
+            final String playerCountValue = this.jedis.get(String.format("%s:server:%s:players", REDIS_TAG, serverId));
             if (playerCountValue != null) {
                 info.playerCount = Integer.parseInt(playerCountValue);
             } else {
-                getLogger().warning("[Redis] No player count entry found for server %s" + serverId);
+                this.getLogger().warning("[Redis] No player count entry found for server %s" + serverId);
             }
 
-            String counterValue = jedis.get(String.format("%s:server:%s:counter", REDIS_TAG, serverId));
+            final String counterValue = this.jedis.get(String.format("%s:server:%s:counter", REDIS_TAG, serverId));
             if (counterValue != null) {
                 info.counter = Integer.parseInt(counterValue);
             } else {
-                getLogger().warning("[Redis] No counter entry found for server %s" + serverId);
+                this.getLogger().warning("[Redis] No counter entry found for server %s" + serverId);
             }
 
-            String slotsValue = jedis.get(String.format("%s:server:%s:slots", REDIS_TAG, serverId));
+            final String slotsValue = this.jedis.get(String.format("%s:server:%s:slots", REDIS_TAG, serverId));
             if (slotsValue != null) {
                 info.slots = Integer.parseInt(slotsValue);
             } else {
-                getLogger().warning("[Redis] No slots entry found for server %s" + serverId);
+                this.getLogger().warning("[Redis] No slots entry found for server %s" + serverId);
             }
 
-            getLogger().info(String.format("[Redis] Loaded server info: id=%s, state=%s, players=%s, counter=%s, slots=%s",
+            this.getLogger().info(String.format("[Redis] Loaded server info: id=%s, state=%s, players=%s, counter=%s, slots=%s",
                     serverId, stateValue, playerCountValue, counterValue, slotsValue));
         }
 
         Executors.newSingleThreadExecutor().execute(new Runnable() {
             @Override
             public void run() {
-                jedis.subscribe(new JedisPubSub() {
+                AbbaCavingPlugin.this.jedis.subscribe(new JedisPubSub() {
                     @Override
-                    public void onMessage(String channel, String message) {
+                    public void onMessage(final String channel, final String message) {
                         if (!channel.equals(REDIS_TAG)) return;
 
-                        String[] parts = message.split(",", 2);
-                        String key = parts[0], value = parts[1];
-//                getLogger().info(String.format("[Redis] Received update: key=%s, value=%s", key, value));
+                        final String[] parts = message.split(",", 2);
+                        final String key = parts[0];
+                        final String value = parts[1];
+                        //getLogger().info(String.format("[Redis] Received update: key=%s, value=%s", key, value));
 
                         if (key.endsWith(":servers")) {
-                            Set<String> newServerIds = new HashSet<>(Arrays.asList(value.split(",")));
+                            final Set<String> newServerIds = new HashSet<>(Arrays.asList(value.split(",")));
 
-                            Iterator<Entry<String, ServerInfo>> itr = servers.entrySet().iterator();
+                            final Iterator<Entry<String, ServerInfo>> itr = AbbaCavingPlugin.this.servers.entrySet().iterator();
                             while (itr.hasNext()) {
-                                String entryKey = itr.next().getKey();
+                                final String entryKey = itr.next().getKey();
                                 if (!newServerIds.contains(entryKey)) {
                                     itr.remove();
                                 }
                             }
 
-                            for (String serverId : newServerIds) {
-                                if (!servers.containsKey(serverId)) {
-                                    servers.put(serverId, new ServerInfo());
+                            for (final String serverId : newServerIds) {
+                                if (!AbbaCavingPlugin.this.servers.containsKey(serverId)) {
+                                    AbbaCavingPlugin.this.servers.put(serverId, new ServerInfo());
 
                                     if (Bukkit.getPluginManager().isPluginEnabled("MVdWPlaceholderAPI")) {
-                                        registerServerPlaceholders(serverId);
+                                        AbbaCavingPlugin.this.registerServerPlaceholders(serverId);
                                     }
                                 }
                             }
 
-//                    getLogger().info("[Redis] Updated server list: " + newServerIds.toString());
+                            //getLogger().info("[Redis] Updated server list: " + newServerIds.toString());
                             return;
                         }
 
-                        String[] keyParts = key.split(":");
-                        String serverId = keyParts[2], attributeName = keyParts[3];
+                        final String[] keyParts = key.split(":");
+                        final String serverId = keyParts[2];
+                        final String attributeName = keyParts[3];
 
-                        ServerInfo info = getServerInfo(serverId);
+                        final ServerInfo info = AbbaCavingPlugin.this.serverInfo(serverId);
                         switch (attributeName) {
                             case "state":
                                 info.state = GameState.valueOf(value);
@@ -431,7 +441,7 @@ public class AbbaCavingPlugin extends JavaPlugin {
                                 info.slots = Integer.parseInt(value);
                                 break;
                             default:
-                                getLogger().warning("[Redis] Unknown attribute name: " + attributeName);
+                                AbbaCavingPlugin.this.getLogger().warning("[Redis] Unknown attribute name: " + attributeName);
                                 break;
                         }
                     }
@@ -439,7 +449,7 @@ public class AbbaCavingPlugin extends JavaPlugin {
             }
         });
 
-        registerLobbyPlaceholders();
+        this.registerLobbyPlaceholders();
     }
 
     private void registerGamePlaceholders() {
@@ -449,64 +459,64 @@ public class AbbaCavingPlugin extends JavaPlugin {
 
         if (Bukkit.getPluginManager().isPluginEnabled("MVdWPlaceholderAPI")) {
             PlaceholderAPI.registerPlaceholder(this, "x", event ->
-                Integer.toString(event.getPlayer().getLocation().getBlockX()));
+                    Integer.toString(event.getPlayer().getLocation().getBlockX()));
             PlaceholderAPI.registerPlaceholder(this, "y", event ->
                     Integer.toString(event.getPlayer().getLocation().getBlockY()));
             PlaceholderAPI.registerPlaceholder(this, "z", event ->
                     Integer.toString(event.getPlayer().getLocation().getBlockZ()));
             PlaceholderAPI.registerPlaceholder(this, "current_score", event -> {
-                GamePlayer gp = game.getPlayer(event.getPlayer());
+                final GamePlayer gp = this.game.player(event.getPlayer());
                 if (gp != null) {
-                    return Util.addCommas(gp.getScore());
+                    return Util.addCommas(gp.score());
                 }
                 return "";
             });
             PlaceholderAPI.registerPlaceholder(this, "highest_score", event -> {
-                GamePlayer gp = game.getPlayer(event.getPlayer());
+                final GamePlayer gp = this.game.player(event.getPlayer());
                 if (gp != null) {
-                    return Util.addCommas(gp.getHighestScore());
+                    return Util.addCommas(gp.highestScore());
                 }
                 return "";
             });
             PlaceholderAPI.registerPlaceholder(this, "current_ores_mined", event -> {
-                GamePlayer gp = game.getPlayer(event.getPlayer());
+                final GamePlayer gp = this.game.player(event.getPlayer());
                 if (gp != null) {
-                    return Util.addCommas(gp.getCurrentOresMined());
+                    return Util.addCommas(gp.currentOresMined());
                 }
                 return "";
             });
             PlaceholderAPI.registerPlaceholder(this, "total_ores_mined", event -> {
-                GamePlayer gp = game.getPlayer(event.getPlayer());
+                final GamePlayer gp = this.game.player(event.getPlayer());
                 if (gp != null) {
-                    return Util.addCommas(gp.getTotalOresMined());
+                    return Util.addCommas(gp.totalOresMined());
                 }
                 return "";
             });
             PlaceholderAPI.registerPlaceholder(this, "wins", event -> {
-                GamePlayer gp = game.getPlayer(event.getPlayer());
+                final GamePlayer gp = this.game.player(event.getPlayer());
                 if (gp != null) {
-                    return Util.addCommas(gp.getWins());
+                    return Util.addCommas(gp.wins());
                 }
                 return "";
             });
-            PlaceholderAPI.registerPlaceholder(this, "game_players", event -> Integer.toString(game.getPlayers().size()));
-            PlaceholderAPI.registerPlaceholder(this, "game_state", event -> game.getState().getDisplayName());
+            PlaceholderAPI.registerPlaceholder(this, "game_players", event -> Integer.toString(this.game.players().size()));
+            PlaceholderAPI.registerPlaceholder(this, "game_state", event -> this.game.gameState().displayName());
 
             for (int i = 0; i < 10; i++) {
                 final int index = i;
                 PlaceholderAPI.registerPlaceholder(this, "leaderboard_score_" + (i + 1), event -> {
-                    if (game.getLeaderboard() != null) {
-                        List<GamePlayer> sorted = new ArrayList<>(game.getLeaderboard().keySet());
+                    if (this.game.leaderboard() != null) {
+                        final List<GamePlayer> sorted = new ArrayList<>(this.game.leaderboard().keySet());
                         if (index >= sorted.size()) return "N/A";
-                        return Util.addCommas(game.getLeaderboard().get(sorted.get(index)));
+                        return Util.addCommas(this.game.leaderboard().get(sorted.get(index)));
                     }
                     return "";
                 });
                 PlaceholderAPI.registerPlaceholder(this, "leaderboard_player_" + (i + 1), event -> {
-                    if (game.getLeaderboard() != null) {
-                        List<GamePlayer> sorted = new ArrayList<>(game.getLeaderboard().keySet());
+                    if (this.game.leaderboard() != null) {
+                        final List<GamePlayer> sorted = new ArrayList<>(this.game.leaderboard().keySet());
                         if (index >= sorted.size()) return "N/A";
-                        return sorted.get(index).getPlayer().getName();
+                        return sorted.get(index).player().getName();
                     }
                     return "";
                 });
@@ -514,23 +524,23 @@ public class AbbaCavingPlugin extends JavaPlugin {
         }
     }
 
-    private void registerServerPlaceholders(String serverId) {
-        String prefix = String.format("%s_server_%s_", REDIS_TAG, serverId);
+    private void registerServerPlaceholders(final String serverId) {
+        final String prefix = String.format("%s_server_%s_", REDIS_TAG, serverId);
 
         PlaceholderAPI.registerPlaceholder(this, prefix + "state", event -> {
-            ServerInfo info = servers.get(serverId);
-            return info != null && info.state != null ? info.state.getDisplayName() : "";
+            final ServerInfo info = this.servers.get(serverId);
+            return info != null && info.state != null ? info.state.displayName() : "";
         });
         PlaceholderAPI.registerPlaceholder(this, prefix + "players", event -> {
-            ServerInfo info = servers.get(serverId);
+            final ServerInfo info = this.servers.get(serverId);
             return info != null ? Integer.toString(info.playerCount) : "";
         });
         PlaceholderAPI.registerPlaceholder(this, prefix + "counter", event -> {
-            ServerInfo info = servers.get(serverId);
+            final ServerInfo info = this.servers.get(serverId);
             return info != null ? Integer.toString(info.counter) : "";
         });
         PlaceholderAPI.registerPlaceholder(this, prefix + "slots", event -> {
-            ServerInfo info = servers.get(serverId);
+            final ServerInfo info = this.servers.get(serverId);
             return info != null ? Integer.toString(info.slots) : "";
         });
     }
@@ -541,27 +551,27 @@ public class AbbaCavingPlugin extends JavaPlugin {
         }
 
         if (Bukkit.getPluginManager().isPluginEnabled("MVdWPlaceholderAPI")) {
-            PlaceholderAPI.registerPlaceholder(this,"abbacaving_online", event -> {
+            PlaceholderAPI.registerPlaceholder(this, "abbacaving_online", event -> {
                 int totalOnline = 0;
-                if (servers != null) {
-                    for (ServerInfo info : servers.values()) {
+                if (this.servers != null) {
+                    for (final ServerInfo info : this.servers.values()) {
                         totalOnline += info.playerCount;
                     }
                 }
                 return Integer.toString(totalOnline);
             });
 
-            for (String serverId : servers.keySet()) {
-                registerServerPlaceholders(serverId);
+            for (final String serverId : this.servers.keySet()) {
+                this.registerServerPlaceholders(serverId);
             }
         }
     }
 
     private void loadData() {
-        ores = new HashSet<>();
-        for (Map<?, ?> entry : getConfig().getMapList("game.ores")) {
-            Map<?, ?> value = (Map<?, ?>) entry.get("value");
-            ores.add(new CaveOre(
+        this.ores = new HashSet<>();
+        for (final Map<?, ?> entry : this.getConfig().getMapList("game.ores")) {
+            final Map<?, ?> value = (Map<?, ?>) entry.get("value");
+            this.ores.add(new CaveOre(
                     (String) entry.get("name"),
                     (Integer) value.get("exact"),
                     (Integer) value.get("min"),
@@ -571,15 +581,15 @@ public class AbbaCavingPlugin extends JavaPlugin {
                     new ItemStack(Material.valueOf((String) entry.get("drop")))
             ));
         }
-        ores = ores.stream()
-                .sorted((o1, o2) -> Integer.compare(o2.getValue(), o1.getValue()))
+        this.ores = this.ores.stream()
+                .sorted((o1, o2) -> Integer.compare(o2.value(), o1.value()))
                 .collect(Collectors.toCollection(LinkedHashSet::new));
-        getLogger().info("Loaded " + ores.size() + " ore(s)");
+        this.getLogger().info("Loaded " + this.ores.size() + " ore(s)");
 
-        loot = new HashSet<>();
-        for (Map<?, ?> entry : getConfig().getMapList("game.loot-items")) {
-            Map<?, ?> value = (Map<?, ?>) entry.get("value");
-            loot.add(new CaveLoot(
+        this.loot = new HashSet<>();
+        for (final Map<?, ?> entry : this.getConfig().getMapList("game.loot-items")) {
+            final Map<?, ?> value = (Map<?, ?>) entry.get("value");
+            this.loot.add(new CaveLoot(
                     (String) entry.get("name"),
                     (String) entry.get("article"),
                     (Integer) value.get("exact"),
@@ -588,31 +598,31 @@ public class AbbaCavingPlugin extends JavaPlugin {
                     Material.valueOf((String) entry.get("item"))
             ));
         }
-        getLogger().info("Loaded " + loot.size() + " loot item(s)");
+        this.getLogger().info("Loaded " + this.loot.size() + " loot item(s)");
 
-        mapSpawns = new HashMap<>();
+        this.mapSpawns = new HashMap<>();
 
-        FileConfiguration spawnsConfig = new YamlConfiguration();
+        final FileConfiguration spawnsConfig = new YamlConfiguration();
         try {
-            String spawnsAbsPath = getConfig().getString("spawns-file", "");
-            File spawnsFile;
+            final String spawnsAbsPath = this.getConfig().getString("spawns-file", "");
+            final File spawnsFile;
             if (!spawnsAbsPath.isEmpty()) {
                 spawnsFile = new File(spawnsAbsPath);
             } else {
-                spawnsFile = new File(getDataFolder(), "spawns.yml");
+                spawnsFile = new File(this.getDataFolder(), "spawns.yml");
             }
 
             spawnsConfig.load(spawnsFile);
-        } catch (IOException | InvalidConfigurationException e) {
-            getLogger().warning("Failed to load spawns.yml");
+        } catch (final IOException | InvalidConfigurationException e) {
+            this.getLogger().warning("Failed to load spawns.yml");
             e.printStackTrace();
             return;
         }
 
-        for (String entry : spawnsConfig.getKeys(false)) {
-            List<Location> spawns = new ArrayList<>();
-            for (String location : spawnsConfig.getStringList(entry)) {
-                String[] split = location.split(",");
+        for (final String entry : spawnsConfig.getKeys(false)) {
+            final List<Location> spawns = new ArrayList<>();
+            for (final String location : spawnsConfig.getStringList(entry)) {
+                final String[] split = location.split(",");
                 spawns.add(new Location(
                         null,
                         Double.parseDouble(split[0]),
@@ -620,85 +630,97 @@ public class AbbaCavingPlugin extends JavaPlugin {
                         Double.parseDouble(split[2])
                 ));
             }
-            mapSpawns.put(entry, spawns);
+            this.mapSpawns.put(entry, spawns);
         }
-        getLogger().info("Loaded spawns for " + mapSpawns.size() + " map(s)");
+        this.getLogger().info("Loaded spawns for " + this.mapSpawns.size() + " map(s)");
     }
 
     private Jedis createRedisConnection() {
-        jedis = new Jedis(
-                getConfig().getString("redis.host"),
-                getConfig().getInt("redis.port"));
-        jedis.auth(getConfig().getString("redis.password"));
-        return jedis;
+        this.jedis = new Jedis(
+                this.getConfig().getString("redis.host"),
+                this.getConfig().getInt("redis.port"));
+        this.jedis.auth(this.getConfig().getString("redis.password"));
+        return this.jedis;
     }
 
     private HikariDataSource initDataSource() {
         try {
             Class.forName("org.mariadb.jdbc.Driver");
-        } catch (ClassNotFoundException e) {
+        } catch (final ClassNotFoundException e) {
             e.printStackTrace();
         }
 
-        String host = getConfig().getString("database.host");
-        String name = getConfig().getString("database.name");
+        final String host = this.getConfig().getString("database.host");
+        final String name = this.getConfig().getString("database.name");
 
-        HikariConfig config = new HikariConfig();
+        final HikariConfig config = new HikariConfig();
         config.setMinimumIdle(1);
         config.setMaximumPoolSize(4);
         config.setJdbcUrl("jdbc:mariadb://" + host + "/" + name);
-        config.setUsername(getConfig().getString("database.user"));
-        config.setPassword(getConfig().getString("database.password"));
+        config.setUsername(this.getConfig().getString("database.user"));
+        config.setPassword(this.getConfig().getString("database.password"));
         return new HikariDataSource(config);
     }
 
     private void createTable() {
-        try (Connection conn = dataSource.getConnection()) {
-            try (Statement stmt = conn.createStatement()) {
+        try (final Connection conn = this.dataSource.getConnection()) {
+            try (final Statement stmt = conn.createStatement()) {
                 stmt.execute("CREATE TABLE IF NOT EXISTS abba_caving_stats (uuid VARCHAR(50) PRIMARY KEY, wins INT, highest_score INT, ores_mined INT);");
             }
-        } catch (SQLException ex) {
+        } catch (final SQLException ex) {
             ex.printStackTrace();
         }
     }
 
-    public void loadPlayerStats(GamePlayer gp) {
-        try (Connection conn = dataSource.getConnection()) {
-            try (PreparedStatement stmt = conn.prepareStatement("SELECT wins, highest_score, ores_mined FROM abba_caving_stats WHERE uuid = ?;")) {
-                stmt.setString(1, gp.getPlayer().getUniqueId().toString());
+    public void loadPlayerStats(final GamePlayer gp) {
+        try (final Connection conn = this.dataSource.getConnection()) {
+            try (final PreparedStatement stmt = conn.prepareStatement("SELECT wins, highest_score, ores_mined FROM abba_caving_stats WHERE uuid = ?;")) {
+                stmt.setString(1, gp.player().getUniqueId().toString());
 
-                try (ResultSet rs = stmt.executeQuery()) {
+                try (final ResultSet rs = stmt.executeQuery()) {
                     if (rs.next()) {
-                        gp.setWins(rs.getInt("wins"));
-                        gp.setHighestScore(rs.getInt("highest_score"));
-                        gp.setTotalOresMined(rs.getInt("ores_mined"));
-                        getLogger().info("Loaded " + gp.getPlayer().getName() + "'s stats");
+                        gp.wins(rs.getInt("wins"));
+                        gp.highestScore(rs.getInt("highest_score"));
+                        gp.totalOresMined(rs.getInt("ores_mined"));
+                        this.getLogger().info("Loaded " + gp.player().getName() + "'s stats");
                     } else {
-                        getLogger().info("No stats found for player " + gp.getPlayer().getName());
+                        this.getLogger().info("No stats found for player " + gp.player().getName());
                     }
                 }
             }
-        } catch (SQLException ex) {
+        } catch (final SQLException ex) {
             ex.printStackTrace();
         }
     }
 
-    public void savePlayerStats(GamePlayer gp) {
-        try (Connection conn = dataSource.getConnection()) {
-            try (PreparedStatement stmt = conn.prepareStatement(
+    public void savePlayerStats(final GamePlayer gp) {
+        try (final Connection conn = this.dataSource.getConnection()) {
+            try (final PreparedStatement stmt = conn.prepareStatement(
                     "INSERT INTO abba_caving_stats (uuid, wins, highest_score, ores_mined) VALUES (?, ?, ?, ?) ON DUPLICATE KEY UPDATE wins = ?, highest_score = ?, ores_mined = ?;")) {
-                stmt.setString(1, gp.getPlayer().getUniqueId().toString());
-                stmt.setInt(2, gp.getWins());
-                stmt.setInt(3, gp.getHighestScore());
-                stmt.setInt(4, gp.getTotalOresMined());
-                stmt.setInt(5, gp.getWins());
-                stmt.setInt(6, gp.getHighestScore());
-                stmt.setInt(7, gp.getTotalOresMined());
+                stmt.setString(1, gp.player().getUniqueId().toString());
+                stmt.setInt(2, gp.wins());
+                stmt.setInt(3, gp.highestScore());
+                stmt.setInt(4, gp.totalOresMined());
+                stmt.setInt(5, gp.wins());
+                stmt.setInt(6, gp.highestScore());
+                stmt.setInt(7, gp.totalOresMined());
                 stmt.executeUpdate();
-                getLogger().info("Saved " + gp.getPlayer().getName() + "'s stats");
+                this.getLogger().info("Saved " + gp.player().getName() + "'s stats");
             }
-        } catch (SQLException ex) {
+        } catch (final SQLException ex) {
             ex.printStackTrace();
         }
     }
+
+    private enum ServerMode {
+        GAME, LOBBY
+    }
+
+    public static final class ServerInfo {
+        public GameState state;
+        public int playerCount;
+        public int counter;
+        public int slots;
+    }
+
 }

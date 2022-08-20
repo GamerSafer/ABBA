@@ -9,11 +9,12 @@ public enum GameState {
 
     private final String displayName;
 
-    GameState(String displayName) {
+    GameState(final String displayName) {
         this.displayName = displayName;
     }
 
-    public String getDisplayName() {
-        return displayName;
+    public String displayName() {
+        return this.displayName;
     }
+
 }

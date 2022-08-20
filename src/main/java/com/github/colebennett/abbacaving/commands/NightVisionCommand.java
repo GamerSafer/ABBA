@@ -11,8 +11,8 @@ import org.jetbrains.annotations.NotNull;
 public class NightVisionCommand implements CommandExecutor {
 
     @Override
-    public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
-        Player player = (Player) sender;
+    public boolean onCommand(@NotNull final CommandSender sender, @NotNull final Command command, @NotNull final String label, @NotNull final String[] args) {
+        final Player player = (Player) sender;
         if (player.hasPotionEffect(PotionEffectType.NIGHT_VISION)) {
             player.removePotionEffect(PotionEffectType.NIGHT_VISION);
         } else {
@@ -20,4 +20,5 @@ public class NightVisionCommand implements CommandExecutor {
         }
         return true;
     }
+
 }

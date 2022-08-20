@@ -2,14 +2,13 @@ package com.github.colebennett.abbacaving.game;
 
 import com.github.colebennett.abbacaving.AbbaCavingPlugin;
 import com.github.colebennett.abbacaving.util.Util;
+import java.util.HashMap;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Location;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 
-import java.util.HashMap;
-
-public class GamePlayer  {
+public class GamePlayer {
 
     private final AbbaCavingPlugin plugin;
     private final Player player;
@@ -25,113 +24,116 @@ public class GamePlayer  {
     private Location spawn;
     private int bucketUses;
 
-    public GamePlayer(AbbaCavingPlugin plugin, Player player) {
+    public GamePlayer(final AbbaCavingPlugin plugin, final Player player) {
         this.plugin = plugin;
         this.player = player;
     }
 
-    public Player getPlayer() {
-        return player;
+    public Player player() {
+        return this.player;
     }
 
-    public int getWins() {
-        return wins;
+    public int wins() {
+        return this.wins;
     }
 
-    public int getScore() {
-        return score;
-    }
-
-    public int getHighestScore() {
-        return highestScore;
-    }
-
-    public int getCurrentOresMined() {
-        return currentOresMined;
-    }
-
-    public int getTotalOresMined() {
-        return totalOresMined;
-    }
-
-    public boolean isDead() {
-        return isDead;
-    }
-
-    public boolean hasRespawned() {
-        return hasRespawned;
-    }
-
-    public Location getSpawn() {
-        return spawn;
-    }
-
-    public int getBucketUses() {
-        return bucketUses;
-    }
-
-    public void setWins(int wins) {
+    public void wins(final int wins) {
         this.wins = wins;
     }
 
-    public void setScore(int score) {
+    public int score() {
+        return this.score;
+    }
+
+    public void score(final int score) {
         this.score = score;
     }
 
-    public void setIsDead(boolean isDead) {
-        this.isDead = isDead;
+    public int highestScore() {
+        return this.highestScore;
     }
 
-    public void setHasRespawned(boolean hasRespawned) {
-        this.hasRespawned = hasRespawned;
-    }
-
-    public void setHighestScore(int highestScore) {
+    public void highestScore(final int highestScore) {
         this.highestScore = highestScore;
     }
 
-    public void setCurrentOresMined(int oresMined) {
+    public int currentOresMined() {
+        return this.currentOresMined;
+    }
+
+    public void currentOresMined(final int oresMined) {
         this.currentOresMined = oresMined;
     }
 
-    public void setTotalOresMined(int oresMined) {
+    public int totalOresMined() {
+        return this.totalOresMined;
+    }
+
+    public void totalOresMined(final int oresMined) {
         this.totalOresMined = oresMined;
     }
 
-    public void setSpawn(Location spawn) {
+    public boolean isDead() {
+        return this.isDead;
+    }
+
+    public boolean hasRespawned() {
+        return this.hasRespawned;
+    }
+
+    public Location spawnLocation() {
+        return this.spawn;
+    }
+
+    public void spawnLocation(final Location spawn) {
         this.spawn = spawn;
     }
 
-    public void setBucketUses(int bucketUses) {
+    public int bucketUses() {
+        return this.bucketUses;
+    }
+
+    public void bucketUses(final int bucketUses) {
         this.bucketUses = bucketUses;
     }
 
-    public void addScore(int amount, String rewardName) {
-        score += amount;
+    public void isDead(final boolean isDead) {
+        this.isDead = isDead;
+    }
 
-        float exp = player.getExp() + ((float) amount * .01f);
-        player.setExp(exp >= 1f ? 0 : exp);
+    public void hasRespawned(final boolean hasRespawned) {
+        this.hasRespawned = hasRespawned;
+    }
 
-        player.playSound(player.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1f, 1f);
-        plugin.message(player, plugin.getMessage("gained-points"), new HashMap<>() {{
-            put("amount", Integer.toString(amount));
-            put("reward", rewardName);
-            put("optional-s", amount != 1 ? "s" : "");
-        }});
+    public void addScore(final int amount, final String rewardName) {
+        this.score += amount;
 
-        if (score > highestScore) {
-            if (!surpassedHighestScore) {
-                surpassedHighestScore = true;
-                if (highestScore >= plugin.getConfig().getInt("game.min-score-to-broadcast-new-record")) {
-                    plugin.broadcast(plugin.getMessage("new-high-score"), new HashMap<>() {{
-                        put("player", Component.text(player.getName()));
-                        put("score", Component.text(Util.addCommas(highestScore)));
-                    }});
+        final float exp = this.player.getExp() + ((float) amount * .01f);
+        this.player.setExp(exp >= 1f ? 0 : exp);
+
+        this.player.playSound(this.player.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1f, 1f);
+        this.plugin.message(this.player, this.plugin.configMessage("gained-points"), new HashMap<>() {{
+                this.put("amount", Integer.toString(amount));
+                this.put("reward", rewardName);
+                this.put("optional-s", amount != 1 ? "s" : "");
+            }}
+        );
+
+        if (this.score > this.highestScore) {
+            if (!this.surpassedHighestScore) {
+                this.surpassedHighestScore = true;
+                if (this.highestScore >= this.plugin.getConfig().getInt("game.min-score-to-broadcast-new-record")) {
+                    this.plugin.broadcast(this.plugin.configMessage("new-high-score"), new HashMap<>() {{
+                            this.put("player", Component.text(GamePlayer.this.player.getName()));
+                            this.put("score", Component.text(Util.addCommas(GamePlayer.this.highestScore)));
+                        }}
+                    );
                 }
             }
-            highestScore = score;
+            this.highestScore = this.score;
         }
 
-        plugin.getGame().updateScore(this);
+        this.plugin.currentGame().updateScore(this);
     }
+
 }

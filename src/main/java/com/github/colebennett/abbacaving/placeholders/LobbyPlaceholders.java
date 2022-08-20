@@ -9,7 +9,7 @@ public class LobbyPlaceholders extends PlaceholderExpansion {
 
     private final AbbaCavingPlugin plugin;
 
-    public LobbyPlaceholders(AbbaCavingPlugin plugin) {
+    public LobbyPlaceholders(final AbbaCavingPlugin plugin) {
         this.plugin = plugin;
     }
 
@@ -34,20 +34,19 @@ public class LobbyPlaceholders extends PlaceholderExpansion {
     }
 
     @Override
-    public String onPlaceholderRequest(Player player, String identifier) {
-        plugin.getLogger().info("PlaceholderAPI request: " + player.getName() + ", " + identifier);
+    public String onPlaceholderRequest(final Player player, final String identifier) {
+        this.plugin.getLogger().info("PlaceholderAPI request: " + player.getName() + ", " + identifier);
 
-        switch (identifier) {
-            case "online":
-                int totalOnline = 0;
-                if (plugin.getServers() != null) {
-                    for (ServerInfo info : plugin.getServers().values()) {
-                        totalOnline += info.playerCount;
-                    }
+        if ("online".equals(identifier)) {
+            int totalOnline = 0;
+            if (this.plugin.servers() != null) {
+                for (final ServerInfo info : this.plugin.servers().values()) {
+                    totalOnline += info.playerCount;
                 }
-                return Integer.toString(totalOnline);
-             default:
-                return "";
+            }
+            return Integer.toString(totalOnline);
         }
+        return "";
     }
+
 }
