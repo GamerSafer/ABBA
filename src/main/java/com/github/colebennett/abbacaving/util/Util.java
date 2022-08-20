@@ -16,8 +16,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
+import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.GameRule;
 import org.bukkit.Location;
 import org.bukkit.World;
@@ -49,13 +49,9 @@ public final class Util {
         final ItemMeta meta = item.getItemMeta();
         if (meta == null)
             return item;
-        meta.setDisplayName(colorize(displayName));
+        meta.displayName(MiniMessage.miniMessage().deserialize(displayName));
         item.setItemMeta(meta);
         return item;
-    }
-
-    public static String colorize(final String str) {
-        return ChatColor.translateAlternateColorCodes('&', str);
     }
 
     public static World loadMap(final File archive, final String mapName) {

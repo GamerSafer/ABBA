@@ -3,7 +3,6 @@ package com.github.colebennett.abbacaving.commands;
 import com.github.colebennett.abbacaving.AbbaCavingPlugin;
 import com.github.colebennett.abbacaving.game.GamePlayer;
 import com.github.colebennett.abbacaving.util.Util;
-import net.md_5.bungee.api.ChatColor;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -27,7 +26,7 @@ public class StatsCommand implements CommandExecutor {
         if (args.length == 1) {
             final Player target = Bukkit.getPlayer(args[0]);
             if (target == null) {
-                sender.sendMessage(ChatColor.RED + "Player not online: " + args[0]);
+                this.plugin.message(sender, "<red>Player not online: " + args[0]);
                 return false;
             }
 

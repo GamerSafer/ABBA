@@ -23,6 +23,8 @@ import java.util.Map.Entry;
 import java.util.concurrent.ThreadLocalRandom;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
+import net.kyori.adventure.text.minimessage.tag.Tag;
+import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
@@ -30,6 +32,7 @@ import org.bukkit.Material;
 import org.bukkit.Sound;
 import org.bukkit.World;
 import org.bukkit.WorldCreator;
+import org.bukkit.attribute.Attribute;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Entity;
@@ -37,6 +40,7 @@ import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.Damageable;
 import org.bukkit.inventory.meta.ItemMeta;
 import redis.clients.jedis.Jedis;
 
@@ -356,7 +360,8 @@ public class Game {
 
             for (int i = 0; i < Math.min(sorted.size(), 5); i++) {
                 final GamePlayer gp = sorted.get(i);
-                this.plugin.broadcast("<gray>#" + (i + 1) + ": <green>" + gp.player().getDisplayName() + " <gray>- " + Util.addCommas(this.leaderboard.get(gp)));
+                this.plugin.broadcast("<gray>#" + (i + 1) + ": <green><displayname> <gray>- " + Util.addCommas(this.leaderboard.get(gp)),
+                        TagResolver.resolver("displayname", Tag.inserting(gp.player().displayName())));
             }
         } else {
             this.plugin.broadcast("<green>The game has ended in a draw!");
@@ -470,18 +475,20 @@ public class Game {
         bow.addUnsafeEnchantment(Enchantment.ARROW_INFINITE, 1);
 
         final ItemStack shield = new ItemStack(Material.SHIELD);
-        shield.setDurability((short) 168);
+        final Damageable damageable = (Damageable) shield.getItemMeta();
+        damageable.setDamage(168);
+        shield.setItemMeta(damageable);
         player.getInventory().setItemInOffHand(shield);
 
-        inv.addItem(Util.displayName(pickaxe, "&a&lStarter Pickaxe"));
-        inv.addItem(Util.displayName(new ItemStack(Material.IRON_SWORD), "&a&lStarter Sword"));
-        inv.addItem(Util.displayName(bow, "&a&lInfinite Bow"));
-        inv.addItem(Util.displayName(new ItemStack(Material.IRON_SHOVEL), "&a&lStarter Shovel"));
-        inv.addItem(Util.displayName(new ItemStack(Material.COOKED_BEEF), "&a&lInfinite Steak Supply"));
+        inv.addItem(Util.displayName(pickaxe, "<green><bold>Starter Pickaxe"));
+        inv.addItem(Util.displayName(new ItemStack(Material.IRON_SWORD), "<green><bold>Starter Sword"));
+        inv.addItem(Util.displayName(bow, "<green><bold>Infinite Bow"));
+        inv.addItem(Util.displayName(new ItemStack(Material.IRON_SHOVEL), "<green><bold>Starter Shovel"));
+        inv.addItem(Util.displayName(new ItemStack(Material.COOKED_BEEF), "<green><bold>Infinite Steak Supply"));
         inv.addItem(new ItemStack(Material.COBBLESTONE, 32));
         inv.addItem(new ItemStack(Material.WATER_BUCKET));
-        inv.addItem(Util.displayName(new ItemStack(Material.CRAFTING_TABLE), "&a&lInfinite Crafting Table"));
-        inv.addItem(Util.displayName(new ItemStack(Material.TORCH), "&a&lInfinite Torch"));
+        inv.addItem(Util.displayName(new ItemStack(Material.CRAFTING_TABLE), "<green><bold>Infinite Crafting Table"));
+        inv.addItem(Util.displayName(new ItemStack(Material.TORCH), "<green><bold>Infinite Torch"));
         inv.setItem(35, new ItemStack(Material.ARROW, 1));
 
         player.getInventory().setHelmet(new ItemStack(Material.IRON_HELMET));
@@ -492,7 +499,7 @@ public class Game {
 
     public void resetPlayer(final Player player) {
         final int maxHealth = this.plugin.getConfig().getInt("game.player-health");
-        player.setMaxHealth(maxHealth);
+        player.getAttribute(Attribute.GENERIC_MAX_HEALTH).setBaseValue(maxHealth);
         player.setHealth(maxHealth);
         player.setFoodLevel(20);
         player.setFireTicks(0);

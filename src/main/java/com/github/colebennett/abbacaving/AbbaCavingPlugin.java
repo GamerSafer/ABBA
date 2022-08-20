@@ -47,7 +47,6 @@ import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
 import net.luckperms.api.LuckPerms;
 import net.luckperms.api.model.user.User;
 import net.luckperms.api.node.Node;
-import net.md_5.bungee.api.ChatColor;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -113,17 +112,13 @@ public class AbbaCavingPlugin extends JavaPlugin {
         this.jedis.auth(this.getConfig().getString("redis.password"));
 
         switch (serverMode) {
-            case GAME:
-                this.initGameMode();
-                break;
-            case LOBBY:
-                this.initLobbyMode();
-                break;
+            case GAME -> this.initGameMode();
+            case LOBBY -> this.initLobbyMode();
         }
 
         this.getCommand("acreload").setExecutor((sender, command, label, args) -> {
             if (!(sender.isOp())) {
-                sender.sendMessage(ChatColor.RED + "You do not have permission to do this.");
+                this.message(sender, "<red>You do not have permission to do this.");
                 return false;
             }
             this.reloadConfig();
@@ -133,7 +128,7 @@ public class AbbaCavingPlugin extends JavaPlugin {
 
         this.getCommand("bcastnp").setExecutor((sender, command, label, args) -> {
             if (!(sender.isOp())) {
-                sender.sendMessage(ChatColor.RED + "You do not have permission to do this.");
+                this.message(sender, "<red>You do not have permission to do this.");
                 return false;
             }
             this.broadcast(String.join(" ", args));
@@ -384,70 +379,56 @@ public class AbbaCavingPlugin extends JavaPlugin {
                     serverId, stateValue, playerCountValue, counterValue, slotsValue));
         }
 
-        Executors.newSingleThreadExecutor().execute(new Runnable() {
+        Executors.newSingleThreadExecutor().execute(() -> AbbaCavingPlugin.this.jedis.subscribe(new JedisPubSub() {
             @Override
-            public void run() {
-                AbbaCavingPlugin.this.jedis.subscribe(new JedisPubSub() {
-                    @Override
-                    public void onMessage(final String channel, final String message) {
-                        if (!channel.equals(REDIS_TAG)) return;
+            public void onMessage(final String channel, final String message) {
+                if (!channel.equals(REDIS_TAG)) return;
 
-                        final String[] parts = message.split(",", 2);
-                        final String key = parts[0];
-                        final String value = parts[1];
-                        //getLogger().info(String.format("[Redis] Received update: key=%s, value=%s", key, value));
+                final String[] parts = message.split(",", 2);
+                final String key = parts[0];
+                final String value = parts[1];
+                //getLogger().info(String.format("[Redis] Received update: key=%s, value=%s", key, value));
 
-                        if (key.endsWith(":servers")) {
-                            final Set<String> newServerIds = new HashSet<>(Arrays.asList(value.split(",")));
+                if (key.endsWith(":servers")) {
+                    final Set<String> newServerIds = new HashSet<>(Arrays.asList(value.split(",")));
 
-                            final Iterator<Entry<String, ServerInfo>> itr = AbbaCavingPlugin.this.servers.entrySet().iterator();
-                            while (itr.hasNext()) {
-                                final String entryKey = itr.next().getKey();
-                                if (!newServerIds.contains(entryKey)) {
-                                    itr.remove();
-                                }
-                            }
-
-                            for (final String serverId : newServerIds) {
-                                if (!AbbaCavingPlugin.this.servers.containsKey(serverId)) {
-                                    AbbaCavingPlugin.this.servers.put(serverId, new ServerInfo());
-
-                                    if (Bukkit.getPluginManager().isPluginEnabled("MVdWPlaceholderAPI")) {
-                                        AbbaCavingPlugin.this.registerServerPlaceholders(serverId);
-                                    }
-                                }
-                            }
-
-                            //getLogger().info("[Redis] Updated server list: " + newServerIds.toString());
-                            return;
-                        }
-
-                        final String[] keyParts = key.split(":");
-                        final String serverId = keyParts[2];
-                        final String attributeName = keyParts[3];
-
-                        final ServerInfo info = AbbaCavingPlugin.this.serverInfo(serverId);
-                        switch (attributeName) {
-                            case "state":
-                                info.state = GameState.valueOf(value);
-                                break;
-                            case "players":
-                                info.playerCount = Integer.parseInt(value);
-                                break;
-                            case "counter":
-                                info.counter = Integer.parseInt(value);
-                                break;
-                            case "slots":
-                                info.slots = Integer.parseInt(value);
-                                break;
-                            default:
-                                AbbaCavingPlugin.this.getLogger().warning("[Redis] Unknown attribute name: " + attributeName);
-                                break;
+                    final Iterator<Entry<String, ServerInfo>> itr = AbbaCavingPlugin.this.servers.entrySet().iterator();
+                    while (itr.hasNext()) {
+                        final String entryKey = itr.next().getKey();
+                        if (!newServerIds.contains(entryKey)) {
+                            itr.remove();
                         }
                     }
-                }, REDIS_TAG);
+
+                    for (final String serverId : newServerIds) {
+                        if (!AbbaCavingPlugin.this.servers.containsKey(serverId)) {
+                            AbbaCavingPlugin.this.servers.put(serverId, new ServerInfo());
+
+                            if (Bukkit.getPluginManager().isPluginEnabled("MVdWPlaceholderAPI")) {
+                                AbbaCavingPlugin.this.registerServerPlaceholders(serverId);
+                            }
+                        }
+                    }
+
+                    //getLogger().info("[Redis] Updated server list: " + newServerIds.toString());
+                    return;
+                }
+
+                final String[] keyParts = key.split(":");
+                final String serverId = keyParts[2];
+                final String attributeName = keyParts[3];
+
+                final ServerInfo info = AbbaCavingPlugin.this.serverInfo(serverId);
+                switch (attributeName) {
+                    case "state" -> info.state = GameState.valueOf(value);
+                    case "players" -> info.playerCount = Integer.parseInt(value);
+                    case "counter" -> info.counter = Integer.parseInt(value);
+                    case "slots" -> info.slots = Integer.parseInt(value);
+                    default ->
+                            AbbaCavingPlugin.this.getLogger().warning("[Redis] Unknown attribute name: " + attributeName);
+                }
             }
-        });
+        }, REDIS_TAG));
 
         this.registerLobbyPlaceholders();
     }

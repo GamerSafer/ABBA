@@ -4,11 +4,12 @@ import com.github.colebennett.abbacaving.AbbaCavingPlugin;
 import com.github.colebennett.abbacaving.game.GamePlayer;
 import com.github.colebennett.abbacaving.game.GameState;
 import com.github.colebennett.abbacaving.util.Util;
+import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.attribute.Attribute;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -38,14 +39,14 @@ public class PlayerListener implements Listener {
     public void onLogin(final PlayerLoginEvent event) {
         if (this.plugin.currentGame().gameState() == GameState.RUNNING || this.plugin.currentGame().gameState() == GameState.DONE) {
             event.setResult(Result.KICK_OTHER);
-            event.setKickMessage(ChatColor.RED + "A game is currently in progress.");
+            event.kickMessage(MiniMessage.miniMessage().deserialize("<red>A game is currently in progress."));
             return;
         }
 
         if (this.plugin.currentGame().players().size() >= this.plugin.getServer().getMaxPlayers()) {
             if (!this.plugin.hasPermission(event.getPlayer(), "join-full")) {
                 event.setResult(Result.KICK_FULL);
-                event.setKickMessage(ChatColor.RED + "You are not allowed to join full games.");
+                event.kickMessage(MiniMessage.miniMessage().deserialize("<red>You are not allowed to join full games."));
             } else {
                 event.setResult(Result.ALLOWED);
             }
@@ -54,7 +55,7 @@ public class PlayerListener implements Listener {
 
     @EventHandler
     public void onPlayerJoin(final PlayerJoinEvent event) {
-        event.setJoinMessage(null);
+        event.joinMessage(null);
 
         event.getPlayer().setGameMode(GameMode.ADVENTURE);
         event.getPlayer().teleport(new Location(
@@ -72,7 +73,7 @@ public class PlayerListener implements Listener {
 
     @EventHandler
     public void onPlayerQuit(final PlayerQuitEvent event) {
-        event.setQuitMessage(null);
+        event.quitMessage(null);
 
         final GamePlayer gp = this.plugin.currentGame().removePlayer(event.getPlayer(), true);
         if (gp != null) {
@@ -82,13 +83,13 @@ public class PlayerListener implements Listener {
 
     @EventHandler
     public void onPlayerDeath(final PlayerDeathEvent event) {
-        event.setDeathMessage(null);
+        event.deathMessage(null);
         event.getDrops().clear();
         event.setDroppedExp(0);
 
         final Player player = event.getEntity();
         final int maxHealth = this.plugin.getConfig().getInt("game.player-health");
-        player.setMaxHealth(maxHealth);
+        player.getAttribute(Attribute.GENERIC_MAX_HEALTH).setBaseValue(maxHealth);
         player.setHealth(maxHealth);
 
         if (this.plugin.currentGame().player(player) != null) {
@@ -188,7 +189,7 @@ public class PlayerListener implements Listener {
         if (event.getItem().getType() == Material.COOKED_BEEF) {
             final int slot = event.getPlayer().getInventory().first(Material.COOKED_BEEF);
             event.getPlayer().getInventory().setItem(slot,
-                    Util.displayName(new ItemStack(Material.COOKED_BEEF), "&a&lInfinite Steak Supply"));
+                    Util.displayName(new ItemStack(Material.COOKED_BEEF), "<green><gold>Infinite Steak Supply"));
         }
     }
 

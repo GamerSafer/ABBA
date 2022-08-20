@@ -53,9 +53,9 @@ public class BlockBreakListener implements Listener {
                 gp.totalOresMined(gp.totalOresMined() + 1);
                 gp.addScore(ore.value(), ore.name());
             } else {
-                this.plugin.message(player, this.plugin.configMessage("ore-not-worth-points"), new HashMap<String, String>() {{
-                        this.put("ore", ore.name());
-                    }}
+                this.plugin.message(player, this.plugin.configMessage("ore-not-worth-points"), new HashMap<>() {{
+                            this.put("ore", ore.name());
+                        }}
                 );
             }
         }
