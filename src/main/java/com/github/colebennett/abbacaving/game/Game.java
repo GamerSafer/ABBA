@@ -335,7 +335,7 @@ public class Game {
         }
 
         if (ip.isEmpty()) {
-            ip = "localhost";
+            ip = "localhost"; //TODO remove?
         }
         //RedisApi.instance().registerServer(newName, ip, Integer.toString(plugin.getServer().getPort()));
     }
@@ -485,7 +485,7 @@ public class Game {
         inv.addItem(Util.displayName(bow, "<green><bold>Infinite Bow"));
         inv.addItem(Util.displayName(new ItemStack(Material.IRON_SHOVEL), "<green><bold>Starter Shovel"));
         inv.addItem(Util.displayName(new ItemStack(Material.COOKED_BEEF), "<green><bold>Infinite Steak Supply"));
-        inv.addItem(new ItemStack(Material.COBBLESTONE, 32));
+        inv.addItem(Util.displayName(new ItemStack(Material.COBBLESTONE), "<green><bold>Infinite Cobble"));
         inv.addItem(new ItemStack(Material.WATER_BUCKET));
         inv.addItem(Util.displayName(new ItemStack(Material.CRAFTING_TABLE), "<green><bold>Infinite Crafting Table"));
         inv.addItem(Util.displayName(new ItemStack(Material.TORCH), "<green><bold>Infinite Torch"));

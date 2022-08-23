@@ -39,7 +39,7 @@ public class BlockPlaceListener implements Listener {
         }
 
         final ItemStack item = event.getItemInHand();
-        if (item.getType() == Material.TORCH || item.getType() == Material.CRAFTING_TABLE) {
+        if (item.getType() == Material.TORCH || item.getType() == Material.CRAFTING_TABLE || item.getType() == Material.COBBLESTONE) {
             item.setAmount(1);
             if (event.getPlayer().getInventory().getItemInMainHand().getType() == item.getType()) {
                 event.getPlayer().getInventory().setItemInMainHand(item);
