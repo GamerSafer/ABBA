@@ -4,7 +4,7 @@ plugins {
 }
 
 group "com.github.colebennett.abbacaving"
-version "0.1-SNAPSHOT"
+version "0.1-ALPHA"
 
 repositories {
     mavenCentral()
