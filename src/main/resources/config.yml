@@ -31,11 +31,11 @@ permissions:
 lobby-servers:
   - ABBA-Lobby
 
-database:
+mysql:
   host: localhost
-  user: minecraft
+  database-name: database
+  username: minecraft
   password: secret
-  name: database
 
 redis:
   host: localhost

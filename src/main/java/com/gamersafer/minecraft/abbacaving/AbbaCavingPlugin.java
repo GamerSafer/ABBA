@@ -523,15 +523,15 @@ public class AbbaCavingPlugin extends JavaPlugin {
             e.printStackTrace();
         }
 
-        final String host = this.getConfig().getString("database.host");
-        final String name = this.getConfig().getString("database.name");
+        final String host = this.getConfig().getString("mysql.host");
+        final String name = this.getConfig().getString("mysql.database-name");
 
         final HikariConfig config = new HikariConfig();
         config.setMinimumIdle(1);
         config.setMaximumPoolSize(4);
         config.setJdbcUrl("jdbc:mariadb://" + host + "/" + name);
-        config.setUsername(this.getConfig().getString("database.user"));
-        config.setPassword(this.getConfig().getString("database.password"));
+        config.setUsername(this.getConfig().getString("mysql.username"));
+        config.setPassword(this.getConfig().getString("mysql.password"));
         return new HikariDataSource(config);
     }
 
