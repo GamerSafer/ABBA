@@ -487,7 +487,6 @@ public class Game {
         inv.addItem(Util.displayName(new ItemStack(Material.COOKED_BEEF), "<green><bold>Infinite Steak Supply"));
         inv.addItem(Util.displayName(new ItemStack(Material.COBBLESTONE), "<green><bold>Infinite Cobble"));
         inv.addItem(new ItemStack(Material.WATER_BUCKET));
-        inv.addItem(Util.displayName(new ItemStack(Material.CRAFTING_TABLE), "<green><bold>Infinite Crafting Table"));
         inv.addItem(Util.displayName(new ItemStack(Material.TORCH), "<green><bold>Infinite Torch"));
         inv.setItem(35, new ItemStack(Material.ARROW, 1));
 
