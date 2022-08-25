@@ -1,9 +1,9 @@
-package com.github.colebennett.abbacaving.listeners;
+package com.gamersafer.minecraft.abbacaving.listeners;
 
-import com.github.colebennett.abbacaving.AbbaCavingPlugin;
-import com.github.colebennett.abbacaving.game.CaveOre;
-import com.github.colebennett.abbacaving.game.GamePlayer;
-import com.github.colebennett.abbacaving.game.GameState;
+import com.gamersafer.minecraft.abbacaving.AbbaCavingPlugin;
+import com.gamersafer.minecraft.abbacaving.game.CaveOre;
+import com.gamersafer.minecraft.abbacaving.game.GamePlayer;
+import com.gamersafer.minecraft.abbacaving.game.GameState;
 import java.util.HashMap;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;

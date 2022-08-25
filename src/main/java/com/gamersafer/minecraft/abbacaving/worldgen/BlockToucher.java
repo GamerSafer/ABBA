@@ -1,4 +1,4 @@
-package com.github.colebennett.abbacaving.worldgen;
+package com.gamersafer.minecraft.abbacaving.worldgen;
 
 import java.util.ArrayDeque;
 import java.util.Queue;

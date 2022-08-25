@@ -1,4 +1,4 @@
-package com.github.colebennett.abbacaving.util;
+package com.gamersafer.minecraft.abbacaving.util;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;

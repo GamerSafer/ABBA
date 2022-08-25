@@ -1,7 +1,7 @@
-package com.github.colebennett.abbacaving.placeholders;
+package com.gamersafer.minecraft.abbacaving.placeholders;
 
-import com.github.colebennett.abbacaving.AbbaCavingPlugin;
-import com.github.colebennett.abbacaving.AbbaCavingPlugin.ServerInfo;
+import com.gamersafer.minecraft.abbacaving.AbbaCavingPlugin;
+import com.gamersafer.minecraft.abbacaving.AbbaCavingPlugin.ServerInfo;
 import me.clip.placeholderapi.expansion.PlaceholderExpansion;
 import org.bukkit.entity.Player;
 

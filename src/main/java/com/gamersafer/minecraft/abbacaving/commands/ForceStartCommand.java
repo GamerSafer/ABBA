@@ -1,7 +1,7 @@
-package com.github.colebennett.abbacaving.commands;
+package com.gamersafer.minecraft.abbacaving.commands;
 
-import com.github.colebennett.abbacaving.AbbaCavingPlugin;
-import com.github.colebennett.abbacaving.game.GameState;
+import com.gamersafer.minecraft.abbacaving.AbbaCavingPlugin;
+import com.gamersafer.minecraft.abbacaving.game.GameState;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;

@@ -1,4 +1,4 @@
-package com.github.colebennett.abbacaving.game;
+package com.gamersafer.minecraft.abbacaving.game;
 
 public enum GameState {
 

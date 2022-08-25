@@ -1,7 +1,7 @@
-package com.github.colebennett.abbacaving.game;
+package com.gamersafer.minecraft.abbacaving.game;
 
-import com.github.colebennett.abbacaving.AbbaCavingPlugin;
-import com.github.colebennett.abbacaving.util.Util;
+import com.gamersafer.minecraft.abbacaving.AbbaCavingPlugin;
+import com.gamersafer.minecraft.abbacaving.util.Util;
 import java.util.Map;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Location;

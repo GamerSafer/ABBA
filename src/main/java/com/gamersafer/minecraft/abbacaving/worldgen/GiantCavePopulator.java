@@ -1,6 +1,6 @@
-package com.github.colebennett.abbacaving.worldgen;
+package com.gamersafer.minecraft.abbacaving.worldgen;
 
-import com.github.colebennett.abbacaving.AbbaCavingPlugin;
+import com.gamersafer.minecraft.abbacaving.AbbaCavingPlugin;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;

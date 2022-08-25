@@ -1,8 +1,8 @@
-package com.github.colebennett.abbacaving.game;
+package com.gamersafer.minecraft.abbacaving.game;
 
-import com.github.colebennett.abbacaving.AbbaCavingPlugin;
-import com.github.colebennett.abbacaving.util.Util;
-import com.github.colebennett.abbacaving.worldgen.GiantCavePopulator;
+import com.gamersafer.minecraft.abbacaving.AbbaCavingPlugin;
+import com.gamersafer.minecraft.abbacaving.util.Util;
+import com.gamersafer.minecraft.abbacaving.worldgen.GiantCavePopulator;
 import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
 import java.io.File;

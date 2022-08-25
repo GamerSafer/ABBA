@@ -1,7 +1,7 @@
-package com.github.colebennett.abbacaving.listeners;
+package com.gamersafer.minecraft.abbacaving.listeners;
 
-import com.github.colebennett.abbacaving.AbbaCavingPlugin;
-import com.github.colebennett.abbacaving.game.GameState;
+import com.gamersafer.minecraft.abbacaving.AbbaCavingPlugin;
+import com.gamersafer.minecraft.abbacaving.game.GameState;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.event.EventHandler;

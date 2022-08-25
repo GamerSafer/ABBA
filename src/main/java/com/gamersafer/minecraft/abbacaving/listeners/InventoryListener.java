@@ -1,8 +1,8 @@
-package com.github.colebennett.abbacaving.listeners;
+package com.gamersafer.minecraft.abbacaving.listeners;
 
-import com.github.colebennett.abbacaving.AbbaCavingPlugin;
-import com.github.colebennett.abbacaving.game.CaveLoot;
-import com.github.colebennett.abbacaving.game.GamePlayer;
+import com.gamersafer.minecraft.abbacaving.AbbaCavingPlugin;
+import com.gamersafer.minecraft.abbacaving.game.CaveLoot;
+import com.gamersafer.minecraft.abbacaving.game.GamePlayer;
 import java.util.Map;
 import net.kyori.adventure.text.Component;
 import org.bukkit.entity.Player;

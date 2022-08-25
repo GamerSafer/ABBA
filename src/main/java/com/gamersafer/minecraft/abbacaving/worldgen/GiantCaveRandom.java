@@ -1,4 +1,4 @@
-package com.github.colebennett.abbacaving.worldgen;
+package com.gamersafer.minecraft.abbacaving.worldgen;
 
 import org.bukkit.Chunk;
 import org.bukkit.util.noise.NoiseGenerator;

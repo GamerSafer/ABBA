@@ -1,9 +1,9 @@
-package com.github.colebennett.abbacaving.placeholders;
+package com.gamersafer.minecraft.abbacaving.placeholders;
 
-import com.github.colebennett.abbacaving.AbbaCavingPlugin;
-import com.github.colebennett.abbacaving.game.GamePlayer;
-import com.github.colebennett.abbacaving.game.GameState;
-import com.github.colebennett.abbacaving.util.Util;
+import com.gamersafer.minecraft.abbacaving.AbbaCavingPlugin;
+import com.gamersafer.minecraft.abbacaving.game.GamePlayer;
+import com.gamersafer.minecraft.abbacaving.game.GameState;
+import com.gamersafer.minecraft.abbacaving.util.Util;
 import java.util.ArrayList;
 import java.util.List;
 import me.clip.placeholderapi.expansion.PlaceholderExpansion;
