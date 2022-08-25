@@ -40,7 +40,6 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.Damageable;
 import org.bukkit.inventory.meta.ItemMeta;
-import redis.clients.jedis.Jedis;
 
 public class Game {
 
@@ -68,15 +67,6 @@ public class Game {
 
         this.gameState(GameState.WAITING);
         this.counter(0);
-        plugin.updateGameInfo("slots", Integer.toString(plugin.getServer().getMaxPlayers()));
-
-        final String key = AbbaCavingPlugin.REDIS_TAG + ":servers";
-        try (final Jedis jedis = plugin.jedis()) {
-            jedis.sadd(key, plugin.serverId());
-            final String serverList = String.join(",", jedis.smembers(key));
-            jedis.publish(AbbaCavingPlugin.REDIS_TAG, String.format("%s,%s", key, serverList));
-            plugin.getLogger().info("[Redis] Updated server list: " + serverList);
-        }
 
         plugin.getServer().getScheduler().runTaskTimer(plugin, this::nextTick, 0, 20);
     }
@@ -95,7 +85,6 @@ public class Game {
 
     private void gameState(final GameState state) {
         this.state = state;
-        this.plugin.updateGameInfo("state", state.name());
     }
 
     public List<Location> spawnLocations() {
@@ -111,8 +100,6 @@ public class Game {
             this.plugin.broadcast(this.plugin.configMessage("player-joined"), Map.of("player", gp.player().displayName()));
 
             this.resetPlayer(gp.player());
-
-            this.plugin.updateGameInfo("players", Integer.toString(this.players.size()));
         }
     }
 
@@ -160,7 +147,6 @@ public class Game {
             this.plugin.broadcast(this.plugin.configMessage("player-left"), Map.of("player", player.displayName()));
         }
 
-        this.plugin.updateGameInfo("players", Integer.toString(this.players.size()));
         return gp;
     }
 
@@ -180,7 +166,6 @@ public class Game {
 
     private void counter(final int counter) {
         this.counter = counter;
-        this.plugin.updateGameInfo("counter", Integer.toString(counter));
     }
 
     private void nextTick() {
@@ -249,11 +234,6 @@ public class Game {
             }
         }
 
-        if (this.state == GameState.STARTING || this.state == GameState.RUNNING) {
-            if (this.counter <= 10 || this.counter % 5 == 0) {
-                this.plugin.updateGameInfo("counter", Integer.toString(this.counter));
-            }
-        }
         this.counter--;
     }
 

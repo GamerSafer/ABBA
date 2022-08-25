@@ -28,16 +28,12 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
-import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
@@ -58,8 +54,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
-import redis.clients.jedis.Jedis;
-import redis.clients.jedis.JedisPubSub;
 
 public class AbbaCavingPlugin extends JavaPlugin {
 
@@ -68,7 +62,6 @@ public class AbbaCavingPlugin extends JavaPlugin {
     private Set<CaveLoot> loot;
     private Map<String, List<Location>> mapSpawns;
     private Game game;
-    private Jedis jedis;
     private LuckPerms luckPermsApi;
     private HikariDataSource dataSource;
     private Map<String, ServerInfo> servers;
@@ -105,11 +98,6 @@ public class AbbaCavingPlugin extends JavaPlugin {
 
         this.getServer().getMessenger().registerOutgoingPluginChannel(this, "BungeeCord");
 
-        this.jedis = new Jedis(
-                this.getConfig().getString("redis.host"),
-                this.getConfig().getInt("redis.port"));
-        this.jedis.auth(this.getConfig().getString("redis.password"));
-
         switch (serverMode) {
             case GAME -> this.initGameMode();
             case LOBBY -> this.initLobbyMode();
@@ -135,35 +123,12 @@ public class AbbaCavingPlugin extends JavaPlugin {
         });
     }
 
-    @Override
-    public void onDisable() {
-        if (this.jedis != null) {
-            final String serversKey = AbbaCavingPlugin.REDIS_TAG + ":servers";
-            this.jedis.srem(serversKey, this.serverId());
-            final String serverList = String.join(",", this.jedis.smembers(serversKey));
-            this.jedis.publish(AbbaCavingPlugin.REDIS_TAG, String.format("%s,%s", serversKey, serverList));
-            this.getLogger().info("[Redis] Updated server list: " + serverList);
-
-            final String keyPrefix = String.format("%s:server:%s:", REDIS_TAG, this.serverId());
-            this.jedis.del(
-                    keyPrefix + "state",
-                    keyPrefix + "players",
-                    keyPrefix + "slots",
-                    keyPrefix + "counter");
-            this.getLogger().info("[Redis] Removed data for server " + this.serverId());
-        }
-    }
-
     public String serverId() {
         return Integer.toString(this.getServer().getPort());
     }
 
     public Game currentGame() {
         return this.game;
-    }
-
-    public Jedis jedis() {
-        return this.jedis;
     }
 
     public LuckPerms luckPermsAPI() {
@@ -280,18 +245,6 @@ public class AbbaCavingPlugin extends JavaPlugin {
         sender.sendMessage(MiniMessage.miniMessage().deserialize(message, resolvers));
     }
 
-    public void updateGameInfo(final String subKey, final String value) {
-        if (this.jedis == null) {
-            this.getLogger().warning("Not currently connected to a Redis instance");
-            return;
-        }
-
-        final String key = String.format("%s:server:%s:%s", REDIS_TAG, this.serverId(), subKey);
-        this.jedis.set(key, value);
-        this.jedis.publish(REDIS_TAG, String.format("%s,%s", key, value));
-        //getLogger().info(String.format("[Redis] Set %s = %s", key, value));
-    }
-
     private void initGameMode() {
         this.loadData();
 
@@ -338,93 +291,6 @@ public class AbbaCavingPlugin extends JavaPlugin {
     }
 
     private void initLobbyMode() {
-        this.servers = new HashMap<>();
-
-        final Set<String> serverIds = this.jedis.smembers(REDIS_TAG + ":servers");
-        this.getLogger().info("[Redis] Loaded server list: " + serverIds.toString());
-
-        for (final String serverId : serverIds) {
-            final ServerInfo info = this.serverInfo(serverId);
-
-            final String stateValue = this.jedis.get(String.format("%s:server:%s:state", REDIS_TAG, serverId));
-            if (stateValue != null) {
-                info.state = GameState.valueOf(stateValue);
-            } else {
-                this.getLogger().warning("[Redis] No state entry found for server %s" + serverId);
-            }
-
-            final String playerCountValue = this.jedis.get(String.format("%s:server:%s:players", REDIS_TAG, serverId));
-            if (playerCountValue != null) {
-                info.playerCount = Integer.parseInt(playerCountValue);
-            } else {
-                this.getLogger().warning("[Redis] No player count entry found for server %s" + serverId);
-            }
-
-            final String counterValue = this.jedis.get(String.format("%s:server:%s:counter", REDIS_TAG, serverId));
-            if (counterValue != null) {
-                info.counter = Integer.parseInt(counterValue);
-            } else {
-                this.getLogger().warning("[Redis] No counter entry found for server %s" + serverId);
-            }
-
-            final String slotsValue = this.jedis.get(String.format("%s:server:%s:slots", REDIS_TAG, serverId));
-            if (slotsValue != null) {
-                info.slots = Integer.parseInt(slotsValue);
-            } else {
-                this.getLogger().warning("[Redis] No slots entry found for server %s" + serverId);
-            }
-
-            this.getLogger().info(String.format("[Redis] Loaded server info: id=%s, state=%s, players=%s, counter=%s, slots=%s",
-                    serverId, stateValue, playerCountValue, counterValue, slotsValue));
-        }
-
-        Executors.newSingleThreadExecutor().execute(() -> AbbaCavingPlugin.this.jedis.subscribe(new JedisPubSub() {
-            @Override
-            public void onMessage(final String channel, final String message) {
-                if (!channel.equals(REDIS_TAG)) return;
-
-                final String[] parts = message.split(",", 2);
-                final String key = parts[0];
-                final String value = parts[1];
-                //getLogger().info(String.format("[Redis] Received update: key=%s, value=%s", key, value));
-
-                if (key.endsWith(":servers")) {
-                    final Set<String> newServerIds = new HashSet<>(Arrays.asList(value.split(",")));
-
-                    final Iterator<Entry<String, ServerInfo>> itr = AbbaCavingPlugin.this.servers.entrySet().iterator();
-                    while (itr.hasNext()) {
-                        final String entryKey = itr.next().getKey();
-                        if (!newServerIds.contains(entryKey)) {
-                            itr.remove();
-                        }
-                    }
-
-                    for (final String serverId : newServerIds) {
-                        if (!AbbaCavingPlugin.this.servers.containsKey(serverId)) {
-                            AbbaCavingPlugin.this.servers.put(serverId, new ServerInfo());
-                        }
-                    }
-
-                    //getLogger().info("[Redis] Updated server list: " + newServerIds.toString());
-                    return;
-                }
-
-                final String[] keyParts = key.split(":");
-                final String serverId = keyParts[2];
-                final String attributeName = keyParts[3];
-
-                final ServerInfo info = AbbaCavingPlugin.this.serverInfo(serverId);
-                switch (attributeName) {
-                    case "state" -> info.state = GameState.valueOf(value);
-                    case "players" -> info.playerCount = Integer.parseInt(value);
-                    case "counter" -> info.counter = Integer.parseInt(value);
-                    case "slots" -> info.slots = Integer.parseInt(value);
-                    default ->
-                            AbbaCavingPlugin.this.getLogger().warning("[Redis] Unknown attribute name: " + attributeName);
-                }
-            }
-        }, REDIS_TAG));
-
         this.registerLobbyPlaceholders();
     }
 
@@ -506,14 +372,6 @@ public class AbbaCavingPlugin extends JavaPlugin {
             this.mapSpawns.put(entry, spawns);
         }
         this.getLogger().info("Loaded spawns for " + this.mapSpawns.size() + " map(s)");
-    }
-
-    private Jedis createRedisConnection() {
-        this.jedis = new Jedis(
-                this.getConfig().getString("redis.host"),
-                this.getConfig().getInt("redis.port"));
-        this.jedis.auth(this.getConfig().getString("redis.password"));
-        return this.jedis;
     }
 
     private HikariDataSource initDataSource() {
