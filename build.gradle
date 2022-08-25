@@ -28,7 +28,6 @@ dependencies {
     compileOnly "me.clip:placeholderapi:2.9.2"
 
     compileOnly files("lib/MVdWPlaceholderAPI.jar")
-    compileOnly files("lib/FeatherBoard.jar")
 
 //    compile fileTree(dir: "lib", include: ["*.jar"])
 }

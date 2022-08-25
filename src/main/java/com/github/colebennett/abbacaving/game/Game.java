@@ -1,6 +1,5 @@
 package com.github.colebennett.abbacaving.game;
 
-import be.maximvdw.featherboard.api.FeatherBoardAPI;
 import com.github.colebennett.abbacaving.AbbaCavingPlugin;
 import com.github.colebennett.abbacaving.util.Util;
 import com.github.colebennett.abbacaving.worldgen.GiantCavePopulator;
@@ -33,7 +32,6 @@ import org.bukkit.Sound;
 import org.bukkit.World;
 import org.bukkit.WorldCreator;
 import org.bukkit.attribute.Attribute;
-import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
@@ -98,10 +96,6 @@ public class Game {
     private void gameState(final GameState state) {
         this.state = state;
         this.plugin.updateGameInfo("state", state.name());
-
-        for (final GamePlayer gp : this.players.values()) {
-            this.updateScoreboard(gp.player());
-        }
     }
 
     public List<Location> spawnLocations() {
@@ -117,7 +111,6 @@ public class Game {
             this.plugin.broadcast(this.plugin.configMessage("player-joined"), Map.of("player", gp.player().displayName()));
 
             this.resetPlayer(gp.player());
-            this.updateScoreboard(gp.player());
 
             this.plugin.updateGameInfo("players", Integer.toString(this.players.size()));
         }
@@ -501,34 +494,6 @@ public class Game {
 
     private void updateLeaderboard() {
         this.leaderboard = Util.sortByValue(this.leaderboard, true);
-    }
-
-    private void showFeatherBoard(final Player player, final String name) {
-        if (this.plugin.getServer().getPluginManager().getPlugin("FeatherBoard") != null) {
-            FeatherBoardAPI.showScoreboard(player, name);
-        } else {
-            this.plugin.getLogger().warning("FeatherBoard plugin not found");
-        }
-    }
-
-    private void updateScoreboard(final Player player) {
-        if (this.plugin.luckPermsAPI() != null) {
-            final ConfigurationSection configSection = this.plugin.getConfig().getConfigurationSection("scoreboards");
-            final String stateName = this.state.name().toLowerCase();
-            final String defaultScoreboardName = configSection.getString(stateName + ".default.scoreboard-name");
-            final String donorScoreboardName = configSection.getString(stateName + ".donor.scoreboard-name", "");
-            final String donorScoreboardPerm = configSection.getString(stateName + ".donor.permission", "");
-
-            String scoreboardName = defaultScoreboardName;
-
-            if (!donorScoreboardPerm.isEmpty()) {
-                if (this.plugin.hasPermission(player, donorScoreboardPerm)) {
-                    scoreboardName = donorScoreboardName;
-                }
-            }
-
-            this.showFeatherBoard(player, scoreboardName);
-        }
     }
 
     private void sendToLobby(final Player player) {
