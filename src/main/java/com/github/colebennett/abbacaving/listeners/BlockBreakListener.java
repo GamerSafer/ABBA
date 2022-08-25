@@ -6,13 +6,10 @@ import com.github.colebennett.abbacaving.game.GamePlayer;
 import com.github.colebennett.abbacaving.game.GameState;
 import java.util.HashMap;
 import org.bukkit.Location;
-import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
-import org.bukkit.inventory.Inventory;
-import org.bukkit.inventory.ItemStack;
 
 public class BlockBreakListener implements Listener {
 
@@ -60,26 +57,8 @@ public class BlockBreakListener implements Listener {
             }
         }
 
-        if (event.getBlock().getType() == Material.STONE) {
-            if (!this.hasMaxAmount(event.getPlayer().getInventory(), Material.COBBLESTONE)) {
-                event.getPlayer().getInventory().addItem(new ItemStack(Material.COBBLESTONE));
-            } else {
-                //plugin.message(event.getPlayer(), "<gray>You already have the maximum allowed amount of cobblestone (2 stacks).");
-            }
-        }
-
         event.setExpToDrop(0);
         event.setDropItems(false);
-    }
-
-    private boolean hasMaxAmount(final Inventory inv, final Material type) {
-        int count = 0;
-        for (final ItemStack item : inv.getContents()) {
-            if (item != null && item.getType() == type) {
-                count += item.getAmount();
-            }
-        }
-        return count >= 128;
     }
 
 }
