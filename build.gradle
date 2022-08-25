@@ -30,11 +30,6 @@ dependencies {
     compileOnly files("lib/MVdWPlaceholderAPI.jar")
     compileOnly files("lib/FeatherBoard.jar")
 
-    // This is a fork of the original WorldBorder. Link at https://www.spigotmc.org/resources/worldborder-1-15.80466/
-    // The original plugin is abandoned and has not been updated since 1.14
-    // The two should be compatible with each other
-    compileOnly files("lib/WorldBorder.jar") // https://github.com/PryPurity/WorldBorder/releases/tag/v2.1.5
-
 //    compile fileTree(dir: "lib", include: ["*.jar"])
 }
 

@@ -406,14 +406,6 @@ public class Game {
         this.caveGenerator = new GiantCavePopulator(this.plugin, world);
         world.getPopulators().add(this.caveGenerator);
         this.plugin.getLogger().info("Done");
-
-        //        if (plugin.getServer().getPluginManager().isPluginEnabled("WorldBorder")) {
-        //            int ticks = 1;
-        //            int defaultPadding = CoordXZ.chunkToBlock(13);
-        //            WorldFillTask fillTask = new WorldFillTask(Bukkit.getServer(), null, world.getName(), defaultPadding, 1, ticks, true);
-        //            int taskId = plugin.getServer().getScheduler().scheduleSyncRepeatingTask(plugin, fillTask, ticks, ticks);
-        //            plugin.getLogger().info("Created world fill task: id=" + taskId);
-        //        }
     }
 
     private void loadRandomMap() {

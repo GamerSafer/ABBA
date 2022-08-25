@@ -1,7 +1,6 @@
 package com.github.colebennett.abbacaving.worldgen;
 
 import com.github.colebennett.abbacaving.AbbaCavingPlugin;
-import com.wimbli.WorldBorder.Events.WorldBorderFillFinishedEvent;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -17,7 +16,6 @@ import org.bukkit.block.BlockFace;
 import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
-import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.generator.BlockPopulator;
 
@@ -269,12 +267,6 @@ public class GiantCavePopulator extends BlockPopulator implements Listener {
         } catch (final IOException e) {
             e.printStackTrace();
         }
-    }
-
-    @EventHandler
-    public void onWorldBorderFillFinished(final WorldBorderFillFinishedEvent event) {
-        this.findSpawns();
-        this.plugin.getServer().getScheduler().runTaskLater(this.plugin, () -> this.plugin.getServer().shutdown(), 20 * 5);
     }
 
 }
