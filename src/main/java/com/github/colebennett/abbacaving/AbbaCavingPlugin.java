@@ -1,6 +1,5 @@
 package com.github.colebennett.abbacaving;
 
-import be.maximvdw.placeholderapi.PlaceholderAPI;
 import com.github.colebennett.abbacaving.commands.ForceStartCommand;
 import com.github.colebennett.abbacaving.commands.NightVisionCommand;
 import com.github.colebennett.abbacaving.commands.PointsCommand;
@@ -403,10 +402,6 @@ public class AbbaCavingPlugin extends JavaPlugin {
                     for (final String serverId : newServerIds) {
                         if (!AbbaCavingPlugin.this.servers.containsKey(serverId)) {
                             AbbaCavingPlugin.this.servers.put(serverId, new ServerInfo());
-
-                            if (Bukkit.getPluginManager().isPluginEnabled("MVdWPlaceholderAPI")) {
-                                AbbaCavingPlugin.this.registerServerPlaceholders(serverId);
-                            }
                         }
                     }
 
@@ -437,114 +432,11 @@ public class AbbaCavingPlugin extends JavaPlugin {
         if (Bukkit.getPluginManager().isPluginEnabled("PlaceholdersAPI")) {
             new GamePlaceholders(this);
         }
-
-        if (Bukkit.getPluginManager().isPluginEnabled("MVdWPlaceholderAPI")) {
-            PlaceholderAPI.registerPlaceholder(this, "x", event ->
-                    Integer.toString(event.getPlayer().getLocation().getBlockX()));
-            PlaceholderAPI.registerPlaceholder(this, "y", event ->
-                    Integer.toString(event.getPlayer().getLocation().getBlockY()));
-            PlaceholderAPI.registerPlaceholder(this, "z", event ->
-                    Integer.toString(event.getPlayer().getLocation().getBlockZ()));
-            PlaceholderAPI.registerPlaceholder(this, "current_score", event -> {
-                final GamePlayer gp = this.game.player(event.getPlayer());
-                if (gp != null) {
-                    return Util.addCommas(gp.score());
-                }
-                return "";
-            });
-            PlaceholderAPI.registerPlaceholder(this, "highest_score", event -> {
-                final GamePlayer gp = this.game.player(event.getPlayer());
-                if (gp != null) {
-                    return Util.addCommas(gp.highestScore());
-                }
-                return "";
-            });
-            PlaceholderAPI.registerPlaceholder(this, "current_ores_mined", event -> {
-                final GamePlayer gp = this.game.player(event.getPlayer());
-                if (gp != null) {
-                    return Util.addCommas(gp.currentOresMined());
-                }
-                return "";
-            });
-            PlaceholderAPI.registerPlaceholder(this, "total_ores_mined", event -> {
-                final GamePlayer gp = this.game.player(event.getPlayer());
-                if (gp != null) {
-                    return Util.addCommas(gp.totalOresMined());
-                }
-                return "";
-            });
-            PlaceholderAPI.registerPlaceholder(this, "wins", event -> {
-                final GamePlayer gp = this.game.player(event.getPlayer());
-                if (gp != null) {
-                    return Util.addCommas(gp.wins());
-                }
-                return "";
-            });
-            PlaceholderAPI.registerPlaceholder(this, "game_players", event -> Integer.toString(this.game.players().size()));
-            PlaceholderAPI.registerPlaceholder(this, "game_state", event -> this.game.gameState().displayName());
-
-            for (int i = 0; i < 10; i++) {
-                final int index = i;
-                PlaceholderAPI.registerPlaceholder(this, "leaderboard_score_" + (i + 1), event -> {
-                    if (this.game.leaderboard() != null) {
-                        final List<GamePlayer> sorted = new ArrayList<>(this.game.leaderboard().keySet());
-                        if (index >= sorted.size()) return "N/A";
-                        return Util.addCommas(this.game.leaderboard().get(sorted.get(index)));
-                    }
-                    return "";
-                });
-                PlaceholderAPI.registerPlaceholder(this, "leaderboard_player_" + (i + 1), event -> {
-                    if (this.game.leaderboard() != null) {
-                        final List<GamePlayer> sorted = new ArrayList<>(this.game.leaderboard().keySet());
-                        if (index >= sorted.size()) return "N/A";
-                        return sorted.get(index).player().getName();
-                    }
-                    return "";
-                });
-            }
-        }
-    }
-
-    private void registerServerPlaceholders(final String serverId) {
-        final String prefix = String.format("%s_server_%s_", REDIS_TAG, serverId);
-
-        PlaceholderAPI.registerPlaceholder(this, prefix + "state", event -> {
-            final ServerInfo info = this.servers.get(serverId);
-            return info != null && info.state != null ? info.state.displayName() : "";
-        });
-        PlaceholderAPI.registerPlaceholder(this, prefix + "players", event -> {
-            final ServerInfo info = this.servers.get(serverId);
-            return info != null ? Integer.toString(info.playerCount) : "";
-        });
-        PlaceholderAPI.registerPlaceholder(this, prefix + "counter", event -> {
-            final ServerInfo info = this.servers.get(serverId);
-            return info != null ? Integer.toString(info.counter) : "";
-        });
-        PlaceholderAPI.registerPlaceholder(this, prefix + "slots", event -> {
-            final ServerInfo info = this.servers.get(serverId);
-            return info != null ? Integer.toString(info.slots) : "";
-        });
     }
 
     private void registerLobbyPlaceholders() {
         if (Bukkit.getPluginManager().isPluginEnabled("PlaceholdersAPI")) {
             new LobbyPlaceholders(this);
-        }
-
-        if (Bukkit.getPluginManager().isPluginEnabled("MVdWPlaceholderAPI")) {
-            PlaceholderAPI.registerPlaceholder(this, "abbacaving_online", event -> {
-                int totalOnline = 0;
-                if (this.servers != null) {
-                    for (final ServerInfo info : this.servers.values()) {
-                        totalOnline += info.playerCount;
-                    }
-                }
-                return Integer.toString(totalOnline);
-            });
-
-            for (final String serverId : this.servers.keySet()) {
-                this.registerServerPlaceholders(serverId);
-            }
         }
     }
 

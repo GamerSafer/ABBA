@@ -27,8 +27,6 @@ dependencies {
     compileOnly "net.luckperms:api:5.4"
     compileOnly "me.clip:placeholderapi:2.9.2"
 
-    compileOnly files("lib/MVdWPlaceholderAPI.jar")
-
 //    compile fileTree(dir: "lib", include: ["*.jar"])
 }
 
