@@ -131,7 +131,7 @@ public class GamePlayer {
             this.highestScore = this.score;
         }
 
-        this.plugin.currentGame().updateScore(this);
+        // TODO: update score
     }
 
 }

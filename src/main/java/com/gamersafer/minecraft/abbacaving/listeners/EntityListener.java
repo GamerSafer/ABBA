@@ -1,6 +1,7 @@
 package com.gamersafer.minecraft.abbacaving.listeners;
 
 import com.gamersafer.minecraft.abbacaving.AbbaCavingPlugin;
+import com.gamersafer.minecraft.abbacaving.game.Game;
 import com.gamersafer.minecraft.abbacaving.game.GameState;
 import org.bukkit.entity.EntityType;
 import org.bukkit.event.EventHandler;
@@ -23,10 +24,21 @@ public class EntityListener implements Listener {
 
     @EventHandler
     public void onCreatureSpawn(final CreatureSpawnEvent event) {
-        if (event.getEntityType() != EntityType.DROPPED_ITEM
-                && this.plugin.currentGame().gameState() != GameState.RUNNING) {
-            event.setCancelled(true);
+        if (event.getEntityType() == EntityType.DROPPED_ITEM) {
+            return;
         }
+
+        for (final Game game : this.plugin.gameTracker().currentGames()) {
+            if (game.world().equals(event.getEntity().getWorld())) {
+                if (game.gameState() != GameState.RUNNING) {
+                    event.setCancelled(true);
+                }
+
+                return;
+            }
+        }
+
+        event.setCancelled(true);
     }
 
 }

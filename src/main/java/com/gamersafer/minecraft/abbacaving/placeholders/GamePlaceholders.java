@@ -1,6 +1,7 @@
 package com.gamersafer.minecraft.abbacaving.placeholders;
 
 import com.gamersafer.minecraft.abbacaving.AbbaCavingPlugin;
+import com.gamersafer.minecraft.abbacaving.game.Game;
 import com.gamersafer.minecraft.abbacaving.game.GamePlayer;
 import com.gamersafer.minecraft.abbacaving.game.GameState;
 import com.gamersafer.minecraft.abbacaving.util.Util;
@@ -42,22 +43,25 @@ public class GamePlaceholders extends PlaceholderExpansion {
     public String onPlaceholderRequest(final Player player, final String identifier) {
         this.plugin.getLogger().info("PlaceholderAPI request: " + player.getName() + ", " + identifier);
 
-        final GamePlayer gp = this.plugin.currentGame().player(player);
+        final GamePlayer gp = this.plugin.gameTracker().findPlayer(player);
+        final Game game = this.plugin.gameTracker().findGame(player);
+        // TODO: might not be desired behaviour
+        // We might want to identify by game ID or something else.
 
         if (identifier.startsWith("leaderboard_score_")) {
             final int n = Integer.parseInt(identifier.replace("leaderboard_score_", ""));
 
-            if (this.plugin.currentGame().gameState() == GameState.RUNNING) {
-                final List<GamePlayer> sorted = new ArrayList<>(this.plugin.currentGame().leaderboard().keySet());
+            if (game.gameState() == GameState.RUNNING) {
+                final List<GamePlayer> sorted = new ArrayList<>(game.leaderboard().keySet());
                 if (n >= sorted.size()) return "N/A";
-                return Util.addCommas(this.plugin.currentGame().leaderboard().get(sorted.get(n)));
+                return Util.addCommas(game.leaderboard().get(sorted.get(n)));
             }
             return "";
         } else if (identifier.startsWith("leaderboard_player_")) {
             final int n = Integer.parseInt(identifier.replace("leaderboard_player_", ""));
 
-            if (this.plugin.currentGame().gameState() == GameState.RUNNING) {
-                final List<GamePlayer> sorted = new ArrayList<>(this.plugin.currentGame().leaderboard().keySet());
+            if (game.gameState() == GameState.RUNNING) {
+                final List<GamePlayer> sorted = new ArrayList<>(game.leaderboard().keySet());
                 if (n >= sorted.size()) return "N/A";
                 return sorted.get(n).player().getName();
             }
@@ -77,9 +81,9 @@ public class GamePlaceholders extends PlaceholderExpansion {
                 case "wins":
                     return Util.addCommas(gp.wins());
                 case "game_players":
-                    return Integer.toString(this.plugin.currentGame().players().size());
+                    return Integer.toString(game.players().size());
                 case "game_state":
-                    return this.plugin.currentGame().gameState().displayName();
+                    return game.gameState().displayName();
             }
         }
 

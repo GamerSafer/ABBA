@@ -1,14 +1,15 @@
 package com.gamersafer.minecraft.abbacaving;
 
+import com.gamersafer.minecraft.abbacaving.commands.ACReloadCommand;
+import com.gamersafer.minecraft.abbacaving.commands.BroadcastNPCommand;
 import com.gamersafer.minecraft.abbacaving.commands.ForceStartCommand;
 import com.gamersafer.minecraft.abbacaving.commands.NightVisionCommand;
 import com.gamersafer.minecraft.abbacaving.commands.PointsCommand;
 import com.gamersafer.minecraft.abbacaving.commands.StatsCommand;
 import com.gamersafer.minecraft.abbacaving.game.CaveLoot;
 import com.gamersafer.minecraft.abbacaving.game.CaveOre;
-import com.gamersafer.minecraft.abbacaving.game.Game;
 import com.gamersafer.minecraft.abbacaving.game.GamePlayer;
-import com.gamersafer.minecraft.abbacaving.game.GameState;
+import com.gamersafer.minecraft.abbacaving.game.GameTracker;
 import com.gamersafer.minecraft.abbacaving.listeners.BlockBreakListener;
 import com.gamersafer.minecraft.abbacaving.listeners.BlockPlaceListener;
 import com.gamersafer.minecraft.abbacaving.listeners.EntityListener;
@@ -57,14 +58,12 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 public class AbbaCavingPlugin extends JavaPlugin {
 
-    public static final String REDIS_TAG = "abbacaving";
     private Set<CaveOre> ores;
     private Set<CaveLoot> loot;
+    private GameTracker gameTracker;
     private Map<String, List<Location>> mapSpawns;
-    private Game game;
     private LuckPerms luckPermsApi;
     private HikariDataSource dataSource;
-    private Map<String, ServerInfo> servers;
 
     @Override
     public void onEnable() {
@@ -93,50 +92,51 @@ public class AbbaCavingPlugin extends JavaPlugin {
             return;
         }
 
-        final ServerMode serverMode = ServerMode.valueOf(this.getConfig().getString("server.mode"));
-        this.getLogger().info("Server mode: " + serverMode.name());
-
         this.getServer().getMessenger().registerOutgoingPluginChannel(this, "BungeeCord");
 
-        switch (serverMode) {
-            case GAME -> this.initGameMode();
-            case LOBBY -> this.initLobbyMode();
+        this.loadData();
+
+        this.getServer().getPluginManager().registerEvents(new BlockBreakListener(this), this);
+        this.getServer().getPluginManager().registerEvents(new BlockPlaceListener(this), this);
+        this.getServer().getPluginManager().registerEvents(new EntityListener(this), this);
+        this.getServer().getPluginManager().registerEvents(new PlayerListener(this), this);
+        this.getServer().getPluginManager().registerEvents(new InventoryListener(this), this);
+
+        this.getServer().getScheduler().runTaskAsynchronously(this, this::createTable);
+
+        if (Bukkit.getPluginManager().isPluginEnabled("PlaceholdersAPI")) {
+            new GamePlaceholders(this);
+            new LobbyPlaceholders(this);
         }
 
-        this.getCommand("acreload").setExecutor((sender, command, label, args) -> {
-            if (!(sender.isOp())) {
-                this.message(sender, "<red>You do not have permission to do this.");
-                return false;
-            }
-            this.reloadConfig();
-            sender.sendMessage("Reloaded configuration");
-            return true;
-        });
+        final RegisteredServiceProvider<LuckPerms> provider = Bukkit.getServicesManager().getRegistration(LuckPerms.class);
+        if (provider != null) {
+            this.luckPermsApi = provider.getProvider();
+            this.getLogger().info("Hooked into " + provider.getPlugin().getName());
+        }
 
-        this.getCommand("bcastnp").setExecutor((sender, command, label, args) -> {
-            if (!(sender.isOp())) {
-                this.message(sender, "<red>You do not have permission to do this.");
-                return false;
-            }
-            this.broadcast(String.join(" ", args));
-            return true;
-        });
+        this.dataSource = this.initDataSource();
+
+        this.getCommand("acreload").setExecutor(new ACReloadCommand(this));
+        this.getCommand("bcastnp").setExecutor(new BroadcastNPCommand(this));
+        this.getCommand("forcestart").setExecutor(new ForceStartCommand(this));
+        this.getCommand("nightvision").setExecutor(new NightVisionCommand());
+        this.getCommand("points").setExecutor(new PointsCommand(this));
+        this.getCommand("stats").setExecutor(new StatsCommand(this));
+
+        this.gameTracker = new GameTracker(this);
     }
 
-    public String serverId() {
-        return Integer.toString(this.getServer().getPort());
-    }
-
-    public Game currentGame() {
-        return this.game;
-    }
-
-    public LuckPerms luckPermsAPI() {
-        return this.luckPermsApi;
+    public GameTracker gameTracker() {
+        return this.gameTracker;
     }
 
     public String gameWorldName() {
         return this.getDescription().getName();
+    }
+
+    public Map<String, List<Location>> mapSpawns() {
+        return this.mapSpawns;
     }
 
     public CaveOre caveOreFromDrop(final Material type) {
@@ -245,65 +245,8 @@ public class AbbaCavingPlugin extends JavaPlugin {
         sender.sendMessage(MiniMessage.miniMessage().deserialize(message, resolvers));
     }
 
-    private void initGameMode() {
-        this.loadData();
-
-        this.getServer().getPluginManager().registerEvents(new BlockBreakListener(this), this);
-        this.getServer().getPluginManager().registerEvents(new BlockPlaceListener(this), this);
-        this.getServer().getPluginManager().registerEvents(new EntityListener(this), this);
-        this.getServer().getPluginManager().registerEvents(new PlayerListener(this), this);
-        this.getServer().getPluginManager().registerEvents(new InventoryListener(this), this);
-
-        this.getServer().getScheduler().runTaskAsynchronously(this, this::createTable);
-
-        this.registerGamePlaceholders();
-
-        final RegisteredServiceProvider<LuckPerms> provider = Bukkit.getServicesManager().getRegistration(LuckPerms.class);
-        if (provider != null) {
-            this.luckPermsApi = provider.getProvider();
-            this.getLogger().info("Hooked into " + provider.getPlugin().getName());
-        }
-
-        this.getCommand("nightvision").setExecutor(new NightVisionCommand());
-        this.getCommand("forcestart").setExecutor(new ForceStartCommand(this));
-        this.getCommand("stats").setExecutor(new StatsCommand(this));
-        this.getCommand("points").setExecutor(new PointsCommand(this));
-
-        this.game = new Game(this, this.mapSpawns);
-        this.dataSource = this.initDataSource();
-    }
-
     public Set<CaveOre> ores() {
         return this.ores;
-    }
-
-    public Map<String, ServerInfo> servers() {
-        return this.servers;
-    }
-
-    private ServerInfo serverInfo(final String serverId) {
-        ServerInfo info = this.servers.get(serverId);
-        if (info == null) {
-            info = new ServerInfo();
-            this.servers.put(serverId, info);
-        }
-        return info;
-    }
-
-    private void initLobbyMode() {
-        this.registerLobbyPlaceholders();
-    }
-
-    private void registerGamePlaceholders() {
-        if (Bukkit.getPluginManager().isPluginEnabled("PlaceholdersAPI")) {
-            new GamePlaceholders(this);
-        }
-    }
-
-    private void registerLobbyPlaceholders() {
-        if (Bukkit.getPluginManager().isPluginEnabled("PlaceholdersAPI")) {
-            new LobbyPlaceholders(this);
-        }
     }
 
     private void loadData() {
@@ -441,17 +384,6 @@ public class AbbaCavingPlugin extends JavaPlugin {
         } catch (final SQLException ex) {
             ex.printStackTrace();
         }
-    }
-
-    private enum ServerMode {
-        GAME, LOBBY
-    }
-
-    public static final class ServerInfo {
-        public GameState state;
-        public int playerCount;
-        public int counter;
-        public int slots;
     }
 
 }

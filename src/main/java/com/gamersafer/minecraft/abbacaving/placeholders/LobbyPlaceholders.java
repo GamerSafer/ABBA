@@ -1,7 +1,6 @@
 package com.gamersafer.minecraft.abbacaving.placeholders;
 
 import com.gamersafer.minecraft.abbacaving.AbbaCavingPlugin;
-import com.gamersafer.minecraft.abbacaving.AbbaCavingPlugin.ServerInfo;
 import me.clip.placeholderapi.expansion.PlaceholderExpansion;
 import org.bukkit.entity.Player;
 
@@ -38,13 +37,14 @@ public class LobbyPlaceholders extends PlaceholderExpansion {
         this.plugin.getLogger().info("PlaceholderAPI request: " + player.getName() + ", " + identifier);
 
         if ("online".equals(identifier)) {
-            int totalOnline = 0;
-            if (this.plugin.servers() != null) {
-                for (final ServerInfo info : this.plugin.servers().values()) {
-                    totalOnline += info.playerCount;
-                }
-            }
-            return Integer.toString(totalOnline);
+            // TODO: return the number of online players in each game
+            //            int totalOnline = 0;
+            //            if (this.plugin.servers() != null) {
+            //                for (final ServerInfo info : this.plugin.servers().values()) {
+            //                    totalOnline += info.playerCount;
+            //                }
+            //            }
+            //            return Integer.toString(totalOnline);
         }
         return "";
     }

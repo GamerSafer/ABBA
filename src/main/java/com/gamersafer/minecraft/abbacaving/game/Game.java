@@ -3,10 +3,7 @@ package com.gamersafer.minecraft.abbacaving.game;
 import com.gamersafer.minecraft.abbacaving.AbbaCavingPlugin;
 import com.gamersafer.minecraft.abbacaving.util.Util;
 import com.gamersafer.minecraft.abbacaving.worldgen.GiantCavePopulator;
-import java.io.ByteArrayOutputStream;
-import java.io.DataOutputStream;
 import java.io.File;
-import java.io.IOException;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.SocketException;
@@ -44,6 +41,8 @@ import org.bukkit.inventory.meta.ItemMeta;
 public class Game {
 
     private final AbbaCavingPlugin plugin;
+    private final World world;
+    private final String gameId;
     private final Map<String, List<Location>> mapSpawns;
     private final Map<String, GamePlayer> players = new HashMap<>();
     private final boolean generateMap;
@@ -54,21 +53,26 @@ public class Game {
     private boolean gracePeriod;
     private GameState state;
 
-    public Game(final AbbaCavingPlugin plugin, final Map<String, List<Location>> mapSpawns) {
+    public Game(final AbbaCavingPlugin plugin, final Map<String, List<Location>> mapSpawns, final String gameId) {
         this.plugin = plugin;
         this.mapSpawns = mapSpawns;
+        this.gameId = gameId;
 
         this.generateMap = plugin.getConfig().getBoolean("cave-generator.enabled");
         if (this.generateMap) {
-            this.generateWorld();
+            this.world = this.generateWorld();
         } else {
-            this.loadRandomMap();
+            this.world = this.loadRandomMap();
         }
 
         this.gameState(GameState.WAITING);
         this.counter(0);
 
         plugin.getServer().getScheduler().runTaskTimer(plugin, this::nextTick, 0, 20);
+    }
+
+    public World world() {
+        return this.world;
     }
 
     public Map<GamePlayer, Integer> leaderboard() {
@@ -362,14 +366,17 @@ public class Game {
         }, 20 * 10);
     }
 
-    private void generateWorld() {
+    private World generateWorld() {
         this.plugin.getLogger().info("Deleting existing world...");
+
         final World currentWorld = Bukkit.getWorld(this.plugin.gameWorldName());
+
         if (currentWorld != null) {
             Util.deleteWorld(currentWorld);
         } else {
             Util.deleteWorld(new File(this.plugin.gameWorldName()));
         }
+
         this.plugin.getLogger().info("Done");
 
         this.plugin.getLogger().info("Creating new world...");
@@ -379,9 +386,11 @@ public class Game {
         this.caveGenerator = new GiantCavePopulator(this.plugin, world);
         world.getPopulators().add(this.caveGenerator);
         this.plugin.getLogger().info("Done");
+
+        return world;
     }
 
-    private void loadRandomMap() {
+    private World loadRandomMap() {
         final String mapsDirAbsPath = this.plugin.getConfig().getString("maps-directory", "");
         final File mapsDir;
         if (!mapsDirAbsPath.isEmpty()) {
@@ -392,9 +401,11 @@ public class Game {
 
         final File[] mapArchives = mapsDir.listFiles();
         final File mapArchive = mapArchives[ThreadLocalRandom.current().nextInt(mapArchives.length)];
+
+        // TODO: make sure a map loads
         if (!mapArchive.exists()) {
             this.plugin.getLogger().warning("Map archive not found: " + mapArchive.getPath());
-            return;
+            return null;
         }
 
         this.plugin.getLogger().info("Loading map '" + mapArchive.getName() + "'...");
@@ -414,8 +425,11 @@ public class Game {
             removed++;
             e.remove();
         }
+
         this.plugin.getLogger().info("Removed " + removed + " entities (" + items + " were items)");
         this.plugin.getLogger().info("Created map from " + mapArchive);
+
+        return world;
     }
 
     private void playSound(final Sound sound) {
@@ -477,23 +491,7 @@ public class Game {
     }
 
     private void sendToLobby(final Player player) {
-        final List<String> lobbyServers = this.plugin.getConfig().getStringList("lobby-servers");
-        final String selectedServer = lobbyServers.get(ThreadLocalRandom.current().nextInt(lobbyServers.size()));
-
-        this.plugin.message(player, "<green>Sending you to " + selectedServer);
-        this.plugin.getLogger().info(String.format("Sending %s to %s...", player.getName(), selectedServer));
-
-        try (
-                final ByteArrayOutputStream b = new ByteArrayOutputStream();
-                final DataOutputStream out = new DataOutputStream(b)
-        ) {
-            out.writeUTF("Connect");
-            out.writeUTF(selectedServer);
-            player.sendPluginMessage(this.plugin, "BungeeCord", b.toByteArray());
-
-        } catch (final IOException e) {
-            e.printStackTrace();
-        }
+        // TODO: send player back to lobby world
     }
 
 }

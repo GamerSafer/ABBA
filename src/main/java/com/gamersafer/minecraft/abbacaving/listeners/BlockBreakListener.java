@@ -2,6 +2,7 @@ package com.gamersafer.minecraft.abbacaving.listeners;
 
 import com.gamersafer.minecraft.abbacaving.AbbaCavingPlugin;
 import com.gamersafer.minecraft.abbacaving.game.CaveOre;
+import com.gamersafer.minecraft.abbacaving.game.Game;
 import com.gamersafer.minecraft.abbacaving.game.GamePlayer;
 import com.gamersafer.minecraft.abbacaving.game.GameState;
 import java.util.HashMap;
@@ -26,13 +27,16 @@ public class BlockBreakListener implements Listener {
             return;
         }
 
-        if (this.plugin.currentGame().gameState() != GameState.RUNNING) {
+        final Game game = this.plugin.gameTracker().findGame(event.getBlock().getWorld());
+
+        if (game.gameState() != GameState.RUNNING) {
             event.setCancelled(true);
             return;
         }
 
         final Location loc = event.getBlock().getLocation();
-        for (final Location spawn : this.plugin.currentGame().spawnLocations()) {
+
+        for (final Location spawn : game.spawnLocations()) {
             if (!this.plugin.canAccess(loc, spawn)) {
                 event.setCancelled(true);
                 this.plugin.message(event.getPlayer(), this.plugin.configMessage("cannot-mine-near-spawn"));
@@ -43,7 +47,11 @@ public class BlockBreakListener implements Listener {
         final CaveOre ore = this.plugin.caveOreFromBlock(event.getBlock().getType());
         if (ore != null) {
             final Player player = event.getPlayer();
-            final GamePlayer gp = this.plugin.currentGame().player(player);
+            final GamePlayer gp = this.plugin.gameTracker().findPlayer(player);
+
+            if (gp == null) {
+                return;
+            }
 
             if (ore.value() > 0) {
                 gp.currentOresMined(gp.currentOresMined() + 1);

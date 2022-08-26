@@ -28,7 +28,7 @@ public class InventoryListener implements Listener {
                 final CaveLoot lootItem = this.plugin.lootFromItem(event.getCurrentItem().getType());
                 if (lootItem != null) {
                     final Player player = (Player) event.getView().getPlayer();
-                    final GamePlayer gp = this.plugin.currentGame().player(player);
+                    final GamePlayer gp = this.plugin.gameTracker().findPlayer(player);
                     if (gp != null) {
                         event.setCurrentItem(null);
                         event.setCancelled(true);

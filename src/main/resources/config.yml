@@ -37,11 +37,6 @@ mysql:
   username: minecraft
   password: secret
 
-redis:
-  host: localhost
-  port: 6379
-  password: secret
-
 # The names of FeatherBoard scoreboards to used based on game state.
 scoreboards:
   waiting:
@@ -86,6 +81,7 @@ maps-directory: /home/minecraft/GenServers/AbbaGen/output/maps
 spawns-file: /home/minecraft/GenServers/AbbaGen/output/spawns.yml
 
 game:
+  max-games: 1
   players-required-to-start: 5
   maximum-players-per-round: 12
   duration-seconds: 120

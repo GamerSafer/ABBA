@@ -7,6 +7,7 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.security.SecureRandom;
 import java.text.DecimalFormat;
 import java.util.Enumeration;
 import java.util.LinkedHashMap;
@@ -182,6 +183,17 @@ public final class Util {
         }
 
         return result;
+    }
+
+    private static final String AB = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    private static final SecureRandom rnd = new SecureRandom();
+
+    public static String randomString(final int len) {
+        final StringBuilder sb = new StringBuilder(len);
+
+        for (int i = 0; i < len; i++)
+            sb.append(AB.charAt(rnd.nextInt(AB.length())));
+        return sb.toString();
     }
 
 }

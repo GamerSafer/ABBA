@@ -6,17 +6,21 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.jetbrains.annotations.NotNull;
 
-public class ForceStartCommand implements CommandExecutor {
+public class BroadcastNPCommand implements CommandExecutor {
 
     private final AbbaCavingPlugin plugin;
 
-    public ForceStartCommand(final AbbaCavingPlugin plugin) {
+    public BroadcastNPCommand(final AbbaCavingPlugin plugin) {
         this.plugin = plugin;
     }
 
     @Override
     public boolean onCommand(@NotNull final CommandSender sender, @NotNull final Command command, @NotNull final String label, @NotNull final String[] args) {
-        // TODO: put lobby players into a game
+        if (!(sender.isOp())) {
+            this.plugin.message(sender, "<red>You do not have permission to do this.");
+            return false;
+        }
+        this.plugin.broadcast(String.join(" ", args));
         return true;
     }
 

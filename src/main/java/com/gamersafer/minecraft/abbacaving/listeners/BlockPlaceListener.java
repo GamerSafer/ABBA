@@ -1,6 +1,7 @@
 package com.gamersafer.minecraft.abbacaving.listeners;
 
 import com.gamersafer.minecraft.abbacaving.AbbaCavingPlugin;
+import com.gamersafer.minecraft.abbacaving.game.Game;
 import com.gamersafer.minecraft.abbacaving.game.GameState;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -24,13 +25,20 @@ public class BlockPlaceListener implements Listener {
             return;
         }
 
-        if (this.plugin.currentGame().gameState() != GameState.RUNNING) {
+        final Game game = this.plugin.gameTracker().findGame(event.getBlock().getWorld());
+
+        if (game == null) {
+            event.setCancelled(true);
+            return;
+        }
+
+        if (game.gameState() != GameState.RUNNING) {
             event.setCancelled(true);
             return;
         }
 
         final Location loc = event.getBlock().getLocation();
-        for (final Location spawn : this.plugin.currentGame().spawnLocations()) {
+        for (final Location spawn : game.spawnLocations()) {
             if (!this.plugin.canAccess(loc, spawn)) {
                 event.setCancelled(true);
                 this.plugin.message(event.getPlayer(), this.plugin.configMessage("cannot-mine-near-spawn"));

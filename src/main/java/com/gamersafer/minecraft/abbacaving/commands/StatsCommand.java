@@ -30,10 +30,20 @@ public class StatsCommand implements CommandExecutor {
                 return false;
             }
 
-            gp = this.plugin.currentGame().player(target);
+            gp = this.plugin.gameTracker().findPlayer(target);
+            if (gp != null) {
+                this.plugin.message(player, "<red>" + args[0] + " is not in a game.");
+                return true;
+            }
+
             this.plugin.message(player, "<dark_aqua><bold>" + target.getName().toUpperCase() + "'s STATS:");
         } else {
-            gp = this.plugin.currentGame().player(player);
+            gp = this.plugin.gameTracker().findPlayer(player);
+            if (gp != null) {
+                this.plugin.message(player, "<red>You are not in a game.");
+                return true;
+            }
+
             this.plugin.message(player, "<dark_aqua><bold>YOUR STATS:");
         }
 

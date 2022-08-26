@@ -1,10 +1,10 @@
 package com.gamersafer.minecraft.abbacaving.listeners;
 
 import com.gamersafer.minecraft.abbacaving.AbbaCavingPlugin;
+import com.gamersafer.minecraft.abbacaving.game.Game;
 import com.gamersafer.minecraft.abbacaving.game.GamePlayer;
 import com.gamersafer.minecraft.abbacaving.game.GameState;
 import com.gamersafer.minecraft.abbacaving.util.Util;
-import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
@@ -22,8 +22,6 @@ import org.bukkit.event.player.PlayerBucketFillEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerItemConsumeEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
-import org.bukkit.event.player.PlayerLoginEvent;
-import org.bukkit.event.player.PlayerLoginEvent.Result;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.ItemStack;
 
@@ -33,24 +31,6 @@ public class PlayerListener implements Listener {
 
     public PlayerListener(final AbbaCavingPlugin plugin) {
         this.plugin = plugin;
-    }
-
-    @EventHandler
-    public void onLogin(final PlayerLoginEvent event) {
-        if (this.plugin.currentGame().gameState() == GameState.RUNNING || this.plugin.currentGame().gameState() == GameState.DONE) {
-            event.setResult(Result.KICK_OTHER);
-            event.kickMessage(MiniMessage.miniMessage().deserialize("<red>A game is currently in progress."));
-            return;
-        }
-
-        if (this.plugin.currentGame().players().size() >= this.plugin.getServer().getMaxPlayers()) {
-            if (!this.plugin.hasPermission(event.getPlayer(), "join-full")) {
-                event.setResult(Result.KICK_FULL);
-                event.kickMessage(MiniMessage.miniMessage().deserialize("<red>You are not allowed to join full games."));
-            } else {
-                event.setResult(Result.ALLOWED);
-            }
-        }
     }
 
     @EventHandler
@@ -66,16 +46,17 @@ public class PlayerListener implements Listener {
                 (float) this.plugin.getConfig().getDouble("join-location.yaw"),
                 (float) this.plugin.getConfig().getDouble("join-location.pitch")));
 
-        final GamePlayer gp = new GamePlayer(this.plugin, event.getPlayer());
-        this.plugin.currentGame().addPlayer(gp);
-        this.plugin.getServer().getScheduler().runTaskAsynchronously(this.plugin, () -> this.plugin.loadPlayerStats(gp));
+        //final GamePlayer gp = new GamePlayer(this.plugin, event.getPlayer());
+        //this.plugin.currentGames().addPlayer(gp);
+        //this.plugin.getServer().getScheduler().runTaskAsynchronously(this.plugin, () -> this.plugin.loadPlayerStats(gp));
     }
 
     @EventHandler
     public void onPlayerQuit(final PlayerQuitEvent event) {
         event.quitMessage(null);
 
-        final GamePlayer gp = this.plugin.currentGame().removePlayer(event.getPlayer(), true);
+        final GamePlayer gp = this.plugin.gameTracker().removePlayer(event.getPlayer(), true);
+
         if (gp != null) {
             this.plugin.getServer().getScheduler().runTaskAsynchronously(this.plugin, () -> this.plugin.savePlayerStats(gp));
         }
@@ -92,9 +73,9 @@ public class PlayerListener implements Listener {
         player.getAttribute(Attribute.GENERIC_MAX_HEALTH).setBaseValue(maxHealth);
         player.setHealth(maxHealth);
 
-        if (this.plugin.currentGame().player(player) != null) {
+        if (this.plugin.gameTracker().findPlayer(player) != null) {
             this.plugin.getServer().getScheduler().runTaskLater(
-                    this.plugin, () -> this.plugin.currentGame().removePlayer(player, false), 1);
+                    this.plugin, () -> this.plugin.gameTracker().removePlayer(player, false), 1);
         }
     }
 
@@ -105,13 +86,16 @@ public class PlayerListener implements Listener {
 
     @EventHandler
     public void onFoodLevelChange(final FoodLevelChangeEvent event) {
-        final GamePlayer gp = this.plugin.currentGame().player((Player) event.getEntity());
-        if (gp != null && gp.isDead()) {
+        final GamePlayer gp = this.plugin.gameTracker().findPlayer((Player) event.getEntity());
+
+        if (gp == null || gp.isDead()) {
             event.setCancelled(true);
             return;
         }
 
-        if (this.plugin.currentGame().isGracePeriod() || this.plugin.currentGame().gameState() != GameState.RUNNING) {
+        final Game game = this.plugin.gameTracker().findGame((Player) event.getEntity());
+
+        if (game == null || game.isGracePeriod()) {
             event.setCancelled(true);
         }
     }
@@ -119,23 +103,30 @@ public class PlayerListener implements Listener {
     @EventHandler
     public void onEntityDamage(final EntityDamageEvent event) {
         if (event.getEntityType() == EntityType.PLAYER) {
-            final GamePlayer gp = this.plugin.currentGame().player((Player) event.getEntity());
+            final GamePlayer gp = this.plugin.gameTracker().findPlayer((Player) event.getEntity());
+
             if (gp != null && gp.isDead()) {
                 event.setCancelled(true);
                 return;
             }
         }
 
-        if (this.plugin.currentGame().isGracePeriod() || this.plugin.currentGame().gameState() != GameState.RUNNING) {
+        final Game game = this.plugin.gameTracker().findGame(event.getEntity().getWorld());
+
+        if (game == null || game.isGracePeriod()) {
             event.setCancelled(true);
         }
     }
 
     @EventHandler
     public void onEntityDamageByEntity(final EntityDamageByEntityEvent event) {
-        if (this.plugin.currentGame().isGracePeriod()
-                || this.plugin.currentGame().gameState() != GameState.RUNNING
-                || event.getEntity().getType() == EntityType.PLAYER && event.getDamager().getType() == EntityType.PLAYER) {
+        if (event.getEntity().getType() == EntityType.PLAYER && event.getDamager().getType() == EntityType.PLAYER) {
+            event.setCancelled(true);
+        }
+
+        final Game game = this.plugin.gameTracker().findGame(event.getEntity().getWorld());
+
+        if (game == null || game.isGracePeriod() || game.gameState() != GameState.RUNNING) {
             event.setCancelled(true);
         }
     }
