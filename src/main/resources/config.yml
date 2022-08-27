@@ -17,19 +17,11 @@ lang:
   player-left: "<green><player> <gray>left the game!"
   ore-not-worth-points: "<gray><ore> is not worth any points."
 
-server:
-  # Mode for this server: "GAME" to run as a game server, "LOBBY" to run on a lobby server
-  mode: LOBBY
-
 permissions:
   # Allow a player to join a full lobby when the game is waiting or starting.
   join-full: "abbacaving.join.full"
   # Respawn a player automatically (once per game) if they die and reset their points.
   respawn: "abbacaving.game.respawn"
-
-# List of server names to teleport players to after leaving the game.
-lobby-servers:
-  - ABBA-Lobby
 
 mysql:
   host: localhost
