@@ -1,6 +1,7 @@
 plugins {
     id "java-library"
     id "net.kyori.indra.checkstyle" version "2.1.1"
+    id "xyz.jpenilla.run-paper" version "1.0.6"
 }
 
 group "com.github.colebennett.abbacaving"
@@ -43,4 +44,13 @@ task fatJar(type: Jar) {
     classifier = "all"
     from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
     with jar
+}
+
+tasks {
+    runServer {
+        // Configure the Minecraft version for our task.
+        // This is the only required configuration besides applying the plugin.
+        // Your plugin's jar (or shadowJar if present) will be used automatically.
+        minecraftVersion("1.19.2")
+    }
 }

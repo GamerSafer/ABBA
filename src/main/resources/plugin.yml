@@ -3,7 +3,8 @@ main: com.gamersafer.minecraft.abbacaving.AbbaCavingPlugin
 version: ${version}
 author: GamerSafer
 api-version: 1.16
-softdepend: [ LuckPerms, PlaceholderAPI ]
+depend: [ LuckPerms ]
+softdepend: [ PlaceholderAPI ]
 commands:
   acreload:
     description: Reloads the configuration.
