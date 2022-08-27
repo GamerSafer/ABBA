@@ -40,9 +40,6 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.kyori.adventure.text.minimessage.tag.Tag;
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
-import net.luckperms.api.LuckPerms;
-import net.luckperms.api.model.user.User;
-import net.luckperms.api.node.Node;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -53,7 +50,6 @@ import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public class AbbaCavingPlugin extends JavaPlugin {
@@ -62,7 +58,6 @@ public class AbbaCavingPlugin extends JavaPlugin {
     private Set<CaveLoot> loot;
     private GameTracker gameTracker;
     private Map<String, List<Location>> mapSpawns;
-    private LuckPerms luckPermsApi;
     private HikariDataSource dataSource;
 
     @Override
@@ -107,12 +102,6 @@ public class AbbaCavingPlugin extends JavaPlugin {
         if (Bukkit.getPluginManager().isPluginEnabled("PlaceholdersAPI")) {
             new GamePlaceholders(this);
             new LobbyPlaceholders(this);
-        }
-
-        final RegisteredServiceProvider<LuckPerms> provider = Bukkit.getServicesManager().getRegistration(LuckPerms.class);
-        if (provider != null) {
-            this.luckPermsApi = provider.getProvider();
-            this.getLogger().info("Hooked into " + provider.getPlugin().getName());
         }
 
         this.dataSource = this.initDataSource();
@@ -169,21 +158,9 @@ public class AbbaCavingPlugin extends JavaPlugin {
     public boolean hasPermission(final Player player, final String permissionName) {
         if (player.isOp()) return true;
 
-        if (this.luckPermsApi == null) {
-            this.getLogger().warning("Not hooked into LuckPerms");
-            return false;
-        }
-
         final String permissionNode = this.getConfig().getString("permissions." + permissionName);
 
-        final User user = this.luckPermsApi.getUserManager().getUser(player.getUniqueId());
-        for (final Node node : user.getDistinctNodes()) {
-            if (node.getValue() && node.getKey().equalsIgnoreCase(permissionNode)) {
-                return true;
-            }
-        }
-
-        return false;
+        return player.hasPermission(permissionNode);
     }
 
     public boolean canAccess(final Location loc, final Location spawn) {
