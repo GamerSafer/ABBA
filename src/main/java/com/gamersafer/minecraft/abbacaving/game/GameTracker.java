@@ -1,7 +1,6 @@
 package com.gamersafer.minecraft.abbacaving.game;
 
 import com.gamersafer.minecraft.abbacaving.AbbaCavingPlugin;
-import com.gamersafer.minecraft.abbacaving.util.Util;
 import java.util.ArrayList;
 import java.util.List;
 import org.bukkit.GameMode;
@@ -27,11 +26,11 @@ public class GameTracker {
 
     public void addPlayerToGame(final Game game, final Player player) {
         player.setGameMode(GameMode.ADVENTURE);
-
-        // TODO: teleport player to game world and world spawn
+        player.teleport(game.world().getSpawnLocation());
 
         final GamePlayer gp = new GamePlayer(this.plugin, player);
         game.addPlayer(gp);
+
         this.plugin.getServer().getScheduler().runTaskAsynchronously(this.plugin, () -> this.plugin.loadPlayerStats(gp));
     }
 
@@ -77,10 +76,6 @@ public class GameTracker {
         }
 
         return null;
-    }
-
-    private void startNewGame() {
-        this.currentGames.add(new Game(this.plugin, this.plugin.mapSpawns(), Util.randomString(6)));
     }
 
 }

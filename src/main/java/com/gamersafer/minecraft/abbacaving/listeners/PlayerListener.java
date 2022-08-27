@@ -5,9 +5,6 @@ import com.gamersafer.minecraft.abbacaving.game.Game;
 import com.gamersafer.minecraft.abbacaving.game.GamePlayer;
 import com.gamersafer.minecraft.abbacaving.game.GameState;
 import com.gamersafer.minecraft.abbacaving.util.Util;
-import org.bukkit.Bukkit;
-import org.bukkit.GameMode;
-import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.entity.EntityType;
@@ -21,7 +18,6 @@ import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerBucketFillEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerItemConsumeEvent;
-import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.ItemStack;
 
@@ -31,24 +27,6 @@ public class PlayerListener implements Listener {
 
     public PlayerListener(final AbbaCavingPlugin plugin) {
         this.plugin = plugin;
-    }
-
-    @EventHandler
-    public void onPlayerJoin(final PlayerJoinEvent event) {
-        event.joinMessage(null);
-
-        event.getPlayer().setGameMode(GameMode.ADVENTURE);
-        event.getPlayer().teleport(new Location(
-                Bukkit.getWorld(this.plugin.getConfig().getString("join-location.world")),
-                this.plugin.getConfig().getDouble("join-location.x"),
-                this.plugin.getConfig().getDouble("join-location.y"),
-                this.plugin.getConfig().getDouble("join-location.z"),
-                (float) this.plugin.getConfig().getDouble("join-location.yaw"),
-                (float) this.plugin.getConfig().getDouble("join-location.pitch")));
-
-        //final GamePlayer gp = new GamePlayer(this.plugin, event.getPlayer());
-        //this.plugin.currentGames().addPlayer(gp);
-        //this.plugin.getServer().getScheduler().runTaskAsynchronously(this.plugin, () -> this.plugin.loadPlayerStats(gp));
     }
 
     @EventHandler

@@ -65,7 +65,7 @@ public class Game {
             this.world = this.loadRandomMap();
         }
 
-        this.gameState(GameState.WAITING);
+        this.gameState(GameState.RUNNING);
         this.counter(0);
 
         plugin.getServer().getScheduler().runTaskTimer(plugin, this::nextTick, 0, 20);
@@ -173,32 +173,7 @@ public class Game {
     }
 
     private void nextTick() {
-        if (this.state == GameState.WAITING) {
-            if (this.players.values().size() >= this.plugin.getConfig().getInt("game.players-required-to-start")) {
-                //                if (caveGenerator != null && !caveGenerator.isReady()) {
-                //                    plugin.getLogger().info("Waiting for the world to be generated...");
-                //                } else {
-                //                    preStart();
-                //                }
-                this.preStart();
-            }
-        } else if (this.state == GameState.STARTING) {
-            if (this.counter >= 0) {
-                Bukkit.getServer().sendActionBar(MiniMessage.miniMessage().deserialize("<gray>Starting In: <green>" + this.counter));
-            }
-
-            if (this.counter == 0) {
-                this.start();
-            } else {
-                if (this.counter % 60 == 0 || this.counter == 30 || this.counter == 15
-                        || this.counter == 10 || this.counter <= 5) {
-                    this.plugin.broadcast(this.plugin.configMessage("game-starting"), Map.of(
-                            "seconds", Component.text(this.counter),
-                            "optional-s", Component.text(this.counter != 1 ? "s" : "")
-                    ));
-                }
-            }
-        } else if (this.state == GameState.RUNNING) {
+        if (this.state == GameState.RUNNING) {
             final int gameDurationSeconds = this.plugin.getConfig().getInt("game.duration-seconds");
             final int gracePeriodSeconds = this.plugin.getConfig().getInt("game.grace-period-duration-seconds");
 
@@ -239,11 +214,6 @@ public class Game {
         }
 
         this.counter--;
-    }
-
-    public void preStart() {
-        this.counter(this.plugin.getConfig().getInt("game.start-countdown-seconds"));
-        this.gameState(GameState.STARTING);
     }
 
     public void start() {
@@ -413,7 +383,7 @@ public class Game {
         this.spawns = this.mapSpawns.get(mapName);
         this.plugin.getLogger().info("Loaded " + this.spawns.size() + " spawns(s) for map " + mapName);
 
-        final World world = Util.loadMap(mapArchive, this.plugin.gameWorldName());
+        final World world = Util.loadMap(mapArchive, this.gameId);
 
         int removed = 0;
         int items = 0;
