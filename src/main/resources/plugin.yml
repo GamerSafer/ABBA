@@ -1,6 +1,6 @@
 name: AbbaCaving
 main: com.gamersafer.minecraft.abbacaving.AbbaCavingPlugin
-version: ${version}
+version: '${version}'
 author: GamerSafer
 api-version: 1.16
 softdepend: [ PlaceholderAPI ]
