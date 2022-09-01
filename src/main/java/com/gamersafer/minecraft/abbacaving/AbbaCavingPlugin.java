@@ -104,7 +104,7 @@ public class AbbaCavingPlugin extends JavaPlugin {
             new LobbyPlaceholders(this);
         }
 
-        this.dataSource = this.initDataSource();
+        this.dataSource = this.initDataSource(); // TODO: gracefully shut down when datasource init fails
 
         this.getCommand("acreload").setExecutor(new ACReloadCommand(this));
         this.getCommand("bcastnp").setExecutor(new BroadcastNPCommand(this));
@@ -262,20 +262,19 @@ public class AbbaCavingPlugin extends JavaPlugin {
         this.mapSpawns = new HashMap<>();
 
         final FileConfiguration spawnsConfig = new YamlConfiguration();
+
         try {
-            final String spawnsAbsPath = this.getConfig().getString("spawns-file", "");
-            final File spawnsFile;
-            if (!spawnsAbsPath.isEmpty()) {
-                spawnsFile = new File(spawnsAbsPath);
-            } else {
-                spawnsFile = new File(this.getDataFolder(), "spawns.yml");
+            final File spawnsFile = new File(this.getDataFolder(), "spawns.yml");
+
+            if (!spawnsFile.exists()) {
+                spawnsFile.getParentFile().mkdirs();
+                this.saveResource("spawns.yml", false);
             }
 
             spawnsConfig.load(spawnsFile);
-        } catch (final IOException | InvalidConfigurationException e) {
+        } catch (final IOException | InvalidConfigurationException exception) {
             this.getLogger().warning("Failed to load spawns.yml");
-            e.printStackTrace();
-            return;
+            exception.printStackTrace();
         }
 
         for (final String entry : spawnsConfig.getKeys(false)) {
