@@ -31,7 +31,7 @@ public class StatsCommand implements CommandExecutor {
             }
 
             gp = this.plugin.gameTracker().findPlayer(target);
-            if (gp != null) {
+            if (gp == null) {
                 this.plugin.message(player, "<red>" + args[0] + " is not in a game.");
                 return true;
             }
@@ -39,7 +39,7 @@ public class StatsCommand implements CommandExecutor {
             this.plugin.message(player, "<dark_aqua><bold>" + target.getName().toUpperCase() + "'s STATS:");
         } else {
             gp = this.plugin.gameTracker().findPlayer(player);
-            if (gp != null) {
+            if (gp == null) {
                 this.plugin.message(player, "<red>You are not in a game.");
                 return true;
             }
