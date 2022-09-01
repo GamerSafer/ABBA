@@ -327,12 +327,6 @@ public class Game {
             for (final GamePlayer gp : this.players.values()) {
                 this.sendToLobby(gp.player());
             }
-
-            this.plugin.getLogger().info("Shutting the server down in 5 seconds...");
-            this.plugin.getServer().getScheduler().runTaskLater(this.plugin, () -> {
-                this.plugin.getLogger().info("Shutting the the server down");
-                this.plugin.getServer().shutdown();
-            }, 20 * 5);
         }, 20 * 10);
     }
 
