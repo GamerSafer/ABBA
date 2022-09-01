@@ -29,7 +29,8 @@ mysql:
   username: minecraft
   password: secret
 
-join-location:
+# The location players will be teleported to / spawn at when they join the server.
+lobby-spawn-location:
   world: world
   x: 0.0
   y: 80.0

@@ -53,12 +53,12 @@ public class Lobby implements Listener {
 
         event.getPlayer().setGameMode(GameMode.ADVENTURE);
         event.getPlayer().teleport(new Location(
-                Bukkit.getWorld(this.plugin.getConfig().getString("join-location.world")),
-                this.plugin.getConfig().getDouble("join-location.x"),
-                this.plugin.getConfig().getDouble("join-location.y"),
-                this.plugin.getConfig().getDouble("join-location.z"),
-                (float) this.plugin.getConfig().getDouble("join-location.yaw"),
-                (float) this.plugin.getConfig().getDouble("join-location.pitch")));
+                Bukkit.getWorld(this.plugin.getConfig().getString("lobby-spawn-location.world")),
+                this.plugin.getConfig().getDouble("lobby-spawn-location.x"),
+                this.plugin.getConfig().getDouble("lobby-spawn-location.y"),
+                this.plugin.getConfig().getDouble("lobby-spawn-location.z"),
+                (float) this.plugin.getConfig().getDouble("lobby-spawn-location.yaw"),
+                (float) this.plugin.getConfig().getDouble("lobby-spawn-location.pitch")));
 
         this.lobbyPlayers.add(event.getPlayer().getUniqueId());
 

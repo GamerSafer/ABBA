@@ -455,7 +455,13 @@ public class Game {
     }
 
     private void sendToLobby(final Player player) {
-        // TODO: send player back to lobby world
+        player.teleport(new Location(
+                Bukkit.getWorld(this.plugin.getConfig().getString("lobby-spawn-location.world")),
+                this.plugin.getConfig().getDouble("lobby-spawn-location.x"),
+                this.plugin.getConfig().getDouble("lobby-spawn-location.y"),
+                this.plugin.getConfig().getDouble("lobby-spawn-location.z"),
+                (float) this.plugin.getConfig().getDouble("lobby-spawn-location.yaw"),
+                (float) this.plugin.getConfig().getDouble("lobby-spawn-location.pitch")));
     }
 
 }
