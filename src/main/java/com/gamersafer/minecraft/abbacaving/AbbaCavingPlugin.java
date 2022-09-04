@@ -59,12 +59,14 @@ public class AbbaCavingPlugin extends JavaPlugin {
     private GameTracker gameTracker;
     private Map<String, List<Location>> mapSpawns;
     private HikariDataSource dataSource;
-    private final FileConfiguration messagesConfig = new YamlConfiguration();
+    private FileConfiguration messagesConfig = new YamlConfiguration();
+    private FileConfiguration pointsConfig = new YamlConfiguration();
 
     @Override
     public void onEnable() {
         this.saveDefaultConfig();
-        this.loadMessagesConfig();
+        this.messagesConfig = this.fileConfiguration("messages.yml");
+        this.pointsConfig = this.fileConfiguration("points.yml");
 
         if (this.getConfig().getBoolean("cave-generator.generator-mode")) {
             this.getLogger().info("Generator mode");
@@ -118,20 +120,32 @@ public class AbbaCavingPlugin extends JavaPlugin {
         this.gameTracker = new GameTracker(this);
     }
 
-    private void loadMessagesConfig() {
-        try {
-            final File messagesFile = new File(this.getDataFolder(), "messages.yml");
+    @Override
+    public void reloadConfig() {
+        super.reloadConfig();
 
-            if (!messagesFile.exists()) {
-                messagesFile.getParentFile().mkdirs();
-                this.saveResource("messages.yml", false);
+        this.messagesConfig = this.fileConfiguration("messages.yml");
+        this.pointsConfig = this.fileConfiguration("points.yml");
+    }
+
+    private FileConfiguration fileConfiguration(final String fileName) {
+        final FileConfiguration configuration = new YamlConfiguration();
+
+        try {
+            final File file = new File(this.getDataFolder(), fileName);
+
+            if (!file.exists()) {
+                file.getParentFile().mkdirs();
+                this.saveResource(fileName, false);
             }
 
-            this.messagesConfig.load(messagesFile);
+            configuration.load(file);
         } catch (final IOException | InvalidConfigurationException exception) {
-            this.getLogger().warning("Failed to load messages.yml");
+            this.getLogger().warning("Failed to load " + fileName);
             exception.printStackTrace();
         }
+
+        return configuration;
     }
 
     public GameTracker gameTracker() {
@@ -246,7 +260,8 @@ public class AbbaCavingPlugin extends JavaPlugin {
 
     private void loadData() {
         this.ores = new HashSet<>();
-        for (final Map<?, ?> entry : this.getConfig().getMapList("game.ores")) {
+
+        for (final Map<?, ?> entry : this.pointsConfig.getMapList("ores")) {
             final Map<?, ?> value = (Map<?, ?>) entry.get("value");
             this.ores.add(new CaveOre(
                     (String) entry.get("name"),
@@ -258,12 +273,15 @@ public class AbbaCavingPlugin extends JavaPlugin {
                     new ItemStack(Material.valueOf((String) entry.get("drop")))
             ));
         }
+
         this.ores = this.ores.stream()
                 .sorted((o1, o2) -> Integer.compare(o2.value(), o1.value()))
                 .collect(Collectors.toCollection(LinkedHashSet::new));
+
         this.getLogger().info("Loaded " + this.ores.size() + " ore(s)");
 
         this.loot = new HashSet<>();
+
         for (final Map<?, ?> entry : this.getConfig().getMapList("game.loot-items")) {
             final Map<?, ?> value = (Map<?, ?>) entry.get("value");
             this.loot.add(new CaveLoot(
@@ -275,6 +293,7 @@ public class AbbaCavingPlugin extends JavaPlugin {
                     Material.valueOf((String) entry.get("item"))
             ));
         }
+
         this.getLogger().info("Loaded " + this.loot.size() + " loot item(s)");
 
         this.mapSpawns = new HashMap<>();

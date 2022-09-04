@@ -1,0 +1,139 @@
+ores:
+  - name: "Redstone Ore"
+    value:
+      exact: 3
+    block: REDSTONE_ORE
+    drop: REDSTONE
+  - name: "Deepslate Redstone Ore"
+    value:
+      exact: 3
+    block: DEEPSLATE_REDSTONE_ORE
+    drop: REDSTONE
+  - name: "Lapis Ore"
+    value:
+      exact: 3
+    block: LAPIS_ORE
+    drop: INK_SAC
+  - name: "Deepslate Lapis Ore"
+    value:
+      exact: 3
+    block: DEEPSLATE_LAPIS_ORE
+    drop: INK_SAC
+  - name: "Gold Ore"
+    value:
+      exact: 5
+    block: GOLD_ORE
+    drop: RAW_GOLD
+  - name: "Deepslate Gold Ore"
+    value:
+      exact: 5
+    block: DEEPSLATE_GOLD_ORE
+    drop: RAW_GOLD
+  - name: "Nether Gold Ore"
+    value:
+      exact: 6
+    block: NETHER_GOLD_ORE
+    drop: NETHER_GOLD_ORE
+    probability: 0.05
+  - name: "Nether Quartz Ore"
+    value:
+      exact: 6
+    block: NETHER_QUARTZ_ORE
+    drop: NETHER_QUARTZ_ORE
+    probability: 0.05
+  - name: "Diamond Ore"
+    value:
+      exact: 7
+    block: DIAMOND_ORE
+    drop: DIAMOND
+  - name: "Deepslate Diamond Ore"
+    value:
+      exact: 7
+    block: DEEPSLATE_DIAMOND_ORE
+    drop: DIAMOND
+  - name: "Emerald Ore"
+    value:
+      exact: 10
+    block: EMERALD_ORE
+    drop: EMERALD
+  - name: "Deepslate Emerald Ore"
+    value:
+      exact: 10
+    block: DEEPSLATE_EMERALD_ORE
+    drop: EMERALD
+  - name: "Copper Ore"
+    value:
+      exact: 1
+    block: COPPER_ORE
+    drop: RAW_COPPER
+  - name: "Deepslate Copper Ore"
+    value:
+      exact: 1
+    block: DEEPSLATE_COPPER_ORE
+    drop: RAW_COPPER
+  - name: "Iron Ore"
+    value:
+      exact: 1
+    block: IRON_ORE
+    drop: RAW_IRON
+  - name: "Deepslate Iron Ore"
+    value:
+      exact: 1
+    block: DEEPSLATE_IRON_ORE
+    drop: RAW_IRON
+  - name: "Coal Ore"
+    value:
+      exact: 1
+    block: COAL_ORE
+    drop: COAL
+  - name: "Deepslate Coal Ore"
+    value:
+      exact: 1
+    block: DEEPSLATE_COAL_ORE
+    drop: COAL
+  - name: "Spawner"
+    value:
+      exact: 10
+    block: SPAWNER
+    drop: INK_SAC
+  - name: "Sculk Shrieker"
+    value:
+      exact: 10
+    block: SCULK_SHRIEKER
+    drop: INK_SAC
+loot-items:
+  - name: "Nametag"
+    article: "a"
+    value:
+      exact: 4
+    item: NAME_TAG
+  - name: "Horse Armor"
+    article: ""
+    value:
+      exact: 6
+    item: LEATHER_HORSE_ARMOR
+  - name: "Horse Armor"
+    article: ""
+    value:
+      exact: 6
+    item: IRON_HORSE_ARMOR
+  - name: "Horse Armor"
+    article: ""
+    value:
+      exact: 6
+    item: GOLDEN_HORSE_ARMOR
+  - name: "Horse Armor"
+    article: ""
+    value:
+      exact: 6
+    item: DIAMOND_HORSE_ARMOR
+  - name: "Golden Apple"
+    article: "a"
+    value:
+      exact: 10
+    item: GOLDEN_APPLE
+  - name: "Enchanted Golden Apple"
+    article: "a"
+    value:
+      exact: 20
+    item: ENCHANTED_GOLDEN_APPLE
