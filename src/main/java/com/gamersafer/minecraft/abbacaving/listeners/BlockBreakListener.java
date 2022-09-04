@@ -5,7 +5,8 @@ import com.gamersafer.minecraft.abbacaving.game.CaveOre;
 import com.gamersafer.minecraft.abbacaving.game.Game;
 import com.gamersafer.minecraft.abbacaving.game.GamePlayer;
 import com.gamersafer.minecraft.abbacaving.game.GameState;
-import java.util.HashMap;
+import net.kyori.adventure.text.minimessage.tag.Tag;
+import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -58,10 +59,8 @@ public class BlockBreakListener implements Listener {
                 gp.totalOresMined(gp.totalOresMined() + 1);
                 gp.addScore(ore.value(), ore.name());
             } else {
-                this.plugin.message(player, this.plugin.configMessage("ore-not-worth-points"), new HashMap<>() {{
-                            this.put("ore", ore.name());
-                        }}
-                );
+                this.plugin.message(player, this.plugin.configMessage("ore-not-worth-points"),
+                        TagResolver.resolver("ore", Tag.preProcessParsed(ore.name())));
             }
         }
 

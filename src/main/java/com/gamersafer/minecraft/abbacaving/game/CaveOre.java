@@ -35,11 +35,7 @@ public class CaveOre {
     }
 
     public String name() {
-        return MiniMessage.miniMessage().stripTags(this.name);
-    }
-
-    public Component modernName() {
-        return MiniMessage.miniMessage().deserialize(this.name);
+        return this.name;
     }
 
     public int value() {
