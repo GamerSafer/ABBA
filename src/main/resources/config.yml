@@ -1,22 +1,3 @@
-lang:
-  cannot-mine-near-spawn: "<red>You must move further away from the spawn to start mining!"
-  new-high-score: "<green><player> <gray>surpassed their highest score of <green><score><gray>!"
-  player-died: "<green><player> <gray>died and has been eliminated!"
-  player-respawned: "<green><player> <gray>died and has respawned!"
-  grace-period-ended: "<dark_aqua>Grace period has ended. You will now take damage!"
-  remaining-players: "<green><count> <gray>player<optional-s> remain!"
-  game-objective: "<gray>Objective: <bold><gradient:green:blue>Mine the most valuable ores!</gradient></bold>"
-  game-starting: "<gray>Starting in <green><seconds> <gray>second<optional-s>!"
-  game-started: "<gray>The game has started"
-  game-ended: "<gray>The game has ended!"
-  game-ending: "<gray>Ending in <green><amount> <gray><time-type>!"
-  game-win: "<green><player> <gray>won the game with <green><score> <gray>point<optional-s>!"
-  gained-points: "<green>+<amount> <gray>point<optional-s>! (<green><reward><gray>)"
-  player-found-item: "<green><player> <gray>found <article><item>!"
-  player-joined: "<green><player> <gray>joined the game!"
-  player-left: "<green><player> <gray>left the game!"
-  ore-not-worth-points: "<gray><ore> is not worth any points."
-
 permissions:
   # Allow a player to join a full lobby when the game is waiting or starting.
   join-full: "abbacaving.join.full"

@@ -59,10 +59,12 @@ public class AbbaCavingPlugin extends JavaPlugin {
     private GameTracker gameTracker;
     private Map<String, List<Location>> mapSpawns;
     private HikariDataSource dataSource;
+    private final FileConfiguration messagesConfig = new YamlConfiguration();
 
     @Override
     public void onEnable() {
         this.saveDefaultConfig();
+        this.loadMessagesConfig();
 
         if (this.getConfig().getBoolean("cave-generator.generator-mode")) {
             this.getLogger().info("Generator mode");
@@ -114,6 +116,22 @@ public class AbbaCavingPlugin extends JavaPlugin {
         this.getCommand("stats").setExecutor(new StatsCommand(this));
 
         this.gameTracker = new GameTracker(this);
+    }
+
+    private void loadMessagesConfig() {
+        try {
+            final File messagesFile = new File(this.getDataFolder(), "messages.yml");
+
+            if (!messagesFile.exists()) {
+                messagesFile.getParentFile().mkdirs();
+                this.saveResource("messages.yml", false);
+            }
+
+            this.messagesConfig.load(messagesFile);
+        } catch (final IOException | InvalidConfigurationException exception) {
+            this.getLogger().warning("Failed to load messages.yml");
+            exception.printStackTrace();
+        }
     }
 
     public GameTracker gameTracker() {
@@ -179,7 +197,7 @@ public class AbbaCavingPlugin extends JavaPlugin {
     }
 
     public String configMessage(final String name) {
-        return this.getConfig().getString("lang." + name);
+        return this.messagesConfig.getString(name);
     }
 
     public void broadcast(final String message) {

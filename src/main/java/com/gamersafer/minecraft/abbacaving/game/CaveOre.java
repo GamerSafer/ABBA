@@ -1,8 +1,6 @@
 package com.gamersafer.minecraft.abbacaving.game;
 
 import java.util.concurrent.ThreadLocalRandom;
-import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 
