@@ -3,6 +3,14 @@ permissions:
   join-full: "abbacaving.join.full"
   # Respawn a player automatically (once per game) if they die and reset their points.
   respawn: "abbacaving.game.respawn"
+  # Reload the plugin configurations
+  reload: "abbacaving.command.reload"
+  # Broadcasts a message to all online players
+  broadcast: "abbacaving.command.broadcast"
+  # Starts a new game / match
+  forcestart: "abbacaving.command.forcestart"
+  # Gives the player night vision
+  nightvision: "abbacaving.command.nightvision"
 
 mysql:
   host: localhost

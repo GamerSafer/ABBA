@@ -113,7 +113,7 @@ public class AbbaCavingPlugin extends JavaPlugin {
         this.getCommand("acreload").setExecutor(new ACReloadCommand(this));
         this.getCommand("bcastnp").setExecutor(new BroadcastNPCommand(this));
         this.getCommand("forcestart").setExecutor(new ForceStartCommand(this));
-        this.getCommand("nightvision").setExecutor(new NightVisionCommand());
+        this.getCommand("nightvision").setExecutor(new NightVisionCommand(this));
         this.getCommand("points").setExecutor(new PointsCommand(this));
         this.getCommand("stats").setExecutor(new StatsCommand(this));
 
@@ -188,8 +188,6 @@ public class AbbaCavingPlugin extends JavaPlugin {
     }
 
     public boolean hasPermission(final Player player, final String permissionName) {
-        if (player.isOp()) return true;
-
         final String permissionNode = this.getConfig().getString("permissions." + permissionName);
 
         return player.hasPermission(permissionNode);
