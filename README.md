@@ -18,21 +18,8 @@ To use PlaceholdersAPI, add the `abbacaving_` prefix to any of the above placeho
 
 ### Lobby
 
-* `{abbacaving_online}`              - the current total number of players on all game servers
-* `{abbacaving_server_<id>_state}`   - the current state of the game on server `<id>`
-* `{abbacaving_server_<id>_players}` - the current number of players in the game on server `<id>`
-* `{abbacaving_server_<id>_slots}`   - the current slots of server `<id>`
-* `{abbacaving_server_<id>_counter}` - the current counter (start countdown, game time remaining) of the game on server `<id>`
-
-## Redis Data
-
-### Key / Set of Strings
-
-* `abbacaving:servers` - the set of ids of servers that are currently available
-
-### Key / String Value
-
-* `abbacaving:server:<id>:state`   - the current state of the game on server `<id>`
-* `abbacaving:server:<id>:players` - the current number of players in the game on server `<id>`
-* `abbacaving:server:<id>:slots`   - the current slots of server `<id>`
-* `abbacaving:server:<id>:counter` - the current counter (start countdown, game time remaining) of the game on server `<id>`
+* `{abbacaving_online}`              - the current total number of players in all rounds
+* `{abbacaving_roundid_<id>_state}`   - the current state of the round `<id>`
+* `{abbacaving_roundid_<id>_players}` - the current number of players in the round `<id>`
+* `{abbacaving_roundid_<id>_slots}`   - the current slots for the round `<id>`
+* `{abbacaving_roundid_<id>_counter}` - the current counter (start countdown, game time remaining) of the round `<id>`
