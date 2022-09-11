@@ -34,6 +34,16 @@ public class GameTracker {
         this.plugin.getServer().getScheduler().runTaskAsynchronously(this.plugin, () -> this.plugin.loadPlayerStats(gp));
     }
 
+    public Game gameById(final String gameId) {
+        for (final Game game : this.currentGames()) {
+            if (game.gameId().equals(gameId.toUpperCase())) {
+                return game;
+            }
+        }
+
+        return null;
+    }
+
     public Game findGame(final World world) {
         for (final Game game : this.currentGames()) {
             if (game.world().equals(world)) {

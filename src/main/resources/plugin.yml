@@ -7,6 +7,8 @@ softdepend: [ PlaceholderAPI ]
 commands:
   acreload:
     description: Reloads the configuration.
+  aclookup:
+    description: Looks up stats for a specific round.
   bcastnp:
     description: Broadcast a message.
     aliases: [ bcast ]

@@ -23,6 +23,7 @@ public class StatsCommand implements CommandExecutor {
         final Player player = (Player) sender;
 
         final GamePlayer gp;
+
         if (args.length == 1) {
             final Player target = Bukkit.getPlayer(args[0]);
             if (target == null) {

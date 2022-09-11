@@ -99,6 +99,10 @@ public class Game {
         return this.players.values();
     }
 
+    public String gameId() {
+        return this.gameId;
+    }
+
     public void addPlayer(final GamePlayer gp) {
         if (this.players.put(gp.player().getName(), gp) == null) {
             this.plugin.broadcast(this.plugin.configMessage("player-joined"), Map.of("player", gp.player().displayName()));
