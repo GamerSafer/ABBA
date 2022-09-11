@@ -1,5 +1,6 @@
 package com.gamersafer.minecraft.abbacaving;
 
+import com.gamersafer.minecraft.abbacaving.commands.ACLookupCommand;
 import com.gamersafer.minecraft.abbacaving.commands.ACReloadCommand;
 import com.gamersafer.minecraft.abbacaving.commands.BroadcastNPCommand;
 import com.gamersafer.minecraft.abbacaving.commands.ForceStartCommand;
@@ -110,6 +111,7 @@ public class AbbaCavingPlugin extends JavaPlugin {
 
         this.dataSource = this.initDataSource(); // TODO: gracefully shut down when datasource init fails
 
+        this.getCommand("aclookup").setExecutor(new ACLookupCommand(this));
         this.getCommand("acreload").setExecutor(new ACReloadCommand(this));
         this.getCommand("bcastnp").setExecutor(new BroadcastNPCommand(this));
         this.getCommand("forcestart").setExecutor(new ForceStartCommand(this));
