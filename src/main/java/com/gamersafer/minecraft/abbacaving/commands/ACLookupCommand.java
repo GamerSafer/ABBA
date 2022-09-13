@@ -8,6 +8,7 @@ import java.util.Collection;
 import java.util.List;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.feature.pagination.Pagination;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -51,15 +52,28 @@ public class ACLookupCommand implements CommandExecutor, Pagination.Renderer.Row
             return true;
         }
 
-        this.pagination.build(Component.text("Make this configurable in lang file."), this,
+        final var pages = this.pagination.build(Component.text("Top scores for match ").append(Component.text(args[0])), this,
                 page -> "/aclookup " + game.gameId() + " " + page);
+
+        int page = 1;
+
+        if (args.length > 1) {
+            page = Integer.parseInt(args[1]);
+        }
+
+        final var renderedRows = pages.render(sortedScores, page);
+
+        for (final Component row : renderedRows) {
+            sender.sendMessage(row);
+        }
 
         return true;
     }
 
     @Override
     public @NotNull Collection<Component> renderRow(final @Nullable GamePlayer value, final int index) {
-        return null; // TODO: implement
+        return List.of(Component.text().append(value.player().displayName()).append(Component.text(" - ", NamedTextColor.WHITE))
+                .append(Component.text(value.score())).build());
     }
 
 }

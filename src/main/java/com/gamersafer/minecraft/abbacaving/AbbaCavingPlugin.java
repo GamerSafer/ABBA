@@ -16,6 +16,7 @@ import com.gamersafer.minecraft.abbacaving.listeners.BlockPlaceListener;
 import com.gamersafer.minecraft.abbacaving.listeners.EntityListener;
 import com.gamersafer.minecraft.abbacaving.listeners.InventoryListener;
 import com.gamersafer.minecraft.abbacaving.listeners.PlayerListener;
+import com.gamersafer.minecraft.abbacaving.lobby.Lobby;
 import com.gamersafer.minecraft.abbacaving.placeholders.GamePlaceholders;
 import com.gamersafer.minecraft.abbacaving.placeholders.LobbyPlaceholders;
 import com.gamersafer.minecraft.abbacaving.util.Util;
@@ -58,6 +59,7 @@ public class AbbaCavingPlugin extends JavaPlugin {
     private Set<CaveOre> ores;
     private Set<CaveLoot> loot;
     private GameTracker gameTracker;
+    private Lobby lobby;
     private Map<String, List<Location>> mapSpawns;
     private HikariDataSource dataSource;
     private FileConfiguration messagesConfig = new YamlConfiguration();
@@ -120,6 +122,7 @@ public class AbbaCavingPlugin extends JavaPlugin {
         this.getCommand("stats").setExecutor(new StatsCommand(this));
 
         this.gameTracker = new GameTracker(this);
+        this.lobby = new Lobby(this);
     }
 
     @Override
@@ -152,6 +155,10 @@ public class AbbaCavingPlugin extends JavaPlugin {
 
     public GameTracker gameTracker() {
         return this.gameTracker;
+    }
+
+    public Lobby lobby() {
+        return this.lobby;
     }
 
     public String gameWorldName() {

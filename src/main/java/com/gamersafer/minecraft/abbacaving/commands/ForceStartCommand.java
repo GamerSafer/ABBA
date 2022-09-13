@@ -24,7 +24,7 @@ public class ForceStartCommand implements CommandExecutor {
             }
         }
 
-        // TODO: put lobby players into a game
+        this.plugin.lobby().start();
         return true;
     }
 

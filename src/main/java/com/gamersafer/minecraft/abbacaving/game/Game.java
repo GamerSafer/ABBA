@@ -16,6 +16,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Objects;
 import java.util.concurrent.ThreadLocalRandom;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
@@ -378,7 +379,8 @@ public class Game {
 
         this.plugin.getLogger().info("Loading map '" + mapArchive.getName() + "'...");
         final String mapName = mapArchive.getName().substring(0, mapArchive.getName().lastIndexOf('.'));
-        this.spawns = this.mapSpawns.get(mapName);
+
+        this.spawns = Objects.requireNonNullElseGet(this.mapSpawns.get(mapName), List::of);
         this.plugin.getLogger().info("Loaded " + this.spawns.size() + " spawns(s) for map " + mapName);
 
         final World world = Util.loadMap(mapArchive, this.gameId);
