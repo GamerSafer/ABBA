@@ -240,8 +240,10 @@ public class Game {
             if (!this.generateMap) {
                 if (!spawnsToUse.isEmpty()) {
                     loc = spawnsToUse.remove(ThreadLocalRandom.current().nextInt(spawnsToUse.size()));
-                } else {
+                } else if (!this.spawns.isEmpty()) {
                     loc = this.spawns.remove(ThreadLocalRandom.current().nextInt(this.spawns.size()));
+                } else {
+                    loc = this.world.getSpawnLocation();
                 }
                 loc.setWorld(this.world);
             } else {
@@ -303,7 +305,7 @@ public class Game {
         this.gameState(GameState.DONE);
         this.counter(0);
 
-        this.plugin.broadcast("<green>Server restarting in 10 seconds...");
+        this.plugin.broadcast("<green>Returning to lobby in 10 seconds...");
 
         this.plugin.getServer().getScheduler().runTaskLater(this.plugin, () -> {
             for (final GamePlayer gp : this.players.values()) {
@@ -312,6 +314,8 @@ public class Game {
 
             Util.deleteWorld(this.world);
         }, 20 * 10);
+
+        this.plugin.lobby().stop(this);
     }
 
     private World generateWorld() {

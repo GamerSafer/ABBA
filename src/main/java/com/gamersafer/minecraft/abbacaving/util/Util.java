@@ -145,6 +145,10 @@ public final class Util {
     }
 
     public static void deleteWorld(final World world) {
+        if (Bukkit.getWorld(world.getUID()) != null) {
+            Bukkit.unloadWorld(world, false);
+        }
+
         deleteWorld(world.getWorldFolder());
     }
 

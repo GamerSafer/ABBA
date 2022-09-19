@@ -2,6 +2,7 @@ package com.gamersafer.minecraft.abbacaving.lobby;
 
 import com.gamersafer.minecraft.abbacaving.AbbaCavingPlugin;
 import com.gamersafer.minecraft.abbacaving.game.Game;
+import com.gamersafer.minecraft.abbacaving.game.GamePlayer;
 import com.gamersafer.minecraft.abbacaving.util.Util;
 import java.util.ArrayList;
 import java.util.List;
@@ -29,6 +30,7 @@ public class Lobby implements Listener {
     public Lobby(final AbbaCavingPlugin plugin) {
         this.plugin = plugin;
         plugin.getServer().getScheduler().runTaskTimer(plugin, this::nextTick, 0, 20);
+        Bukkit.getPluginManager().registerEvents(this, this.plugin);
     }
 
     public int counter() {
@@ -107,7 +109,7 @@ public class Lobby implements Listener {
         this.lobbyState(LobbyState.STARTING);
     }
 
-    public void start() {
+    public Game start() {
         final Game game = new Game(this.plugin, this.plugin.mapSpawns(), Util.randomString(6));
 
         this.plugin.gameTracker().currentGames().add(game);
@@ -123,7 +125,14 @@ public class Lobby implements Listener {
         this.lobbyPlayers.clear();
         game.start();
 
+        return game;
         // TODO: Handle cases where more players join the lobby than the game
+    }
+
+    public void stop(final Game game) {
+        for (final GamePlayer player : game.players()) {
+            this.lobbyPlayers.add(player.player().getUniqueId());
+        }
     }
 
 }
