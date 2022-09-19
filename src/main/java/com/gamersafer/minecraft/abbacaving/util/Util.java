@@ -25,7 +25,7 @@ import org.bukkit.World;
 import org.bukkit.WorldCreator;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
-import org.codehaus.plexus.archiver.tar.TarGZipUnArchiver;
+import org.codehaus.plexus.archiver.zip.ZipUnArchiver;
 import org.codehaus.plexus.logging.console.ConsoleLoggerManager;
 
 // TODO: modernize, replace legacy with components
@@ -61,7 +61,7 @@ public final class Util {
             deleteWorld(folder);
         }
 
-        final TarGZipUnArchiver ua = new TarGZipUnArchiver();
+        final ZipUnArchiver ua = new ZipUnArchiver();
         final ConsoleLoggerManager manager = new ConsoleLoggerManager();
         manager.initialize();
         ua.enableLogging(manager.getLoggerForComponent("bla"));
@@ -71,6 +71,7 @@ public final class Util {
         ua.extract();
 
         final World world = Bukkit.createWorld(new WorldCreator(mapName));
+        world.setKeepSpawnInMemory(false);
         world.setTime(0);
         world.setStorm(false);
         world.setThundering(false);

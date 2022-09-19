@@ -332,6 +332,10 @@ public class Game {
             for (final GamePlayer gp : this.players.values()) {
                 this.sendToLobby(gp.player());
             }
+
+            final File worldFolder = this.world.getWorldFolder();
+            Bukkit.unloadWorld(this.world, false);
+            worldFolder.delete();
         }, 20 * 10);
     }
 
