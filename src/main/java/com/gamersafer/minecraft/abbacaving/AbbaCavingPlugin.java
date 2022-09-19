@@ -161,10 +161,6 @@ public class AbbaCavingPlugin extends JavaPlugin {
         return this.lobby;
     }
 
-    public String gameWorldName() {
-        return this.getDescription().getName();
-    }
-
     public Map<String, List<Location>> mapSpawns() {
         return this.mapSpawns;
     }

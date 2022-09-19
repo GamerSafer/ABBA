@@ -4,10 +4,6 @@ import com.gamersafer.minecraft.abbacaving.AbbaCavingPlugin;
 import com.gamersafer.minecraft.abbacaving.util.Util;
 import com.gamersafer.minecraft.abbacaving.worldgen.GiantCavePopulator;
 import java.io.File;
-import java.net.DatagramSocket;
-import java.net.InetAddress;
-import java.net.SocketException;
-import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -42,7 +38,7 @@ import org.bukkit.inventory.meta.ItemMeta;
 public class Game {
 
     private final AbbaCavingPlugin plugin;
-    private final World world;
+    private World world;
     private final String gameId;
     private final Map<String, List<Location>> mapSpawns;
     private final Map<String, GamePlayer> players = new HashMap<>();
@@ -127,7 +123,7 @@ public class Game {
                 this.startingInventory(player);
 
                 final Location loc = this.spawns.get(ThreadLocalRandom.current().nextInt(this.spawns.size()));
-                loc.setWorld(this.plugin.getServer().getWorld(this.plugin.gameWorldName()));
+                loc.setWorld(this.world);
                 gp.spawnLocation(loc);
                 player.teleport(loc);
 
@@ -247,7 +243,7 @@ public class Game {
                 } else {
                     loc = this.spawns.remove(ThreadLocalRandom.current().nextInt(this.spawns.size()));
                 }
-                loc.setWorld(this.plugin.getServer().getWorld(this.plugin.gameWorldName()));
+                loc.setWorld(this.world);
             } else {
                 //                loc = caveGenerator.getSpawns().get(ThreadLocalRandom.current().nextInt(caveGenerator.getSpawns().size()));
                 //                loc.getChunk().load(true);
@@ -271,25 +267,6 @@ public class Game {
         this.plugin.broadcast(this.plugin.configMessage("game-objective"));
         this.playSound(Sound.BLOCK_NOTE_BLOCK_SNARE);
         this.gameState(GameState.RUNNING);
-
-        //        String serverName = RedisApi.instance().getServerName();
-        //        String newName = serverName.replace("pregame", "ingame");
-        //        RedisApi.instance().unregisterServer(serverName);
-        //        RedisApi.instance().renameServer(newName);
-        String ip = this.plugin.getServer().getIp();
-        if (ip.isEmpty()) {
-            try (final DatagramSocket socket = new DatagramSocket()) {
-                socket.connect(InetAddress.getByName("8.8.8.8"), 10002);
-                ip = socket.getLocalAddress().getHostAddress();
-            } catch (final UnknownHostException | SocketException e) {
-                e.printStackTrace();
-            }
-        }
-
-        if (ip.isEmpty()) {
-            ip = "localhost"; //TODO remove?
-        }
-        //RedisApi.instance().registerServer(newName, ip, Integer.toString(plugin.getServer().getPort()));
     }
 
     private void stop() {
@@ -333,34 +310,28 @@ public class Game {
                 this.sendToLobby(gp.player());
             }
 
-            final File worldFolder = this.world.getWorldFolder();
-            Bukkit.unloadWorld(this.world, false);
-            worldFolder.delete();
+            Util.deleteWorld(this.world);
         }, 20 * 10);
     }
 
     private World generateWorld() {
         this.plugin.getLogger().info("Deleting existing world...");
 
-        final World currentWorld = Bukkit.getWorld(this.plugin.gameWorldName());
-
-        if (currentWorld != null) {
-            Util.deleteWorld(currentWorld);
-        } else {
-            Util.deleteWorld(new File(this.plugin.gameWorldName()));
+        if (this.world != null) {
+            Util.deleteWorld(this.world);
         }
 
         this.plugin.getLogger().info("Done");
 
         this.plugin.getLogger().info("Creating new world...");
-        final World world = this.plugin.getServer().createWorld(new WorldCreator(this.plugin.gameWorldName()));
+        this.world = this.plugin.getServer().createWorld(new WorldCreator(this.gameId));
 
-        this.plugin.getLogger().info("Attaching cave populator to world \"" + world.getName() + "\"");
-        this.caveGenerator = new GiantCavePopulator(this.plugin, world);
-        world.getPopulators().add(this.caveGenerator);
+        this.plugin.getLogger().info("Attaching cave populator to world \"" + this.world.getName() + "\"");
+        this.caveGenerator = new GiantCavePopulator(this.plugin, this.world);
+        this.world.getPopulators().add(this.caveGenerator);
         this.plugin.getLogger().info("Done");
 
-        return world;
+        return this.world;
     }
 
     private World loadRandomMap() {
