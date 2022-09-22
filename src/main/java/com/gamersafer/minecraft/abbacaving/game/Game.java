@@ -174,6 +174,10 @@ public class Game {
         this.counter = counter;
     }
 
+    public int maxPlayersPerRound() {
+        return this.plugin.getConfig().getInt("game.maximum-players-per-round");
+    }
+
     private void nextTick() {
         if (this.state == GameState.RUNNING) {
             final int gameDurationSeconds = this.plugin.getConfig().getInt("game.duration-seconds");

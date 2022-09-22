@@ -18,6 +18,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
+import org.codehaus.classworlds.UberJarRealmClassLoader;
 
 public class Lobby implements Listener {
 
@@ -115,6 +116,10 @@ public class Lobby implements Listener {
         this.plugin.gameTracker().currentGames().add(game);
 
         for (final UUID playerId : this.lobbyPlayers) {
+            if (game.players().size() >= game.maxPlayersPerRound()) {
+                break;
+            }
+
             final Player player = Bukkit.getPlayer(playerId);
 
             if (player != null) {
@@ -126,7 +131,6 @@ public class Lobby implements Listener {
         game.start();
 
         return game;
-        // TODO: Handle cases where more players join the lobby than the game
     }
 
     public void stop(final Game game) {
