@@ -11,6 +11,8 @@ import java.util.Map;
 import java.util.UUID;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
+import net.kyori.adventure.text.minimessage.tag.Tag;
+import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
@@ -103,7 +105,9 @@ public class Lobby implements Listener {
                     final Player player = Bukkit.getPlayer(uuid);
 
                     if (player != null) {
-                        player.sendActionBar(MiniMessage.miniMessage().deserialize("<gray>Starting In: <green>" + this.counter));
+                        player.sendActionBar(MiniMessage.miniMessage().deserialize(this.plugin.configMessage("game-starting"),
+                                TagResolver.resolver("seconds", Tag.inserting(Component.text(this.counter))),
+                                TagResolver.resolver("optional-s", Tag.inserting(Component.text(this.counter != 1 ? "s" : "")))));
                     }
                 }
             }

@@ -19,13 +19,13 @@ public class ACReloadCommand implements CommandExecutor {
     public boolean onCommand(@NotNull final CommandSender sender, @NotNull final Command command, @NotNull final String label, @NotNull final String[] args) {
         if (sender instanceof Player player) {
             if (!this.plugin.hasPermission(player, "reload")) {
-                this.plugin.message(sender, "<red>You do not have permission to do this.");
+                this.plugin.message(sender, this.plugin.configMessage("no-permission"));
                 return false;
             }
         }
 
         this.plugin.reloadConfig();
-        sender.sendMessage("Reloaded configuration");
+        this.plugin.message(sender, this.plugin.configMessage("reloaded-config"));
         return true;
     }
 

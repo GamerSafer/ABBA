@@ -52,7 +52,7 @@ public class ACLookupCommand implements CommandExecutor, Pagination.Renderer.Row
             return true;
         }
 
-        final var pages = this.pagination.build(Component.text("Top scores for match ").append(Component.text(args[0])), this,
+        final var pages = this.pagination.build(Component.text(this.plugin.configMessage("lookup-title")).append(Component.text(args[0])), this,
                 page -> "/aclookup " + game.gameId() + " " + page);
 
         int page = 1;

@@ -17,23 +17,23 @@ public class NightVisionCommand implements CommandExecutor {
         this.plugin = plugin;
     }
 
-
     @Override
     public boolean onCommand(@NotNull final CommandSender sender, @NotNull final Command command, @NotNull final String label, @NotNull final String[] args) {
-        if (sender instanceof Player player) {
-            if (!this.plugin.hasPermission(player, "nightvision")) {
-                this.plugin.message(sender, "<red>You do not have permission to do this.");
-                return false;
-            }
+        if (!(sender instanceof Player player)) {
+            return true;
         }
 
+        if (!this.plugin.hasPermission(player, "nightvision")) {
+            this.plugin.message(sender, this.plugin.configMessage("no-permission"));
+            return false;
+        }
 
-        final Player player = (Player) sender;
         if (player.hasPotionEffect(PotionEffectType.NIGHT_VISION)) {
             player.removePotionEffect(PotionEffectType.NIGHT_VISION);
         } else {
             player.addPotionEffect(new PotionEffect(PotionEffectType.NIGHT_VISION, Integer.MAX_VALUE, 1));
         }
+
         return true;
     }
 
