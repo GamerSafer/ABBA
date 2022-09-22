@@ -178,6 +178,11 @@ public class Game {
         return this.plugin.getConfig().getInt("game.maximum-players-per-round");
     }
 
+    public boolean acceptingNewPlayers() {
+        // TODO: config option to disable joining non-full in-progress games
+        return this.players.size() < this.maxPlayersPerRound();
+    }
+
     private void nextTick() {
         if (this.state == GameState.RUNNING) {
             final int gameDurationSeconds = this.plugin.getConfig().getInt("game.duration-seconds");

@@ -5,6 +5,7 @@ import com.gamersafer.minecraft.abbacaving.game.Game;
 import com.gamersafer.minecraft.abbacaving.game.GamePlayer;
 import com.gamersafer.minecraft.abbacaving.util.Util;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -18,13 +19,11 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
-import org.codehaus.classworlds.UberJarRealmClassLoader;
 
 public class Lobby implements Listener {
 
     private final AbbaCavingPlugin plugin;
-    private final List<UUID> lobbyPlayers = new ArrayList<>();
-
+    private List<UUID> playerLobbyQueue = new LinkedList<>();
     private LobbyState lobbyState = LobbyState.WAITING;
     private int counter = 0;
 
@@ -50,11 +49,26 @@ public class Lobby implements Listener {
         this.lobbyState = lobbyState;
     }
 
+    public List<UUID> nextGamePlayerQueue() {
+        final int maxPlayers = this.plugin.getConfig().getInt("game.maximum-players-per-round");
+        final int playersToGrab = Math.min(maxPlayers, this.playerLobbyQueue.size()) - 1;
+
+        return this.playerLobbyQueue.subList(0, playersToGrab);
+    }
+
     @EventHandler
     public void onPlayerJoin(final PlayerJoinEvent event) {
         event.joinMessage(null);
 
         event.getPlayer().setGameMode(GameMode.ADVENTURE);
+
+        for (final Game game : this.plugin.gameTracker().currentGames()) {
+            if (game.acceptingNewPlayers()) {
+                this.plugin.gameTracker().addPlayerToGame(game, event.getPlayer());
+                return;
+            }
+        }
+
         event.getPlayer().teleport(new Location(
                 Bukkit.getWorld(this.plugin.getConfig().getString("lobby-spawn-location.world")),
                 this.plugin.getConfig().getDouble("lobby-spawn-location.x"),
@@ -63,20 +77,18 @@ public class Lobby implements Listener {
                 (float) this.plugin.getConfig().getDouble("lobby-spawn-location.yaw"),
                 (float) this.plugin.getConfig().getDouble("lobby-spawn-location.pitch")));
 
-        this.lobbyPlayers.add(event.getPlayer().getUniqueId());
-
-        // TODO: join in-progress games instead of lobby if there's room in a game?
+        this.playerLobbyQueue.add(event.getPlayer().getUniqueId());
     }
 
     @EventHandler
     public void onPlayerQuit(final PlayerQuitEvent event) {
-        this.lobbyPlayers.remove(event.getPlayer().getUniqueId());
+        this.playerLobbyQueue.remove(event.getPlayer().getUniqueId());
         // TODO: stop counter when lobby player counts < minimum required players
     }
 
     private void nextTick() {
         if (this.lobbyState == LobbyState.WAITING) {
-            if (this.lobbyPlayers.size() >= this.plugin.getConfig().getInt("game.players-required-to-start")) {
+            if (this.playerLobbyQueue.size() >= this.plugin.getConfig().getInt("game.players-required-to-start")) {
                 //                if (caveGenerator != null && !caveGenerator.isReady()) {
                 //                    plugin.getLogger().info("Waiting for the world to be generated...");
                 //                } else {
@@ -86,7 +98,13 @@ public class Lobby implements Listener {
             }
         } else if (this.lobbyState == LobbyState.STARTING) {
             if (this.counter >= 0) {
-                Bukkit.getServer().sendActionBar(MiniMessage.miniMessage().deserialize("<gray>Starting In: <green>" + this.counter));
+                for (final UUID uuid : this.nextGamePlayerQueue()) {
+                    final Player player = Bukkit.getPlayer(uuid);
+
+                    if (player != null) {
+                        player.sendActionBar(MiniMessage.miniMessage().deserialize("<gray>Starting In: <green>" + this.counter));
+                    }
+                }
             }
 
             if (this.counter == 0) {
@@ -94,10 +112,16 @@ public class Lobby implements Listener {
             } else {
                 if (this.counter % 60 == 0 || this.counter == 30 || this.counter == 15
                         || this.counter == 10 || this.counter <= 5) {
-                    this.plugin.broadcast(this.plugin.configMessage("game-starting"), Map.of(
-                            "seconds", Component.text(this.counter),
-                            "optional-s", Component.text(this.counter != 1 ? "s" : "")
-                    ));
+                    for (final UUID uuid : this.nextGamePlayerQueue()) {
+                        final Player player = Bukkit.getPlayer(uuid);
+
+                        if (player != null) {
+                            this.plugin.broadcast(this.plugin.configMessage("game-starting"), Map.of(
+                                    "seconds", Component.text(this.counter),
+                                    "optional-s", Component.text(this.counter != 1 ? "s" : "")
+                            ));
+                        }
+                    }
                 }
             }
         }
@@ -114,8 +138,9 @@ public class Lobby implements Listener {
         final Game game = new Game(this.plugin, this.plugin.mapSpawns(), Util.randomString(6));
 
         this.plugin.gameTracker().currentGames().add(game);
+        final List<UUID> uuidsToRemove = new ArrayList<>();
 
-        for (final UUID playerId : this.lobbyPlayers) {
+        for (final UUID playerId : this.playerLobbyQueue) {
             if (game.players().size() >= game.maxPlayersPerRound()) {
                 break;
             }
@@ -124,10 +149,11 @@ public class Lobby implements Listener {
 
             if (player != null) {
                 this.plugin.gameTracker().addPlayerToGame(game, player);
+                uuidsToRemove.add(player.getUniqueId());
             }
         }
 
-        this.lobbyPlayers.clear();
+        this.playerLobbyQueue.removeAll(uuidsToRemove);
         game.start();
 
         return game;
@@ -135,7 +161,7 @@ public class Lobby implements Listener {
 
     public void stop(final Game game) {
         for (final GamePlayer player : game.players()) {
-            this.lobbyPlayers.add(player.player().getUniqueId());
+            this.playerLobbyQueue.add(player.player().getUniqueId());
         }
     }
 
