@@ -65,6 +65,7 @@ public class Lobby implements Listener {
         for (final Game game : this.plugin.gameTracker().currentGames()) {
             if (game.acceptingNewPlayers()) {
                 this.plugin.gameTracker().addPlayerToGame(game, event.getPlayer());
+                event.getPlayer().sendMessage(MiniMessage.miniMessage().deserialize(this.plugin.configMessage("joining-in-progress")));
                 return;
             }
         }
