@@ -39,11 +39,6 @@ cave-generator:
   spawn-spacing: 50
   spawns: 50
 
-# If specified, load map archives from this directory (absolute path).
-maps-directory: /home/minecraft/GenServers/AbbaGen/output/maps
-# If specified, load spawn locations from this YAML file (absolute path).
-spawns-file: /home/minecraft/GenServers/AbbaGen/output/spawns.yml
-
 game:
   max-games: 1
   players-required-to-start: 5

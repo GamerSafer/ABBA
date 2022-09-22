@@ -4,6 +4,7 @@ import com.gamersafer.minecraft.abbacaving.AbbaCavingPlugin;
 import com.gamersafer.minecraft.abbacaving.util.Util;
 import com.gamersafer.minecraft.abbacaving.worldgen.GiantCavePopulator;
 import java.io.File;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -339,12 +340,10 @@ public class Game {
     }
 
     private World loadRandomMap() {
-        final String mapsDirAbsPath = this.plugin.getConfig().getString("maps-directory", "");
-        final File mapsDir;
-        if (!mapsDirAbsPath.isEmpty()) {
-            mapsDir = new File(mapsDirAbsPath);
-        } else {
-            mapsDir = new File(this.plugin.getDataFolder(), "maps");
+        final File mapsDir = new File(this.plugin.getDataFolder(), "maps");
+
+        if (!mapsDir.exists()) {
+            mapsDir.mkdirs();
         }
 
         final File[] mapArchives = mapsDir.listFiles();
