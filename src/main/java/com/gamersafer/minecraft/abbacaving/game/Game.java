@@ -4,7 +4,6 @@ import com.gamersafer.minecraft.abbacaving.AbbaCavingPlugin;
 import com.gamersafer.minecraft.abbacaving.util.Util;
 import com.gamersafer.minecraft.abbacaving.worldgen.GiantCavePopulator;
 import java.io.File;
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -15,6 +14,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.stream.Collectors;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.kyori.adventure.text.minimessage.tag.Tag;
@@ -107,6 +107,12 @@ public class Game {
 
             this.resetPlayer(gp.player());
         }
+    }
+
+    public void increasePlayerScore(final GamePlayer player, final int amount) {
+        final int currentScore = this.leaderboard.computeIfAbsent(player, x -> 0);
+
+        this.leaderboard.put(player, currentScore + amount);
     }
 
     public GamePlayer removePlayer(final Player player, final boolean quit) {
@@ -285,8 +291,21 @@ public class Game {
         this.plugin.broadcast(this.plugin.configMessage("game-ended"));
 
         if (this.leaderboard.size() > 0) {
-            final Entry<GamePlayer, Integer> winner = this.leaderboard.entrySet().iterator().next();
+            final Map<GamePlayer, Integer> sortedLeaderboards =
+                    this.leaderboard.entrySet().stream()
+                            .sorted(Map.Entry.<GamePlayer, Integer>comparingByValue().reversed())
+                            .collect(Collectors.toMap(
+                                    Entry::getKey,
+                                    Entry::getValue,
+                                    (x, y)-> {
+                                        throw new AssertionError();
+                                    },
+                                    LinkedHashMap::new
+                            ));
+
+            final Entry<GamePlayer, Integer> winner = sortedLeaderboards.entrySet().iterator().next();
             winner.getKey().wins(winner.getKey().wins() + 1);
+
             this.plugin.broadcast(this.plugin.configMessage("game-win"), Map.of(
                     "player", winner.getKey().player().displayName(),
                     "score", Component.text(Util.addCommas(winner.getValue())),
@@ -297,10 +316,11 @@ public class Game {
 
             this.plugin.broadcast("<dark_aqua><bold>TOP PLAYERS</bold>");
 
-            final List<GamePlayer> sorted = new ArrayList<>(this.leaderboard.keySet());
+            final List<GamePlayer> sorted = new ArrayList<>(sortedLeaderboards.keySet());
 
             for (int i = 0; i < Math.min(sorted.size(), 5); i++) {
                 final GamePlayer gp = sorted.get(i);
+                // TODO: replace all broadcasts with world broadcasts
                 this.plugin.broadcast("<gray>#" + (i + 1) + ": <green><displayname> <gray>- " + Util.addCommas(this.leaderboard.get(gp)),
                         TagResolver.resolver("displayname", Tag.inserting(gp.player().displayName())));
             }
@@ -322,10 +342,9 @@ public class Game {
                 this.sendToLobby(gp.player());
             }
 
+            this.plugin.lobby().stop(this);
             Util.deleteWorld(this.world);
         }, 20 * 10);
-
-        this.plugin.lobby().stop(this);
     }
 
     private World generateWorld() {

@@ -58,6 +58,7 @@ public class BlockBreakListener implements Listener {
                 gp.currentOresMined(gp.currentOresMined() + 1);
                 gp.totalOresMined(gp.totalOresMined() + 1);
                 gp.addScore(ore.value(), ore.name());
+                game.increasePlayerScore(gp, ore.value());
             } else {
                 this.plugin.message(player, this.plugin.configMessage("ore-not-worth-points"),
                         TagResolver.resolver("ore", Tag.preProcessParsed(ore.name())));

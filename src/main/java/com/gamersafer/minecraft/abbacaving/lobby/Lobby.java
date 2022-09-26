@@ -85,10 +85,6 @@ public class Lobby implements Listener {
                 (float) this.plugin.getConfig().getDouble("lobby-spawn-location.pitch")));
 
         this.playerLobbyQueue.add(event.getPlayer().getUniqueId());
-
-        this.plugin.message(event.getPlayer(), this.plugin.configMessage("lobby-count"),
-                TagResolver.resolver("current", Tag.inserting(Component.text(this.playerLobbyQueue.size()))),
-                TagResolver.resolver("max", Tag.inserting(Component.text(this.playersRequiredToStart()))));
     }
 
     @EventHandler
@@ -106,8 +102,19 @@ public class Lobby implements Listener {
                 //                    preStart();
                 //                }
                 this.preStart();
+            } else {
+                for (final UUID uuid : this.nextGamePlayerQueue()) {
+                    final Player player = Bukkit.getPlayer(uuid);
+
+                    if (player != null) {
+                        player.sendActionBar(MiniMessage.miniMessage().deserialize(this.plugin.configMessage("lobby-count"),
+                                TagResolver.resolver("current", Tag.inserting(Component.text(this.playerLobbyQueue.size()))),
+                                TagResolver.resolver("max", Tag.inserting(Component.text(this.playersRequiredToStart())))));
+                    }
+                }
             }
         } else if (this.lobbyState == LobbyState.STARTING) {
+            // TODO: cancel preStart when lobby count < required players
             if (this.counter >= 0) {
                 for (final UUID uuid : this.nextGamePlayerQueue()) {
                     final Player player = Bukkit.getPlayer(uuid);
@@ -129,17 +136,18 @@ public class Lobby implements Listener {
                         final Player player = Bukkit.getPlayer(uuid);
 
                         if (player != null) {
-                            this.plugin.broadcast(this.plugin.configMessage("game-starting"), Map.of(
-                                    "seconds", Component.text(this.counter),
-                                    "optional-s", Component.text(this.counter != 1 ? "s" : "")
-                            ));
+                            this.plugin.message(player, this.plugin.configMessage("game-starting"),
+                                    TagResolver.resolver("seconds", Tag.inserting(Component.text(this.counter))),
+                                    TagResolver.resolver("optional-s", Tag.inserting(Component.text(this.counter != 1 ? "s" : ""))));
                         }
                     }
                 }
             }
         }
 
-        this.counter--;
+        if (this.lobbyState == LobbyState.STARTING) {
+            this.counter--;
+        }
     }
 
     public void preStart() {
@@ -148,6 +156,12 @@ public class Lobby implements Listener {
     }
 
     public Game start() {
+        this.lobbyState = LobbyState.WAITING;
+        this.counter = 0;
+
+        // TODO: remove this, maps will be prepared before the countdown
+        this.plugin.broadcast("<gray>Preparing map...");
+
         final Game game = new Game(this.plugin, this.plugin.mapSpawns(), Util.randomString(6));
 
         this.plugin.gameTracker().currentGames().add(game);
