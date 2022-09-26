@@ -16,6 +16,7 @@ import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
+import org.bukkit.attribute.Attribute;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -63,6 +64,9 @@ public class Lobby implements Listener {
         event.joinMessage(null);
 
         event.getPlayer().setGameMode(GameMode.ADVENTURE);
+        event.getPlayer().getAttribute(Attribute.GENERIC_MAX_HEALTH).setBaseValue(20);
+        event.getPlayer().setHealth(20);
+        event.getPlayer().setFoodLevel(20);
 
         for (final Game game : this.plugin.gameTracker().currentGames()) {
             if (game.acceptingNewPlayers()) {
