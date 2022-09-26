@@ -85,6 +85,10 @@ public class Lobby implements Listener {
                 (float) this.plugin.getConfig().getDouble("lobby-spawn-location.pitch")));
 
         this.playerLobbyQueue.add(event.getPlayer().getUniqueId());
+
+        this.plugin.message(event.getPlayer(), this.plugin.configMessage("lobby-count"),
+                TagResolver.resolver("current", Tag.inserting(Component.text(this.playerLobbyQueue.size()))),
+                TagResolver.resolver("max", Tag.inserting(Component.text(this.playersRequiredToStart()))));
     }
 
     @EventHandler
@@ -95,7 +99,7 @@ public class Lobby implements Listener {
 
     private void nextTick() {
         if (this.lobbyState == LobbyState.WAITING) {
-            if (this.playerLobbyQueue.size() >= this.plugin.getConfig().getInt("game.players-required-to-start")) {
+            if (this.playerLobbyQueue.size() >= this.playersRequiredToStart()) {
                 //                if (caveGenerator != null && !caveGenerator.isReady()) {
                 //                    plugin.getLogger().info("Waiting for the world to be generated...");
                 //                } else {
@@ -135,7 +139,7 @@ public class Lobby implements Listener {
             }
         }
 
-        this.counter++;
+        this.counter--;
     }
 
     public void preStart() {
@@ -172,6 +176,10 @@ public class Lobby implements Listener {
         for (final GamePlayer player : game.players()) {
             this.playerLobbyQueue.add(player.player().getUniqueId());
         }
+    }
+
+    public int playersRequiredToStart() {
+        return this.plugin.getConfig().getInt("game.players-required-to-start");
     }
 
 }
