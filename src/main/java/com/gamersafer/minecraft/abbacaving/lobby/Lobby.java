@@ -54,7 +54,7 @@ public class Lobby implements Listener {
 
     public List<UUID> nextGamePlayerQueue() {
         final int maxPlayers = this.plugin.getConfig().getInt("game.maximum-players-per-round");
-        final int playersToGrab = Math.min(maxPlayers, this.playerLobbyQueue.size()) - 1;
+        final int playersToGrab = Math.min(maxPlayers, this.playerLobbyQueue.size());
 
         return this.playerLobbyQueue.subList(0, playersToGrab);
     }
