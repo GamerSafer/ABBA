@@ -28,6 +28,7 @@ dependencies {
     compileOnly "io.papermc.paper:paper-api:1.19.2-R0.1-SNAPSHOT"
     //compileOnly "net.luckperms:api:5.4"
     compileOnly "me.clip:placeholderapi:2.9.2"
+    compileOnly "com.sk89q.worldedit:worldedit-bukkit:7.2.12"
 
 //    compile fileTree(dir: "lib", include: ["*.jar"])
 }

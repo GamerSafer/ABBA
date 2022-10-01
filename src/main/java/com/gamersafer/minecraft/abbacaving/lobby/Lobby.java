@@ -158,8 +158,13 @@ public class Lobby implements Listener {
         this.lobbyState = LobbyState.WAITING;
         this.counter = 0;
 
-        // TODO: remove this, maps will be prepared before the countdown
-        this.plugin.broadcast("<gray>Preparing map...");
+        for (final UUID playerId : this.playerLobbyQueue) {
+            final Player player = Bukkit.getPlayer(playerId);
+
+            if (player != null) {
+                this.plugin.message(player, this.plugin.configMessage("preparing-map"));
+            }
+        }
 
         final Game game = new Game(this.plugin, this.plugin.mapSpawns(), Util.randomString(6));
 

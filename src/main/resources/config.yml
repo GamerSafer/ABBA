@@ -46,7 +46,21 @@ game:
   duration-seconds: 120
   start-countdown-seconds: 10
   grace-period-duration-seconds: 60
+  game-end-grace-period-seconds: 60
   # Set protected-spawn-radius to 0 to disable.
   protected-spawn-radius: 0
   player-health: 40
   min-score-to-broadcast-new-record: 50
+  end-of-round:
+    title: "<green>Round has ended!"
+    subtitle: "<aqua>Example subtitle."
+    schematic:
+      name: schematic_text
+      x: 0
+      y: 100
+      z: 0
+    sound:
+      key:
+      source: NEUTRAL
+      pitch: 1.0
+      volume: 1.0

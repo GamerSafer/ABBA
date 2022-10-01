@@ -30,7 +30,7 @@ public class BlockBreakListener implements Listener {
 
         final Game game = this.plugin.gameTracker().findGame(event.getBlock().getWorld());
 
-        if (game.gameState() != GameState.RUNNING) {
+        if (game == null || game.gameState() != GameState.RUNNING) {
             event.setCancelled(true);
             return;
         }

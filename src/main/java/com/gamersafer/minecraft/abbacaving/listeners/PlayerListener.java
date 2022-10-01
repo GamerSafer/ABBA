@@ -5,6 +5,10 @@ import com.gamersafer.minecraft.abbacaving.game.Game;
 import com.gamersafer.minecraft.abbacaving.game.GamePlayer;
 import com.gamersafer.minecraft.abbacaving.game.GameState;
 import com.gamersafer.minecraft.abbacaving.util.Util;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.minimessage.MiniMessage;
+import net.kyori.adventure.text.minimessage.tag.Tag;
+import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
 import org.bukkit.Material;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.entity.EntityType;
@@ -42,11 +46,15 @@ public class PlayerListener implements Listener {
 
     @EventHandler
     public void onPlayerDeath(final PlayerDeathEvent event) {
-        event.deathMessage(null);
+        final Player player = event.getEntity();
+        final GamePlayer gamePlayer = this.plugin.gameTracker().findPlayer(player);
+
+        event.deathMessage(MiniMessage.miniMessage().deserialize(this.plugin.configMessage("death-message"),
+                TagResolver.resolver("player", Tag.inserting(event.getPlayer().name())),
+                TagResolver.resolver("score", Tag.inserting(Component.text(gamePlayer.score())))));
         event.getDrops().clear();
         event.setDroppedExp(0);
 
-        final Player player = event.getEntity();
         final int maxHealth = this.plugin.getConfig().getInt("game.player-health");
         player.getAttribute(Attribute.GENERIC_MAX_HEALTH).setBaseValue(maxHealth);
         player.setHealth(maxHealth);
@@ -91,7 +99,7 @@ public class PlayerListener implements Listener {
 
         final Game game = this.plugin.gameTracker().findGame(event.getEntity().getWorld());
 
-        if (game == null || game.isGracePeriod()) {
+        if (game == null || game.isGracePeriod() || game.gameState() == GameState.DONE) {
             event.setCancelled(true);
         }
     }

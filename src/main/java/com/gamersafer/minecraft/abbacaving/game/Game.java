@@ -3,7 +3,22 @@ package com.gamersafer.minecraft.abbacaving.game;
 import com.gamersafer.minecraft.abbacaving.AbbaCavingPlugin;
 import com.gamersafer.minecraft.abbacaving.util.Util;
 import com.gamersafer.minecraft.abbacaving.worldgen.GiantCavePopulator;
+import com.sk89q.worldedit.EditSession;
+import com.sk89q.worldedit.WorldEdit;
+import com.sk89q.worldedit.WorldEditException;
+import com.sk89q.worldedit.bukkit.BukkitAdapter;
+import com.sk89q.worldedit.extent.clipboard.Clipboard;
+import com.sk89q.worldedit.extent.clipboard.io.ClipboardFormat;
+import com.sk89q.worldedit.extent.clipboard.io.ClipboardFormats;
+import com.sk89q.worldedit.extent.clipboard.io.ClipboardReader;
+import com.sk89q.worldedit.function.operation.Operation;
+import com.sk89q.worldedit.function.operation.Operations;
+import com.sk89q.worldedit.math.BlockVector3;
+import com.sk89q.worldedit.session.ClipboardHolder;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -15,18 +30,21 @@ import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.Collectors;
+import net.kyori.adventure.key.Key;
+import net.kyori.adventure.sound.Sound;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.kyori.adventure.text.minimessage.tag.Tag;
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
+import net.kyori.adventure.title.Title;
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.Material;
-import org.bukkit.Sound;
 import org.bukkit.World;
 import org.bukkit.WorldCreator;
 import org.bukkit.attribute.Attribute;
+import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
@@ -69,6 +87,40 @@ public class Game {
         plugin.getServer().getScheduler().runTaskTimer(plugin, this::nextTick, 0, 20);
     }
 
+    private void broadcastActionBar(final Component component) {
+        for (final GamePlayer gp : this.players.values()) {
+            gp.player().sendActionBar(component);
+        }
+    }
+
+    private void playSound(final Sound sound) {
+        for (final GamePlayer gp : this.players.values()) {
+            gp.player().playSound(sound);
+        }
+    }
+
+    public void broadcast(final String format, final Map<String, Component> placeholders) {
+        final List<TagResolver> resolvers = new ArrayList<>();
+
+        for (final Map.Entry<String, Component> entry : placeholders.entrySet()) {
+            resolvers.add(TagResolver.resolver(entry.getKey(), Tag.inserting(entry.getValue())));
+        }
+
+        this.broadcast(format, resolvers.toArray(new TagResolver[0]));
+    }
+
+    public void broadcast(final String format) {
+        this.broadcast(format, Map.of());
+    }
+
+    public void broadcast(final String format, final TagResolver... resolvers) {
+        final Component message = MiniMessage.miniMessage().deserialize(format, resolvers);
+
+        for (final GamePlayer gp : this.players.values()) {
+            gp.player().sendMessage(message);
+        }
+    }
+
     public World world() {
         return this.world;
     }
@@ -103,7 +155,7 @@ public class Game {
 
     public void addPlayer(final GamePlayer gp) {
         if (this.players.put(gp.player().getName(), gp) == null) {
-            this.plugin.broadcast(this.plugin.configMessage("player-joined"), Map.of("player", gp.player().displayName()));
+            this.broadcast(this.plugin.configMessage("player-joined"), Map.of("player", gp.player().displayName()));
 
             this.resetPlayer(gp.player());
         }
@@ -134,16 +186,16 @@ public class Game {
                 gp.spawnLocation(loc);
                 player.teleport(loc);
 
-                this.plugin.broadcast(this.plugin.configMessage("player-respawned"), Map.of("player", player.displayName()));
+                this.broadcast(this.plugin.configMessage("player-respawned"), Map.of("player", player.displayName()));
             } else {
                 this.players.remove(player.getName());
                 this.leaderboard.remove(gp);
                 this.updateLeaderboard();
 
-                this.plugin.broadcast(this.plugin.configMessage("player-died"), Map.of("player", player.displayName()));
+                this.broadcast(this.plugin.configMessage("player-died"), Map.of("player", player.displayName()));
 
                 if (this.players.size() > 1) {
-                    this.plugin.broadcast(this.plugin.configMessage("remaining-players"), Map.of(
+                    this.broadcast(this.plugin.configMessage("remaining-players"), Map.of(
                             "count", Component.text(this.players.size()),
                             "optional-s", Component.text(this.players.size() != 1 ? "s" : "")
                     ));
@@ -156,7 +208,7 @@ public class Game {
             this.leaderboard.remove(gp);
             this.updateLeaderboard();
 
-            this.plugin.broadcast(this.plugin.configMessage("player-left"), Map.of("player", player.displayName()));
+            this.broadcast(this.plugin.configMessage("player-left"), Map.of("player", player.displayName()));
         }
 
         return gp;
@@ -196,34 +248,36 @@ public class Game {
 
             if (this.counter > 0) {
                 if (this.gracePeriod) {
-                    Bukkit.getServer().sendActionBar(MiniMessage.miniMessage().deserialize("<dark_aqua>Grace Period"));
+                    this.broadcastActionBar(MiniMessage.miniMessage().deserialize(this.plugin.configMessage("game-starting"),
+                            TagResolver.resolver("seconds", Tag.inserting(Component.text(this.counter))),
+                            TagResolver.resolver("optional-s", Tag.inserting(Component.text(this.counter != 1 ? "s" : "")))));
                 } else {
-                    Bukkit.getServer().sendActionBar(MiniMessage.miniMessage().deserialize("<gray>Ending In: <green>" + this.counter));
+                    this.broadcastActionBar(MiniMessage.miniMessage().deserialize("<gray>Ending In: <green>" + this.counter));
                 }
             } else if (this.counter == 0) {
-                Bukkit.getServer().sendActionBar(MiniMessage.miniMessage().deserialize("<red>Game Over"));
+                this.broadcastActionBar(MiniMessage.miniMessage().deserialize("<red>Game Over"));
             }
 
             if (this.counter == gameDurationSeconds - gracePeriodSeconds) {
                 this.gracePeriod = false;
-                this.plugin.broadcast(this.plugin.configMessage("grace-period-ended"));
+                this.broadcast(this.plugin.configMessage("grace-period-ended"));
             } else if ((this.counter % 60 == 0 || this.counter == 30 || this.counter == 15
                     || this.counter == 10 || this.counter <= 5) && this.counter != 0) {
                 final int minutes = this.counter / 60;
                 if (minutes > 0 && minutes <= 5) {
-                    this.plugin.broadcast(this.plugin.configMessage("game-ending"), Map.of(
+                    this.broadcast(this.plugin.configMessage("game-ending"), Map.of(
                             "amount", Component.text(minutes),
                             "time-type", Component.text(minutes == 1 ? "minute" : "minutes")
                     ));
 
-                    this.playSound(Sound.UI_BUTTON_CLICK);
+                    this.playSound(Sound.sound(Key.key("ui.button.click"), Sound.Source.NEUTRAL, 1f, 1f));
                 } else if (this.counter <= 30) {
-                    this.plugin.broadcast(this.plugin.configMessage("game-ending"), Map.of(
+                    this.broadcast(this.plugin.configMessage("game-ending"), Map.of(
                             "amount", Component.text(this.counter),
                             "time-type", Component.text(this.counter == 1 ? "second" : "seconds")
                     ));
 
-                    this.playSound(Sound.UI_BUTTON_CLICK);
+                    this.playSound(Sound.sound(Key.key("ui.button.click"), Sound.Source.NEUTRAL, 1f, 1f));
                 }
             } else if (this.counter == 0) {
                 this.stop();
@@ -237,7 +291,7 @@ public class Game {
         this.gracePeriod = true;
         final int gracePeriodSeconds = this.plugin.getConfig().getInt("game.duration-seconds");
         this.counter(gracePeriodSeconds);
-        this.plugin.broadcast(this.plugin.configMessage("game-started"));
+        this.broadcast(this.plugin.configMessage("game-started"));
 
         final List<Location> spawnsToUse = new ArrayList<>(this.spawns);
 
@@ -282,13 +336,13 @@ public class Game {
 
         this.updateLeaderboard();
 
-        this.plugin.broadcast(this.plugin.configMessage("game-objective"));
-        this.playSound(Sound.BLOCK_NOTE_BLOCK_SNARE);
+        this.broadcast(this.plugin.configMessage("game-objective"));
+        this.playSound(Sound.sound(Key.key("block.note_block.snare"), Sound.Source.NEUTRAL, 1f, 1f));
         this.gameState(GameState.RUNNING);
     }
 
     private void stop() {
-        this.plugin.broadcast(this.plugin.configMessage("game-ended"));
+        this.broadcast(this.plugin.configMessage("game-ended"));
 
         if (this.leaderboard.size() > 0) {
             final Map<GamePlayer, Integer> sortedLeaderboards =
@@ -306,36 +360,97 @@ public class Game {
             final Entry<GamePlayer, Integer> winner = sortedLeaderboards.entrySet().iterator().next();
             winner.getKey().wins(winner.getKey().wins() + 1);
 
-            this.plugin.broadcast(this.plugin.configMessage("game-win"), Map.of(
+            this.broadcast(this.plugin.configMessage("game-win"), Map.of(
                     "player", winner.getKey().player().displayName(),
                     "score", Component.text(Util.addCommas(winner.getValue())),
                     "optional-s", Component.text(winner.getKey().score() != 1 ? "s" : "")
             ));
 
-            Bukkit.broadcast(Component.empty());
+            this.broadcast("");
 
-            this.plugin.broadcast("<dark_aqua><bold>TOP PLAYERS</bold>");
+            this.broadcast("<dark_aqua><bold>TOP PLAYERS</bold>");
 
             final List<GamePlayer> sorted = new ArrayList<>(sortedLeaderboards.keySet());
 
             for (int i = 0; i < Math.min(sorted.size(), 5); i++) {
                 final GamePlayer gp = sorted.get(i);
                 // TODO: replace all broadcasts with world broadcasts
-                this.plugin.broadcast("<gray>#" + (i + 1) + ": <green><displayname> <gray>- " + Util.addCommas(this.leaderboard.get(gp)),
+                this.broadcast("<gray>#" + (i + 1) + ": <green><displayname> <gray>- " + Util.addCommas(this.leaderboard.get(gp)),
                         TagResolver.resolver("displayname", Tag.inserting(gp.player().displayName())));
             }
         } else {
-            this.plugin.broadcast("<green>The game has ended in a draw!");
+            this.broadcast("<green>The game has ended in a draw!");
         }
+
+        final ConfigurationSection sound = this.plugin.getConfig().getConfigurationSection("game.end-of-round.sound");
+
+        final Key key = Key.key(sound.getString("sound"));
+        final Sound.Source source = Sound.Source.valueOf(sound.getString("source"));
+        final double pitch = sound.getDouble("pitch");
+        final double volume = sound.getDouble("volume");
+
+        final Sound mainSound = Sound.sound(key, source, (float) pitch, (float) volume);
+
+        final String titleText = this.plugin.getConfig().getString("game.end-of-round.title");
+        final String subtitleText = this.plugin.getConfig().getString("game.end-of-round.subtitle");
+
+        Component title = Component.empty();
+        Component subtitle = Component.empty();
+
+        if (titleText != null) {
+            title = MiniMessage.miniMessage().deserialize(titleText);
+        }
+
+        if (subtitleText != null) {
+            subtitle = MiniMessage.miniMessage().deserialize(subtitleText);
+        }
+
+        final Title mainTitle = Title.title(title, subtitle);
 
         for (final GamePlayer gp : this.players.values()) {
             this.resetPlayer(gp.player());
+            gp.player().playSound(mainSound);
+            gp.player().showTitle(mainTitle);
         }
 
         this.gameState(GameState.DONE);
         this.counter(0);
 
-        this.plugin.broadcast("<green>Returning to lobby in 10 seconds...");
+        final String schematicFile = this.plugin.getConfig().getString("game.end-of-game.schematic.name");
+
+        if (schematicFile != null) {
+            final File schematicDirectory = new File(this.plugin.getDataFolder(), "schematics");
+            final File schematic = new File(schematicDirectory, schematicFile);
+
+            if (schematic.exists()) {
+                final ClipboardFormat format = ClipboardFormats.findByFile(schematic);
+                try (final ClipboardReader reader = format.getReader(new FileInputStream(schematic))) {
+                    final Clipboard clipboard = reader.read();
+
+                    try (final EditSession editSession = WorldEdit.getInstance().newEditSession(BukkitAdapter.adapt(this.world))) {
+                        final Operation operation = new ClipboardHolder(clipboard)
+                                .createPaste(editSession)
+                                .to(BlockVector3.at(
+                                        this.plugin.getConfig().getInt("game.end-of-round.schematic.x"),
+                                        this.plugin.getConfig().getInt("game.end-of-round.schematic.y"),
+                                        this.plugin.getConfig().getInt("game.end-of-round.schematic.z")
+                                ))
+                                .ignoreAirBlocks(false)
+                                .build();
+
+                        Operations.complete(operation);
+                    } catch (final WorldEditException e) {
+                        throw new RuntimeException(e);
+                    }
+                } catch (final IOException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        }
+
+        final int postGameGracePeriod = this.plugin.getConfig().getInt("game.game-end-grace-period-seconds");
+
+        this.broadcast("<green>Returning to lobby in " + postGameGracePeriod + " seconds...");
 
         this.plugin.getServer().getScheduler().runTaskLater(this.plugin, () -> {
             for (final GamePlayer gp : this.players.values()) {
@@ -344,7 +459,7 @@ public class Game {
 
             this.plugin.lobby().stop(this);
             Util.deleteWorld(this.world);
-        }, 20 * 10);
+        }, 20L * postGameGracePeriod);
     }
 
     private World generateWorld() {
@@ -406,12 +521,6 @@ public class Game {
         this.plugin.getLogger().info("Created map from " + mapArchive);
 
         return world;
-    }
-
-    private void playSound(final Sound sound) {
-        for (final GamePlayer gp : this.players.values()) {
-            gp.player().playSound(gp.player().getLocation(), sound, 1f, 1f);
-        }
     }
 
     private void startingInventory(final Player player) {

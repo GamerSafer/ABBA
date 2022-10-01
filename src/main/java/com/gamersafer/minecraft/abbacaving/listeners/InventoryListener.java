@@ -2,6 +2,7 @@ package com.gamersafer.minecraft.abbacaving.listeners;
 
 import com.gamersafer.minecraft.abbacaving.AbbaCavingPlugin;
 import com.gamersafer.minecraft.abbacaving.game.CaveLoot;
+import com.gamersafer.minecraft.abbacaving.game.Game;
 import com.gamersafer.minecraft.abbacaving.game.GamePlayer;
 import java.util.Map;
 import net.kyori.adventure.text.Component;
@@ -33,9 +34,12 @@ public class InventoryListener implements Listener {
                         event.setCurrentItem(null);
                         event.setCancelled(true);
 
-                        gp.addScore(lootItem.value(), lootItem.name());
+                        final Game game = this.plugin.gameTracker().findGame(player);
 
-                        this.plugin.broadcast(this.plugin.configMessage("player-found-item"), Map.of(
+                        gp.addScore(lootItem.value(), lootItem.name());
+                        game.increasePlayerScore(gp, lootItem.value());
+
+                        game.broadcast(this.plugin.configMessage("player-found-item"), Map.of(
                                 "player", player.displayName(),
                                 "item", Component.text(lootItem.name()),
                                 "article", Component.text(lootItem.article().isEmpty() ? "" : lootItem.article() + " ")

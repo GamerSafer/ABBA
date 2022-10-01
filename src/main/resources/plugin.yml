@@ -3,6 +3,7 @@ main: com.gamersafer.minecraft.abbacaving.AbbaCavingPlugin
 version: '${version}'
 author: GamerSafer
 api-version: 1.16
+depend: [ WorldEdit ]
 softdepend: [ PlaceholderAPI ]
 commands:
   acreload:

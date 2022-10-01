@@ -3,6 +3,7 @@ package com.gamersafer.minecraft.abbacaving.commands;
 import com.gamersafer.minecraft.abbacaving.AbbaCavingPlugin;
 import com.gamersafer.minecraft.abbacaving.game.GamePlayer;
 import com.gamersafer.minecraft.abbacaving.util.Util;
+import java.util.Map;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -27,13 +28,13 @@ public class StatsCommand implements CommandExecutor {
         if (args.length == 1) {
             final Player target = Bukkit.getPlayer(args[0]);
             if (target == null) {
-                this.plugin.message(sender, "<red>Player not online: " + args[0]);
+                this.plugin.message(sender, this.plugin.configMessage("not-online"), Map.of("player", args[0]));
                 return false;
             }
 
             gp = this.plugin.gameTracker().findPlayer(target);
             if (gp == null) {
-                this.plugin.message(player, "<red>" + args[0] + " is not in a game.");
+                this.plugin.message(player, this.plugin.configMessage("not-ingame"), Map.of("player", args[0]));
                 return true;
             }
 
@@ -41,7 +42,7 @@ public class StatsCommand implements CommandExecutor {
         } else {
             gp = this.plugin.gameTracker().findPlayer(player);
             if (gp == null) {
-                this.plugin.message(player, "<red>You are not in a game.");
+                this.plugin.message(player, this.plugin.configMessage("sender-not-ingame"));
                 return true;
             }
 
