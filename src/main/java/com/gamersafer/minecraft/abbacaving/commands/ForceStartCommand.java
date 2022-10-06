@@ -24,7 +24,8 @@ public class ForceStartCommand implements CommandExecutor {
             }
         }
 
-        this.plugin.lobby().start();
+        // TODO: Add mapName arg, and pick a random map if no args are given
+        this.plugin.lobby().start("AbbaEnd");
         return true;
     }
 

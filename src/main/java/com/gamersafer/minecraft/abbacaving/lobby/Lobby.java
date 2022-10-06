@@ -134,7 +134,8 @@ public class Lobby implements Listener {
             }
 
             if (this.counter == 0) {
-                this.start();
+                // TODO: better map picking, don't start two games on one map
+                this.start("AbbaEnd");
             } else {
                 if (this.counter % 60 == 0 || this.counter == 30 || this.counter == 15
                         || this.counter == 10 || this.counter <= 5) {
@@ -167,7 +168,7 @@ public class Lobby implements Listener {
         // TODO: Feedback to let players know the countdown was cancelled. Message? Actionbar? Sound?
     }
 
-    public Game start() {
+    public Game start(final String mapName) {
         this.lobbyState = LobbyState.WAITING;
         this.counter = 0; // TODO: replace this and other lines with method invocation | this.counter(0);
 
@@ -179,7 +180,7 @@ public class Lobby implements Listener {
             }
         }
 
-        final Game game = new Game(this.plugin, this.plugin.mapSpawns(), Util.randomString(6));
+        final Game game = new Game(this.plugin, this.plugin.mapSpawns(), mapName, Util.randomString(6));
 
         this.plugin.gameTracker().currentGames().add(game);
         final List<UUID> uuidsToRemove = new ArrayList<>();

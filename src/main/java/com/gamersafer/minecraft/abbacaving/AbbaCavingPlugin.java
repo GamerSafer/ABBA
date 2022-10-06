@@ -47,6 +47,7 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.command.CommandSender;
+import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -62,6 +63,7 @@ public class AbbaCavingPlugin extends JavaPlugin {
     private Lobby lobby;
     private Map<String, List<Location>> mapSpawns;
     private HikariDataSource dataSource;
+    private FileConfiguration mapsConfig = new YamlConfiguration();
     private FileConfiguration messagesConfig = new YamlConfiguration();
     private FileConfiguration pointsConfig = new YamlConfiguration();
 
@@ -135,6 +137,7 @@ public class AbbaCavingPlugin extends JavaPlugin {
     public void reloadConfig() {
         super.reloadConfig();
 
+        this.mapsConfig = this.fileConfiguration("maps.yml");
         this.messagesConfig = this.fileConfiguration("messages.yml");
         this.pointsConfig = this.fileConfiguration("points.yml");
     }
@@ -221,6 +224,10 @@ public class AbbaCavingPlugin extends JavaPlugin {
 
     public String configMessage(final String name) {
         return this.messagesConfig.getString(name);
+    }
+
+    public ConfigurationSection mapSettings(final String mapName) {
+        return this.mapsConfig.getConfigurationSection(mapName);
     }
 
     public void broadcast(final String message) {

@@ -60,6 +60,7 @@ public class Game {
     private final AbbaCavingPlugin plugin;
     private World world;
     private final String gameId;
+    private final String mapName;
     private final Map<String, List<Location>> mapSpawns;
     private final Map<String, GamePlayer> players = new HashMap<>();
     private final boolean generateMap;
@@ -70,9 +71,10 @@ public class Game {
     private boolean gracePeriod;
     private GameState state;
 
-    public Game(final AbbaCavingPlugin plugin, final Map<String, List<Location>> mapSpawns, final String gameId) {
+    public Game(final AbbaCavingPlugin plugin, final Map<String, List<Location>> mapSpawns, final String mapName, final String gameId) {
         this.plugin = plugin;
         this.mapSpawns = mapSpawns;
+        this.mapName = mapName;
         this.gameId = gameId;
 
         this.generateMap = plugin.getConfig().getBoolean("cave-generator.enabled");
@@ -86,6 +88,10 @@ public class Game {
         this.counter(0);
 
         plugin.getServer().getScheduler().runTaskTimer(plugin, this::nextTick, 0, 20);
+    }
+
+    private ConfigurationSection mapSettings() {
+        return this.plugin.mapSettings(this.mapName);
     }
 
     private void broadcastActionBar(final Component component) {
@@ -234,7 +240,7 @@ public class Game {
     }
 
     public int maxPlayersPerRound() {
-        return this.plugin.getConfig().getInt("game.maximum-players-per-round");
+        return this.mapSettings().getInt("maximum-players-per-round");
     }
 
     public boolean acceptingNewPlayers() {
@@ -244,8 +250,8 @@ public class Game {
 
     private void nextTick() {
         if (this.state == GameState.RUNNING) {
-            final int gameDurationSeconds = this.plugin.getConfig().getInt("game.duration-seconds");
-            final int gracePeriodSeconds = this.plugin.getConfig().getInt("game.grace-period-duration-seconds");
+            final int gameDurationSeconds = this.mapSettings().getInt("duration-seconds");
+            final int gracePeriodSeconds = this.mapSettings().getInt("grace-period-duration-seconds");
 
             if (this.counter > 0) {
                 if (this.gracePeriod) {
@@ -292,7 +298,7 @@ public class Game {
 
     public void start() {
         this.gracePeriod = true;
-        final int gracePeriodSeconds = this.plugin.getConfig().getInt("game.duration-seconds");
+        final int gracePeriodSeconds = this.mapSettings().getInt("duration-seconds");
         this.counter(gracePeriodSeconds);
         this.broadcast(this.plugin.configMessage("game-started"));
 
@@ -385,7 +391,7 @@ public class Game {
             this.broadcast("<green>The game has ended in a draw!");
         }
 
-        final ConfigurationSection sound = this.plugin.getConfig().getConfigurationSection("game.end-of-round.sound");
+        final ConfigurationSection sound = this.mapSettings().getConfigurationSection("end-of-round.sound");
 
         if (sound != null) {
             final @Subst("minecraft:block.bell.use") String soundKey = sound.getString("sound");
@@ -409,8 +415,8 @@ public class Game {
             }
         }
 
-        final String titleText = this.plugin.getConfig().getString("game.end-of-round.title");
-        final String subtitleText = this.plugin.getConfig().getString("game.end-of-round.subtitle");
+        final String titleText = this.mapSettings().getString("end-of-round.title");
+        final String subtitleText = this.mapSettings().getString("end-of-round.subtitle");
 
         Component title = Component.empty();
         Component subtitle = Component.empty();
@@ -439,7 +445,8 @@ public class Game {
         this.gameState(GameState.DONE);
         this.counter(0);
 
-        final String schematicFile = this.plugin.getConfig().getString("game.end-of-game.schematic.name");
+        // TODO: Cleanup, remove schematic at end of round
+        final String schematicFile = this.mapSettings().getString("end-of-game.schematic.name");
 
         if (schematicFile != null && !schematicFile.isBlank()) {
             final File schematicDirectory = new File(this.plugin.getDataFolder(), "schematics");
@@ -454,9 +461,9 @@ public class Game {
                         final Operation operation = new ClipboardHolder(clipboard)
                                 .createPaste(editSession)
                                 .to(BlockVector3.at(
-                                        this.plugin.getConfig().getInt("game.end-of-round.schematic.x"),
-                                        this.plugin.getConfig().getInt("game.end-of-round.schematic.y"),
-                                        this.plugin.getConfig().getInt("game.end-of-round.schematic.z")
+                                        this.mapSettings().getInt("end-of-round.schematic.x"),
+                                        this.mapSettings().getInt("end-of-round.schematic.y"),
+                                        this.mapSettings().getInt("end-of-round.schematic.z")
                                 ))
                                 .ignoreAirBlocks(false)
                                 .build();
@@ -471,7 +478,7 @@ public class Game {
             }
         }
 
-        final ConfigurationSection tpSection = this.plugin.getConfig().getConfigurationSection("end-of-round.teleport");
+        final ConfigurationSection tpSection = this.mapSettings().getConfigurationSection("end-of-round.teleport");
 
         if (tpSection != null) {
             final Location teleportLocation = new Location(this.world(), tpSection.getDouble("x"), tpSection.getDouble("y"),
@@ -482,7 +489,7 @@ public class Game {
             }
         }
 
-        final int postGameGracePeriod = this.plugin.getConfig().getInt("game.game-end-grace-period-seconds");
+        final int postGameGracePeriod = this.mapSettings().getInt("game-end-grace-period-seconds");
 
         this.broadcast("<green>Returning to lobby in " + postGameGracePeriod + " seconds...");
 
@@ -492,7 +499,6 @@ public class Game {
             }
 
             this.plugin.lobby().stop(this);
-            Util.deleteWorld(this.world);
         }, 20L * postGameGracePeriod);
     }
 
@@ -595,7 +601,8 @@ public class Game {
     }
 
     public void resetPlayer(final Player player) {
-        final int maxHealth = this.plugin.getConfig().getInt("game.player-health");
+        // TODO: Make sure this isn't setting players to 40 or so health when they go to lobby
+        final int maxHealth = this.mapSettings().getInt("player-health");
         player.getAttribute(Attribute.GENERIC_MAX_HEALTH).setBaseValue(maxHealth);
         player.setHealth(maxHealth);
         player.setFoodLevel(20);
