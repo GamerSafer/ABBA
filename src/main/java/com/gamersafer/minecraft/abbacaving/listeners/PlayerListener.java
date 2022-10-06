@@ -12,12 +12,14 @@ import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
 import org.bukkit.Material;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeInstance;
-import org.bukkit.entity.EntityType;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
+import org.bukkit.event.Cancellable;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
+import org.bukkit.event.entity.EntityTargetEvent;
 import org.bukkit.event.entity.FoodLevelChangeEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerBucketFillEvent;
@@ -88,35 +90,37 @@ public class PlayerListener implements Listener {
         }
     }
 
-    @EventHandler
-    public void onEntityDamage(final EntityDamageEvent event) {
-        if (event.getEntityType() == EntityType.PLAYER) {
-            final GamePlayer gp = this.plugin.gameTracker().findPlayer((Player) event.getEntity());
+    private void handleEntityEvent(final Entity target, final Cancellable cancellable) {
+        if (target instanceof Player player) {
+            final GamePlayer gp = this.plugin.gameTracker().findPlayer(player);
 
             if (gp != null && gp.isDead()) {
-                event.setCancelled(true);
+                cancellable.setCancelled(true);
                 return;
             }
         }
 
-        final Game game = this.plugin.gameTracker().findGame(event.getEntity().getWorld());
+        final Game game = this.plugin.gameTracker().findGame(target.getWorld());
 
         if (game == null || game.isGracePeriod() || game.gameState() == GameState.DONE) {
-            event.setCancelled(true);
+            cancellable.setCancelled(true);
         }
     }
 
     @EventHandler
+    public void onEntityTarget(final EntityTargetEvent event) {
+        this.handleEntityEvent(event.getTarget(), event);
+    }
+
+    @EventHandler
+    public void onEntityDamage(final EntityDamageEvent event) {
+        this.handleEntityEvent(event.getEntity(), event);
+    }
+
+    // TODO: check if this listener is necessary, the above event should cover this
+    @EventHandler
     public void onEntityDamageByEntity(final EntityDamageByEntityEvent event) {
-        if (event.getEntity().getType() == EntityType.PLAYER && event.getDamager().getType() == EntityType.PLAYER) {
-            event.setCancelled(true);
-        }
-
-        final Game game = this.plugin.gameTracker().findGame(event.getEntity().getWorld());
-
-        if (game == null || game.isGracePeriod() || game.gameState() != GameState.RUNNING) {
-            event.setCancelled(true);
-        }
+        this.handleEntityEvent(event.getEntity(), event);
     }
 
     @EventHandler
