@@ -109,7 +109,9 @@ public class PlayerListener implements Listener {
 
     @EventHandler
     public void onEntityTarget(final EntityTargetEvent event) {
-        this.handleEntityEvent(event.getTarget(), event);
+        if (event.getTarget() != null) {
+            this.handleEntityEvent(event.getTarget(), event);
+        }
     }
 
     @EventHandler
