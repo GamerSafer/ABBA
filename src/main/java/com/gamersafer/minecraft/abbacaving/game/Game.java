@@ -29,6 +29,7 @@ import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.Collectors;
+import net.kyori.adventure.key.InvalidKeyException;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.sound.Sound;
 import net.kyori.adventure.text.Component;
@@ -52,6 +53,7 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.Damageable;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.intellij.lang.annotations.Subst;
 
 public class Game {
 
@@ -383,12 +385,27 @@ public class Game {
 
         final ConfigurationSection sound = this.plugin.getConfig().getConfigurationSection("game.end-of-round.sound");
 
-        final Key key = Key.key(sound.getString("sound"));
-        final Sound.Source source = Sound.Source.valueOf(sound.getString("source"));
-        final double pitch = sound.getDouble("pitch");
-        final double volume = sound.getDouble("volume");
+        if (sound != null) {
+            final @Subst("minecraft:block.bell.use") String soundKey = sound.getString("sound");
+            final String sourceKey = sound.getString("source");
 
-        final Sound mainSound = Sound.sound(key, source, (float) pitch, (float) volume);
+            try {
+                if (soundKey != null && sourceKey != null) {
+                    final Key key = Key.key(soundKey);
+                    final Sound.Source source = Sound.Source.valueOf(sourceKey.toUpperCase());
+                    final double pitch = sound.getDouble("pitch");
+                    final double volume = sound.getDouble("volume");
+
+                    final Sound mainSound = Sound.sound(key, source, (float) pitch, (float) volume);
+
+                    for (final GamePlayer gp : this.players.values()) {
+                        gp.player().playSound(mainSound);
+                    }
+                }
+            } catch (final InvalidKeyException exception) {
+                this.plugin.getLogger().warning("Invalid key for game.end-of-round.sound.key");
+            }
+        }
 
         final String titleText = this.plugin.getConfig().getString("game.end-of-round.title");
         final String subtitleText = this.plugin.getConfig().getString("game.end-of-round.subtitle");
@@ -408,7 +425,6 @@ public class Game {
 
         for (final GamePlayer gp : this.players.values()) {
             this.resetPlayer(gp.player());
-            gp.player().playSound(mainSound);
             gp.player().showTitle(mainTitle);
         }
 

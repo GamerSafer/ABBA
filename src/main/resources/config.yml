@@ -64,7 +64,7 @@ game:
       y: 200
       z: 0
     sound:
-      key:
+      key: "block.bell.use"
       source: NEUTRAL
       pitch: 1.0
       volume: 1.0
