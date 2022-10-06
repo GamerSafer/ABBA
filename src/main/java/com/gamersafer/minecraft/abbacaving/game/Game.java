@@ -424,7 +424,7 @@ public class Game {
 
         final String schematicFile = this.plugin.getConfig().getString("game.end-of-game.schematic.name");
 
-        if (schematicFile != null) {
+        if (schematicFile != null && !schematicFile.isBlank()) {
             final File schematicDirectory = new File(this.plugin.getDataFolder(), "schematics");
             final File schematic = new File(schematicDirectory, schematicFile);
 
