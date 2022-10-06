@@ -59,6 +59,10 @@ game:
       x: 0
       y: 100
       z: 0
+    teleport:
+      x: 0
+      y: 200
+      z: 0
     sound:
       key:
       source: NEUTRAL

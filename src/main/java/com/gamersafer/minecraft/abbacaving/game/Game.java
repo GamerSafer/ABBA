@@ -17,7 +17,6 @@ import com.sk89q.worldedit.math.BlockVector3;
 import com.sk89q.worldedit.session.ClipboardHolder;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -451,6 +450,17 @@ public class Game {
                 } catch (final IOException e) {
                     throw new RuntimeException(e);
                 }
+            }
+        }
+
+        final ConfigurationSection tpSection = this.plugin.getConfig().getConfigurationSection("end-of-round.teleport");
+
+        if (tpSection != null) {
+            final Location teleportLocation = new Location(this.world(), tpSection.getDouble("x"), tpSection.getDouble("y"),
+                    tpSection.getDouble("z"));
+
+            for (final GamePlayer gamePlayer : this.players.values()) {
+                gamePlayer.player().teleport(teleportLocation);
             }
         }
 
