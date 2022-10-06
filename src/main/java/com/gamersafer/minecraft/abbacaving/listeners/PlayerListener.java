@@ -11,6 +11,7 @@ import net.kyori.adventure.text.minimessage.tag.Tag;
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
 import org.bukkit.Material;
 import org.bukkit.attribute.Attribute;
+import org.bukkit.attribute.AttributeInstance;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -24,6 +25,7 @@ import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerItemConsumeEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.ItemStack;
+import org.jetbrains.annotations.Nullable;
 
 public class PlayerListener implements Listener {
 
@@ -55,9 +57,9 @@ public class PlayerListener implements Listener {
         event.getDrops().clear();
         event.setDroppedExp(0);
 
-        final int maxHealth = this.plugin.getConfig().getInt("game.player-health");
-        player.getAttribute(Attribute.GENERIC_MAX_HEALTH).setBaseValue(maxHealth);
-        player.setHealth(maxHealth);
+        final @Nullable AttributeInstance attribute = player.getAttribute(Attribute.GENERIC_MAX_HEALTH);
+        attribute.setBaseValue(attribute.getDefaultValue());
+        player.setHealth(attribute.getBaseValue());
 
         if (this.plugin.gameTracker().findPlayer(player) != null) {
             this.plugin.getServer().getScheduler().runTaskLater(
