@@ -413,6 +413,12 @@ public class Game {
             gp.player().showTitle(mainTitle);
         }
 
+        for (final Entity entity : this.world().getEntities()) {
+            if (!(entity instanceof Player)) {
+                entity.remove();
+            }
+        }
+
         this.gameState(GameState.DONE);
         this.counter(0);
 
