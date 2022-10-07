@@ -249,9 +249,11 @@ public class Game {
 
             if (this.counter > 0) {
                 if (this.gracePeriod) {
-                    this.broadcastActionBar(MiniMessage.miniMessage().deserialize(this.plugin.configMessage("game-starting"),
-                            TagResolver.resolver("seconds", Tag.inserting(Component.text(this.counter))),
-                            TagResolver.resolver("optional-s", Tag.inserting(Component.text(this.counter != 1 ? "s" : "")))));
+                    final int gracePeriodRemaining = this.counter - gameDurationSeconds - gracePeriodSeconds;
+
+                    this.broadcastActionBar(MiniMessage.miniMessage().deserialize(this.plugin.configMessage("game-grace-period"),
+                            TagResolver.resolver("seconds", Tag.inserting(Component.text(gracePeriodRemaining))),
+                            TagResolver.resolver("optional-s", Tag.inserting(Component.text(gracePeriodRemaining != 1 ? "s" : "")))));
                 } else {
                     this.broadcastActionBar(MiniMessage.miniMessage().deserialize("<gray>Ending In: <green>" + this.counter));
                 }

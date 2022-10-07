@@ -67,6 +67,9 @@ public class Lobby implements Listener {
         event.getPlayer().setHealth(20);
         event.getPlayer().setFoodLevel(20);
 
+        event.getPlayer().getInventory().clear();
+        event.getPlayer().getInventory().setArmorContents(null);
+
         for (final Game game : this.plugin.gameTracker().currentGames()) {
             if (game.acceptingNewPlayers()) {
                 this.plugin.gameTracker().addPlayerToGame(game, event.getPlayer());
