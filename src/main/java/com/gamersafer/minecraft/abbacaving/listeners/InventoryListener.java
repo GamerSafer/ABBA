@@ -10,6 +10,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.inventory.InventoryDragEvent;
 import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.inventory.Inventory;
 
@@ -22,10 +23,46 @@ public class InventoryListener implements Listener {
     }
 
     @EventHandler
+    public void onInventoryDrag(final InventoryDragEvent event) {
+        final Inventory inv = event.getInventory();
+
+        if (inv.getType() == InventoryType.PLAYER || event.getCursor() == null) {
+            return;
+        }
+
+        event.setCursor(null);
+        event.setCancelled(true);
+
+        final CaveLoot lootItem = this.plugin.lootFromItem(event.getCursor().getType());
+
+        if (lootItem == null) {
+            return;
+        }
+
+        final Player player = (Player) event.getView().getPlayer();
+        final GamePlayer gp = this.plugin.gameTracker().findPlayer(player);
+
+        if (gp == null) {
+            return;
+        }
+
+        final Game game = this.plugin.gameTracker().findGame(player);
+
+        gp.addScore(lootItem.value(), lootItem.name());
+        game.increasePlayerScore(gp, lootItem.value());
+
+        game.broadcast(this.plugin.configMessage("player-found-item"), Map.of(
+                "player", player.displayName(),
+                "item", Component.text(lootItem.name()),
+                "article", Component.text(lootItem.article().isEmpty() ? "" : lootItem.article() + " ")
+        ));
+    }
+
+    @EventHandler
     public void onInventoryClick(final InventoryClickEvent event) {
         final Inventory inv = event.getClickedInventory();
 
-        if (inv == null || inv.getType() == InventoryType.PLAYER || event.getCurrentItem() != null) {
+        if (inv == null || inv.getType() == InventoryType.PLAYER || event.getCurrentItem() == null) {
             return;
         }
 
