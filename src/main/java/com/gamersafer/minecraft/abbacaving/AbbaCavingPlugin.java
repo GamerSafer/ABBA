@@ -71,6 +71,12 @@ public class AbbaCavingPlugin extends JavaPlugin {
         this.messagesConfig = this.fileConfiguration("messages.yml");
         this.pointsConfig = this.fileConfiguration("points.yml");
 
+        final File schematicDirectory = new File(this.getDataFolder(), "schematics");
+
+        if (!schematicDirectory.exists()) {
+            schematicDirectory.mkdirs();
+        }
+
         if (this.getConfig().getBoolean("cave-generator.generator-mode")) {
             this.getLogger().info("Generator mode");
 
