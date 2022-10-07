@@ -23,6 +23,7 @@ import org.bukkit.event.entity.EntityTargetEvent;
 import org.bukkit.event.entity.FoodLevelChangeEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerBucketFillEvent;
+import org.bukkit.event.player.PlayerChangedWorldEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerItemConsumeEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
@@ -122,48 +123,25 @@ public class PlayerListener implements Listener {
         }
     }
 
-    //    @EventHandler
-    //    public void onPlayerBucketEmpty(PlayerBucketEmptyEvent event) {
-    //        plugin.getLogger().info(String.format("item=%s, clicked=%s, block=", event.getItemStack().getType().name(), event.getBlockClicked().getType().name(), event.getBlock().getType().name()));
-    ////
-    //        GamePlayer gp = plugin.getGame().getPlayer(event.getPlayer());
-    //        if (gp != null) {
-    //            gp.setBucketUses(gp.getBucketUses() + 1);
-    //            plugin.getLogger().info("empty bucket: " + event.getPlayer().getName() + " :: " + gp.getBucketUses());
-    //
-    //            if (gp.getBucketUses() == 10) {
-    //                int slot = event.getPlayer().getInventory().first(Material.WATER_BUCKET);
-    //                event.setCancelled(true);
-    ////                event.getPlayer().getInventory().setItem(slot, null);
-    ////                plugin.getLogger().info("rem " + slot);
-    //                plugin.getLogger().info("10 uses");
-    //                event.setItemStack(null);
-    //            } else {
-    //                int slot = event.getPlayer().getInventory().first(Material.WATER_BUCKET);
-    //                plugin.getLogger().info("" + slot);
-    ////                event.getPlayer().getInventory().remove(Material.BUCKET);
-    ////                event.getPlayer().getInventory().remove(Material.WATER_BUCKET);
-    ////                event.getPlayer().getInventory().setItem(slot, new ItemStack(Material.WATER_BUCKET));
-    //
-    //                event.setItemStack( new ItemStack(Material.WATER_BUCKET));
-    //            }
-    //
-    ////            if (event.getHand() == EquipmentSlot.HAND) {
-    ////                event.getPlayer().getInventory().setItemInMainHand(new ItemStack(Material.BUCKET));
-    ////                gp.setBucketUses(gp.getBucketUses() - 1);
-    ////            } else if (event.getHand() == EquipmentSlot.OFF_HAND) {
-    ////                event.getPlayer().getInventory().setItemInOffHand(new ItemStack(Material.BUCKET));
-    ////                gp.setBucketUses(gp.getBucketUses() - 1);
-    ////            }
-    //        }
-    //    }
-
     @EventHandler
     public void onPlayerEat(final PlayerItemConsumeEvent event) {
         if (event.getItem().getType() == Material.COOKED_BEEF) {
             final int slot = event.getPlayer().getInventory().first(Material.COOKED_BEEF);
             event.getPlayer().getInventory().setItem(slot,
                     Util.displayName(new ItemStack(Material.COOKED_BEEF), "<green><gold>Infinite Steak Supply"));
+        }
+    }
+
+    @EventHandler
+    public void onPlayerWorldChange(final PlayerChangedWorldEvent event) {
+        final Game game = this.plugin.gameTracker().findGame(event.getPlayer());
+
+        if (game == null) {
+            return;
+        }
+
+        if (!event.getPlayer().getWorld().equals(game.world())) {
+            game.removePlayer(event.getPlayer(), true);
         }
     }
 
