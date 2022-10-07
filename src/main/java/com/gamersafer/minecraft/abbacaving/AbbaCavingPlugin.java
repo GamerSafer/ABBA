@@ -291,7 +291,7 @@ public class AbbaCavingPlugin extends JavaPlugin {
 
         this.loot = new HashSet<>();
 
-        for (final Map<?, ?> entry : this.getConfig().getMapList("game.loot-items")) {
+        for (final Map<?, ?> entry : this.pointsConfig.getMapList("loot-items")) {
             final Map<?, ?> value = (Map<?, ?>) entry.get("value");
             this.loot.add(new CaveLoot(
                     (String) entry.get("name"),
