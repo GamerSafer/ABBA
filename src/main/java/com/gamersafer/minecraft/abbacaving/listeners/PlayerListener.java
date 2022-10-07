@@ -76,18 +76,7 @@ public class PlayerListener implements Listener {
 
     @EventHandler
     public void onFoodLevelChange(final FoodLevelChangeEvent event) {
-        final GamePlayer gp = this.plugin.gameTracker().findPlayer((Player) event.getEntity());
-
-        if (gp == null || gp.isDead()) {
-            event.setCancelled(true);
-            return;
-        }
-
-        final Game game = this.plugin.gameTracker().findGame((Player) event.getEntity());
-
-        if (game == null || game.isGracePeriod()) {
-            event.setCancelled(true);
-        }
+        this.handleEntityEvent(event.getEntity(), event);
     }
 
     private void handleEntityEvent(final Entity target, final Cancellable cancellable) {
