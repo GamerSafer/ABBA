@@ -3,7 +3,8 @@ package com.gamersafer.minecraft.abbacaving.game;
 public enum GameState {
 
     RUNNING("In Game"),
-    DONE("Game Over");
+    DONE("Game Over"),
+    READY("Waiting to Start");
 
     private final String displayName;
 

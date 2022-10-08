@@ -29,6 +29,8 @@ import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.Collectors;
+import net.coreprotect.CoreProtect;
+import net.coreprotect.CoreProtectAPI;
 import net.kyori.adventure.key.InvalidKeyException;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.sound.Sound;
@@ -53,6 +55,7 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.Damageable;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.plugin.Plugin;
 import org.intellij.lang.annotations.Subst;
 
 public class Game {
@@ -63,6 +66,8 @@ public class Game {
     private final String mapName;
     private final Map<String, List<Location>> mapSpawns;
     private final Map<String, GamePlayer> players = new HashMap<>();
+    // List of all players in this round, including players that have died or left
+    private final List<String> allPlayers = new ArrayList<>();
     private final boolean generateMap;
     private List<Location> spawns = new ArrayList<>();
     private Map<GamePlayer, Integer> leaderboard = new LinkedHashMap<>();
@@ -161,6 +166,8 @@ public class Game {
     }
 
     public void addPlayer(final GamePlayer gp) {
+        this.allPlayers.add(gp.player().getName());
+
         if (this.players.put(gp.player().getName(), gp) == null) {
             this.broadcast(this.plugin.configMessage("player-joined"), Map.of("player", gp.player().displayName()));
 
@@ -498,8 +505,38 @@ public class Game {
                 this.sendToLobby(gp.player());
             }
 
+            final CoreProtectAPI coreProtect = this.coreProtect();
+
+            if (coreProtect != null) {
+                // TODO: set world to ready when this is done
+                coreProtect.performRestore(0, this.allPlayers, List.of(), List.of(), List.of(), List.of(),
+                        2000, this.world().getSpawnLocation());
+            }
+
             this.plugin.lobby().stop(this);
         }, 20L * postGameGracePeriod);
+    }
+
+    private CoreProtectAPI coreProtect() {
+        final Plugin plugin = Bukkit.getServer().getPluginManager().getPlugin("CoreProtect");
+
+        // Check that CoreProtect is loaded
+        if (!(plugin instanceof CoreProtect)) {
+            return null;
+        }
+
+        // Check that the API is enabled
+        final CoreProtectAPI CoreProtect = ((CoreProtect) plugin).getAPI();
+        if (!CoreProtect.isEnabled()) {
+            return null;
+        }
+
+        // Check that a compatible version of the API is loaded
+        if (CoreProtect.APIVersion() < 9) {
+            return null;
+        }
+
+        return CoreProtect;
     }
 
     private World generateWorld() {

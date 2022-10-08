@@ -15,6 +15,7 @@ repositories {
     maven { url "https://maven.enginehub.org/repo" }
     maven { url "https://repo.extendedclip.com/content/repositories/placeholderapi/" }
     maven { url "https://jitpack.io" }
+    maven { url "https://maven.playpro.com/" }
 }
 
 dependencies {
@@ -29,6 +30,7 @@ dependencies {
     //compileOnly "net.luckperms:api:5.4"
     compileOnly "me.clip:placeholderapi:2.9.2"
     compileOnly "com.sk89q.worldedit:worldedit-bukkit:7.2.12"
+    compileOnly "net.coreprotect:coreprotect:21.2"
 
 //    compile fileTree(dir: "lib", include: ["*.jar"])
 }
