@@ -116,7 +116,11 @@ public class Lobby implements Listener {
                 }
             }
         } else if (this.lobbyState == LobbyState.STARTING) {
-            // TODO: cancel preStart when lobby count < required players
+            if (this.playerLobbyQueue.size() < this.playersRequiredToStart()) {
+                this.cancelPreStart();
+                return;
+            }
+
             if (this.counter >= 0) {
                 for (final UUID uuid : this.nextGamePlayerQueue()) {
                     final Player player = Bukkit.getPlayer(uuid);
@@ -157,9 +161,15 @@ public class Lobby implements Listener {
         this.lobbyState(LobbyState.STARTING);
     }
 
+    public void cancelPreStart() {
+        this.lobbyState(LobbyState.WAITING);
+        this.counter(0);
+        // TODO: Feedback to let players know the countdown was cancelled. Message? Actionbar? Sound?
+    }
+
     public Game start() {
         this.lobbyState = LobbyState.WAITING;
-        this.counter = 0;
+        this.counter = 0; // TODO: replace this and other lines with method invocation | this.counter(0);
 
         for (final UUID playerId : this.playerLobbyQueue) {
             final Player player = Bukkit.getPlayer(playerId);
