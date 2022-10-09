@@ -121,7 +121,7 @@ public class GamePlayer {
         if (this.score > this.highestScore) {
             if (!this.surpassedHighestScore) {
                 this.surpassedHighestScore = true;
-                if (this.highestScore >= this.plugin.getConfig().getInt("game.min-score-to-broadcast-new-record")) {
+                if (this.highestScore >= this.plugin.getConfig().getInt("min-score-to-broadcast-new-record")) {
                     this.plugin.broadcast(this.plugin.configMessage("new-high-score"), Map.of(
                        "player", this.player.displayName(),
                        "score", Component.text(Util.addCommas(GamePlayer.this.highestScore))

@@ -8,7 +8,6 @@ default-settings:
   # Set protected-spawn-radius to 0 to disable.
   protected-spawn-radius: 20
   player-health: 40
-  min-score-to-broadcast-new-record: 50
   end-of-round:
     title: "<green>Round has ended!"
     subtitle: "<aqua>Example subtitle."
@@ -26,4 +25,4 @@ default-settings:
       source: NEUTRAL
       pitch: 1.0
       volume: 1.0
-AbbaEnd: ""
+example_map_name: ""

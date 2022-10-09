@@ -182,27 +182,18 @@ public class AbbaCavingPlugin extends JavaPlugin {
         return player.hasPermission(permissionNode);
     }
 
-    public boolean canAccess(final Location loc, final Location spawn) {
-        final int radius = this.getConfig().getInt("game.protected-spawn-radius");
-        if (radius < 1) return true;
-
-        return !Util.inBounds(loc,
-                new Location(spawn.getWorld(),
-                        spawn.getX() - radius,
-                        spawn.getY() - radius,
-                        spawn.getZ() - radius),
-                new Location(spawn.getWorld(),
-                        spawn.getX() + radius,
-                        spawn.getY() + radius,
-                        spawn.getZ() + radius));
-    }
-
     public String configMessage(final String name) {
         return this.messagesConfig.getString(name);
     }
 
     public ConfigurationSection mapSettings(final String mapName) {
-        return this.mapsConfig.getConfigurationSection(mapName);
+        final ConfigurationSection section = this.mapsConfig.getConfigurationSection(mapName);
+
+        if (section != null) {
+            return section;
+        }
+
+        return this.mapsConfig.getConfigurationSection("default-settings");
     }
 
     public void broadcast(final String message) {

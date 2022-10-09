@@ -52,7 +52,7 @@ public class Lobby implements Listener {
     }
 
     public List<UUID> nextGamePlayerQueue() {
-        final int maxPlayers = this.plugin.getConfig().getInt("game.maximum-players-per-round");
+        final int maxPlayers = this.plugin.mapSettings("default-settings").getInt("maximum-players-per-round");
         final int playersToGrab = Math.min(maxPlayers, this.playerLobbyQueue.size());
 
         return this.playerLobbyQueue.subList(0, playersToGrab);
@@ -135,7 +135,7 @@ public class Lobby implements Listener {
 
             if (this.counter == 0) {
                 // TODO: better map picking, don't start two games on one map
-                this.start("AbbaEnd");
+                this.start("abba_caving1");
             } else {
                 if (this.counter % 60 == 0 || this.counter == 30 || this.counter == 15
                         || this.counter == 10 || this.counter <= 5) {
@@ -158,7 +158,7 @@ public class Lobby implements Listener {
     }
 
     public void preStart() {
-        this.counter(this.plugin.getConfig().getInt("game.start-countdown-seconds"));
+        this.counter(this.plugin.mapSettings("default-settings").getInt("start-countdown-seconds"));
         this.lobbyState(LobbyState.STARTING);
     }
 
@@ -211,7 +211,7 @@ public class Lobby implements Listener {
     }
 
     public int playersRequiredToStart() {
-        return this.plugin.getConfig().getInt("game.players-required-to-start");
+        return this.plugin.mapSettings("default-settings").getInt("players-required-to-start");
     }
 
 }

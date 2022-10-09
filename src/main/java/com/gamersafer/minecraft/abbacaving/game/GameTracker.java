@@ -20,10 +20,6 @@ public class GameTracker {
         return this.currentGames;
     }
 
-    public int concurrentGameLimit() {
-        return this.plugin.getConfig().getInt("game.max-games");
-    }
-
     public void addPlayerToGame(final Game game, final Player player) {
         player.setGameMode(GameMode.ADVENTURE);
         player.teleport(game.world().getSpawnLocation());

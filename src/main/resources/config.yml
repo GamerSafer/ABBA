@@ -26,3 +26,5 @@ lobby-spawn-location:
   z: 0.0
   yaw: 0.0
   pitch: 0.0
+
+min-score-to-broadcast-new-record: 50
