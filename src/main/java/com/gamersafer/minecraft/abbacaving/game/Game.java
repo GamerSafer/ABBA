@@ -2,7 +2,6 @@ package com.gamersafer.minecraft.abbacaving.game;
 
 import com.gamersafer.minecraft.abbacaving.AbbaCavingPlugin;
 import com.gamersafer.minecraft.abbacaving.util.Util;
-import com.gamersafer.minecraft.abbacaving.worldgen.GiantCavePopulator;
 import com.sk89q.worldedit.EditSession;
 import com.sk89q.worldedit.WorldEdit;
 import com.sk89q.worldedit.WorldEditException;
@@ -68,10 +67,8 @@ public class Game {
     private final Map<String, GamePlayer> players = new HashMap<>();
     // List of all players in this round, including players that have died or left
     private final List<String> allPlayers = new ArrayList<>();
-    private final boolean generateMap;
     private List<Location> spawns = new ArrayList<>();
     private Map<GamePlayer, Integer> leaderboard = new LinkedHashMap<>();
-    private GiantCavePopulator caveGenerator;
     private int counter;
     private boolean gracePeriod;
     private GameState state;
@@ -81,13 +78,7 @@ public class Game {
         this.mapSpawns = mapSpawns;
         this.mapName = mapName;
         this.gameId = gameId;
-
-        this.generateMap = plugin.getConfig().getBoolean("cave-generator.enabled");
-        if (this.generateMap) {
-            this.world = this.generateWorld();
-        } else {
-            this.world = this.loadRandomMap();
-        }
+        this.world = this.loadRandomMap();
 
         this.gameState(GameState.RUNNING);
         this.counter(0);
@@ -322,21 +313,17 @@ public class Game {
         this.plugin.getLogger().info("Spawns to use: " + spawnsToUse.size());
 
         for (final GamePlayer gp : this.players.values()) {
-            Location loc = null;
-            if (!this.generateMap) {
-                if (!spawnsToUse.isEmpty()) {
-                    loc = spawnsToUse.remove(ThreadLocalRandom.current().nextInt(spawnsToUse.size()));
-                } else if (!this.spawns.isEmpty()) {
-                    loc = this.spawns.remove(ThreadLocalRandom.current().nextInt(this.spawns.size()));
-                } else {
-                    loc = this.world.getSpawnLocation();
-                }
-                loc.setWorld(this.world);
+            final Location loc;
+
+            if (!spawnsToUse.isEmpty()) {
+                loc = spawnsToUse.remove(ThreadLocalRandom.current().nextInt(spawnsToUse.size()));
+            } else if (!this.spawns.isEmpty()) {
+                loc = this.spawns.remove(ThreadLocalRandom.current().nextInt(this.spawns.size()));
             } else {
-                //                loc = caveGenerator.getSpawns().get(ThreadLocalRandom.current().nextInt(caveGenerator.getSpawns().size()));
-                //                loc.getChunk().load(true);
-                //                spawns.add(loc);
+                loc = this.world.getSpawnLocation();
             }
+
+            loc.setWorld(this.world);
 
             this.plugin.getLogger().info("Teleporting " + gp.player().getName() + " to " + loc);
             gp.spawnLocation(loc);
@@ -552,8 +539,6 @@ public class Game {
         this.world = this.plugin.getServer().createWorld(new WorldCreator(this.gameId));
 
         this.plugin.getLogger().info("Attaching cave populator to world \"" + this.world.getName() + "\"");
-        this.caveGenerator = new GiantCavePopulator(this.plugin, this.world);
-        this.world.getPopulators().add(this.caveGenerator);
         this.plugin.getLogger().info("Done");
 
         return this.world;

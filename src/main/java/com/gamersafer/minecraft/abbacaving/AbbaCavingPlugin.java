@@ -20,7 +20,6 @@ import com.gamersafer.minecraft.abbacaving.lobby.Lobby;
 import com.gamersafer.minecraft.abbacaving.placeholders.GamePlaceholders;
 import com.gamersafer.minecraft.abbacaving.placeholders.LobbyPlaceholders;
 import com.gamersafer.minecraft.abbacaving.util.Util;
-import com.gamersafer.minecraft.abbacaving.worldgen.GiantCavePopulator;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import java.io.File;
@@ -45,7 +44,6 @@ import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
-import org.bukkit.World;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.InvalidConfigurationException;
@@ -77,29 +75,6 @@ public class AbbaCavingPlugin extends JavaPlugin {
 
         if (!schematicDirectory.exists()) {
             schematicDirectory.mkdirs();
-        }
-
-        if (this.getConfig().getBoolean("cave-generator.generator-mode")) {
-            this.getLogger().info("Generator mode");
-
-            for (final World world : this.getServer().getWorlds()) {
-                if (world.getName().startsWith("abbacaving")) {
-                    this.getLogger().info("Attaching giant cave populator to world \"" + world.getName() + "\"");
-                    final GiantCavePopulator cavePopulator = new GiantCavePopulator(this, world);
-                    this.getServer().getPluginManager().registerEvents(cavePopulator, this);
-                    world.getPopulators().add(cavePopulator);
-
-                    final int borderSize = this.getConfig().getInt("cave-generator.border-size");
-                    this.getServer().dispatchCommand(this.getServer().getConsoleSender(), "wb shape square");
-                    this.getServer().dispatchCommand(this.getServer().getConsoleSender(), "wb fillautosave 0");
-                    this.getServer().dispatchCommand(this.getServer().getConsoleSender(), "wb " + world.getName() + " set " + borderSize + " " + borderSize + " 0 0");
-                    this.getServer().dispatchCommand(this.getServer().getConsoleSender(), "wb " + world.getName() + " fill 500 112");
-                    this.getServer().dispatchCommand(this.getServer().getConsoleSender(), "wb fill confirm");
-                    break;
-                }
-            }
-
-            return;
         }
 
         this.getServer().getMessenger().registerOutgoingPluginChannel(this, "BungeeCord");
