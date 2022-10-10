@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.ThreadLocalRandom;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.kyori.adventure.text.minimessage.tag.Tag;
@@ -135,7 +136,10 @@ public class Lobby implements Listener {
 
             if (this.counter == 0) {
                 // TODO: better map picking, don't start two games on one map
-                this.start("abba_caving1");
+                final List<String> mapNames = this.plugin.configuredMapNames();
+                final String mapName = mapNames.get(ThreadLocalRandom.current().nextInt(mapNames.size()));
+
+                this.start(mapName);
             } else {
                 if (this.counter % 60 == 0 || this.counter == 30 || this.counter == 15
                         || this.counter == 10 || this.counter <= 5) {

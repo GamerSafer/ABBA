@@ -19,7 +19,6 @@ import com.gamersafer.minecraft.abbacaving.listeners.PlayerListener;
 import com.gamersafer.minecraft.abbacaving.lobby.Lobby;
 import com.gamersafer.minecraft.abbacaving.placeholders.GamePlaceholders;
 import com.gamersafer.minecraft.abbacaving.placeholders.LobbyPlaceholders;
-import com.gamersafer.minecraft.abbacaving.util.Util;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import java.io.File;
@@ -184,6 +183,18 @@ public class AbbaCavingPlugin extends JavaPlugin {
 
     public String configMessage(final String name) {
         return this.messagesConfig.getString(name);
+    }
+
+    public List<String> configuredMapNames() {
+        final List<String> mapNames = new ArrayList<>();
+
+        for (final String key : this.mapsConfig.getKeys(false)) {
+            if (!key.equals("default-settings")) {
+                mapNames.add(key);
+            }
+        }
+
+        return mapNames;
     }
 
     public ConfigurationSection mapSettings(final String mapName) {

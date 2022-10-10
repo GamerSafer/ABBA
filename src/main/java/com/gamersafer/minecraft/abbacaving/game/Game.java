@@ -258,7 +258,7 @@ public class Game {
 
             if (this.counter > 0) {
                 if (this.gracePeriod) {
-                    final int gracePeriodRemaining = this.counter - gameDurationSeconds - gracePeriodSeconds;
+                    final int gracePeriodRemaining = this.counter - (gameDurationSeconds - gracePeriodSeconds);
 
                     this.broadcastActionBar(MiniMessage.miniMessage().deserialize(this.plugin.configMessage("game-grace-period"),
                             TagResolver.resolver("seconds", Tag.inserting(Component.text(gracePeriodRemaining))),
@@ -497,15 +497,17 @@ public class Game {
                 this.sendToLobby(gp.player());
             }
 
-            final CoreProtectAPI coreProtect = this.coreProtect();
-
-            if (coreProtect != null) {
-                // TODO: set world to ready when this is done
-                coreProtect.performRestore(0, this.allPlayers, List.of(), List.of(), List.of(), List.of(),
-                        2000, this.world().getSpawnLocation());
-            }
+            //            final CoreProtectAPI coreProtect = this.coreProtect();
+            //
+            //            if (coreProtect != null) {
+            //                // TODO: set world to ready when this is done
+            //                // TODO: restore damage from entities
+            //                coreProtect.performRestore(0, List.of(), List.of(), List.of(), List.of(), List.of(),
+            //                        2000, this.world().getSpawnLocation());
+            //            }
 
             this.plugin.lobby().stop(this);
+            Util.deleteWorld(this.world());
         }, 20L * postGameGracePeriod);
     }
 
@@ -534,15 +536,17 @@ public class Game {
     private World loadMap() {
         final File mapsDir = new File(this.plugin.getDataFolder(), "maps");
 
+        // TODO: make sure the map directory exists before loading
         if (!mapsDir.exists()) {
-            mapsDir.mkdirs();
+            this.plugin.getLogger().warning("Map directory not found: " + mapsDir.getPath());
+            return null;
         }
 
-        final File mapArchive = new File(mapsDir, this.mapName + ".zip");
+        final File mapFolder = new File(mapsDir, this.mapName);
 
         // TODO: make sure the map exists before loading
-        if (!mapArchive.exists()) {
-            this.plugin.getLogger().warning("Map archive not found: " + mapArchive.getPath());
+        if (!mapFolder.exists()) {
+            this.plugin.getLogger().warning("Map not found: " + mapFolder.getPath());
             return null;
         }
 
@@ -551,7 +555,7 @@ public class Game {
         this.spawns = Objects.requireNonNullElseGet(this.mapSpawns.get(this.mapName), List::of);
         this.plugin.getLogger().info("Loaded " + this.spawns.size() + " spawns(s) for map " + this.mapName + " and gameId " + this.gameId);
 
-        final World world = Util.loadMap(mapArchive, this.gameId);
+        final World world = Util.loadMap(mapFolder, this.gameId);
 
         int removed = 0;
         int items = 0;
@@ -565,7 +569,7 @@ public class Game {
         }
 
         this.plugin.getLogger().info("Removed " + removed + " entities (" + items + " were items)");
-        this.plugin.getLogger().info("Created map from " + mapArchive);
+        this.plugin.getLogger().info("Created map from " + mapFolder);
 
         return world;
     }
