@@ -1,6 +1,8 @@
 package com.gamersafer.minecraft.abbacaving.commands;
 
 import com.gamersafer.minecraft.abbacaving.AbbaCavingPlugin;
+import java.util.List;
+import java.util.concurrent.ThreadLocalRandom;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -24,8 +26,22 @@ public class ForceStartCommand implements CommandExecutor {
             }
         }
 
-        // TODO: Add mapName arg, and pick a random map if no args are given
-        this.plugin.lobby().start("AbbaEnd");
+        String mapName = null;
+
+        if (args.length > 0) {
+            final String input = args[0];
+
+            if (this.plugin.mapSettings(input) != null) {
+                mapName = input;
+            }
+        }
+
+        if (mapName == null) {
+            final List<String> mapNames = this.plugin.configuredMapNames();
+            mapName = mapNames.get(ThreadLocalRandom.current().nextInt(mapNames.size()));
+        }
+
+        this.plugin.lobby().start(mapName);
         return true;
     }
 
