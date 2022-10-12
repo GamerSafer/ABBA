@@ -137,3 +137,44 @@ loot-items:
     value:
       exact: 20
     item: ENCHANTED_GOLDEN_APPLE
+  - name: "Enchanted Book"
+    article: ""
+    value:
+      exact: 4
+    item: ENCHANTED_BOOK
+  - name: "Iron Ingot"
+    article: ""
+    value:
+      exact: 1
+    item: IRON_INGOT
+  - name: "Saddle"
+    article: ""
+    value:
+      exact: 2
+    item: SADDLE
+  - name: "Redstone"
+    article: ""
+    value:
+      exact: 3
+    item: REDSTONE
+  - name: "Diamond"
+    article: "a"
+    value:
+      exact: 7
+    item: DIAMOND
+  - name: "Gold Ingot"
+    article: ""
+    value:
+      exact: 5
+    item: GOLD_INGOT
+  - name: "Coal"
+    article: ""
+    value:
+      exact: 1
+    item: COAL
+  - name: "Lapis"
+    article: ""
+    value:
+      exact: 3
+    item: LAPIS_LAZULI
+
