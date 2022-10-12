@@ -1,7 +1,5 @@
 package com.gamersafer.minecraft.abbacaving.util;
 
-import java.io.File;
-import java.io.IOException;
 import java.security.SecureRandom;
 import java.text.DecimalFormat;
 import java.util.LinkedHashMap;
@@ -10,7 +8,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import net.kyori.adventure.text.minimessage.MiniMessage;
-import org.apache.commons.io.FileUtils;
+import net.kyori.adventure.util.TriState;
 import org.bukkit.Bukkit;
 import org.bukkit.GameRule;
 import org.bukkit.Location;
@@ -46,52 +44,18 @@ public final class Util {
         return item;
     }
 
-    public static World loadMap(final File originalMap, final String gameId) {
-        final File mapDestination = new File(Bukkit.getWorldContainer(), gameId);
+    public static World loadMap(final String mapName) {
+        final WorldCreator worldCreator = new WorldCreator(mapName).keepSpawnLoaded(TriState.FALSE);
 
-        if (mapDestination.exists()) {
-            deleteWorld(mapDestination);
-        }
-
-        try {
-            FileUtils.copyDirectory(originalMap, mapDestination);
-        } catch (final IOException e) {
-            throw new RuntimeException(e);
-        }
-
-        final World world = Bukkit.createWorld(new WorldCreator(gameId));
+        final World world = Bukkit.createWorld(worldCreator);
         world.setKeepSpawnInMemory(false);
         world.setTime(0);
         world.setStorm(false);
         world.setThundering(false);
         world.setAutoSave(false);
         world.setGameRule(GameRule.ANNOUNCE_ADVANCEMENTS, Boolean.FALSE);
+
         return world;
-    }
-
-    public static void deleteWorld(final World world) {
-        if (Bukkit.getWorld(world.getUID()) != null) {
-            Bukkit.unloadWorld(world, false);
-        }
-
-        deleteWorld(world.getWorldFolder());
-    }
-
-    public static void deleteWorld(final File worldDir) {
-        final File[] fs = worldDir.listFiles();
-        if (fs == null)
-            return;
-        for (final File f : fs) {
-            if (f.isDirectory()) {
-                for (final File ff : f.listFiles()) {
-                    ff.delete();
-                }
-                f.delete();
-            } else {
-                f.delete();
-            }
-        }
-        worldDir.delete();
     }
 
     public static <K, V extends Comparable<? super V>> Map<K, V> sortByValue(

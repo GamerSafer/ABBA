@@ -252,6 +252,10 @@ public class Game {
     }
 
     private void nextTick() {
+        if (this.state == GameState.READY) {
+            return;
+        }
+
         if (this.state == GameState.RUNNING) {
             final int gameDurationSeconds = this.mapSetting("duration-seconds");
             final int gracePeriodSeconds = this.mapSetting("grace-period-duration-seconds");
@@ -497,17 +501,18 @@ public class Game {
                 this.sendToLobby(gp.player());
             }
 
-            //            final CoreProtectAPI coreProtect = this.coreProtect();
-            //
-            //            if (coreProtect != null) {
-            //                // TODO: set world to ready when this is done
-            //                // TODO: restore damage from entities
-            //                coreProtect.performRestore(0, List.of(), List.of(), List.of(), List.of(), List.of(),
-            //                        2000, this.world().getSpawnLocation());
-            //            }
+            final CoreProtectAPI coreProtect = this.coreProtect();
+
+            if (coreProtect != null) {
+                // TODO: set world to ready when this is done
+                // TODO: ensure time is never less than the round duration
+                coreProtect.performRestore(3600, List.of(), List.of(), List.of(), List.of(), List.of(),
+                        2000, this.world().getSpawnLocation());
+
+                this.gameState(GameState.READY);
+            }
 
             this.plugin.lobby().stop(this);
-            Util.deleteWorld(this.world());
         }, 20L * postGameGracePeriod);
     }
 
@@ -534,28 +539,12 @@ public class Game {
     }
 
     private World loadMap() {
-        final File mapsDir = new File(this.plugin.getDataFolder(), "maps");
-
-        // TODO: make sure the map directory exists before loading
-        if (!mapsDir.exists()) {
-            this.plugin.getLogger().warning("Map directory not found: " + mapsDir.getPath());
-            return null;
-        }
-
-        final File mapFolder = new File(mapsDir, this.mapName);
-
-        // TODO: make sure the map exists before loading
-        if (!mapFolder.exists()) {
-            this.plugin.getLogger().warning("Map not found: " + mapFolder.getPath());
-            return null;
-        }
-
         this.plugin.getLogger().info("Loading map '" + this.mapName + "'...");
 
         this.spawns = Objects.requireNonNullElseGet(this.mapSpawns.get(this.mapName), List::of);
         this.plugin.getLogger().info("Loaded " + this.spawns.size() + " spawns(s) for map " + this.mapName + " and gameId " + this.gameId);
 
-        final World world = Util.loadMap(mapFolder, this.gameId);
+        final World world = Util.loadMap(this.mapName);
 
         int removed = 0;
         int items = 0;
@@ -569,7 +558,6 @@ public class Game {
         }
 
         this.plugin.getLogger().info("Removed " + removed + " entities (" + items + " were items)");
-        this.plugin.getLogger().info("Created map from " + mapFolder);
 
         return world;
     }
