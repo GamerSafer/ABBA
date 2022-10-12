@@ -136,7 +136,7 @@ public class PlayerListener implements Listener {
     public void onPlayerWorldChange(final PlayerChangedWorldEvent event) {
         final Game game = this.plugin.gameTracker().findGame(event.getPlayer());
 
-        if (game == null) {
+        if (game == null || game.gameState() == GameState.DONE) {
             return;
         }
 
