@@ -27,44 +27,4 @@ lobby-spawn-location:
   yaw: 0.0
   pitch: 0.0
 
-cave-generator:
-  generator-mode: false
-  enabled: false # if false, use the pre-built maps
-  sxz: 400      # Horizontal stretch (larger number = wider cave)
-  sy: 90        # Vertical stretch (larger number = taller cave)
-  cutoff: 62    # Minimum Perlin density cutoff (-100 to 100)
-  miny: 6       # Lower bound of cave zone
-  maxy: 50      # Upper bound of cave zone
-  border-size: 750
-  spawn-spacing: 50
-  spawns: 50
-
-game:
-  max-games: 1
-  players-required-to-start: 5
-  maximum-players-per-round: 12
-  duration-seconds: 120
-  start-countdown-seconds: 10
-  grace-period-duration-seconds: 60
-  game-end-grace-period-seconds: 60
-  # Set protected-spawn-radius to 0 to disable.
-  protected-spawn-radius: 0
-  player-health: 40
-  min-score-to-broadcast-new-record: 50
-  end-of-round:
-    title: "<green>Round has ended!"
-    subtitle: "<aqua>Example subtitle."
-    schematic:
-      name: schematic_text
-      x: 0
-      y: 100
-      z: 0
-    teleport:
-      x: 0
-      y: 200
-      z: 0
-    sound:
-      key: "block.bell.use"
-      source: NEUTRAL
-      pitch: 1.0
-      volume: 1.0
+min-score-to-broadcast-new-record: 50

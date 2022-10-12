@@ -1,23 +1,16 @@
 package com.gamersafer.minecraft.abbacaving.util;
 
-import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.security.SecureRandom;
 import java.text.DecimalFormat;
-import java.util.Enumeration;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipFile;
 import net.kyori.adventure.text.minimessage.MiniMessage;
+import org.apache.commons.io.FileUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.GameRule;
 import org.bukkit.Location;
@@ -25,8 +18,6 @@ import org.bukkit.World;
 import org.bukkit.WorldCreator;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
-import org.codehaus.plexus.archiver.zip.ZipUnArchiver;
-import org.codehaus.plexus.logging.console.ConsoleLoggerManager;
 
 // TODO: modernize, replace legacy with components
 public final class Util {
@@ -55,22 +46,20 @@ public final class Util {
         return item;
     }
 
-    public static World loadMap(final File archive, final String mapName) {
-        final File folder = new File(Bukkit.getWorldContainer(), mapName);
-        if (folder.exists()) {
-            deleteWorld(folder);
+    public static World loadMap(final File originalMap, final String gameId) {
+        final File mapDestination = new File(Bukkit.getWorldContainer(), gameId);
+
+        if (mapDestination.exists()) {
+            deleteWorld(mapDestination);
         }
 
-        final ZipUnArchiver ua = new ZipUnArchiver();
-        final ConsoleLoggerManager manager = new ConsoleLoggerManager();
-        manager.initialize();
-        ua.enableLogging(manager.getLoggerForComponent("bla"));
-        ua.setSourceFile(archive);
-        folder.mkdirs();
-        ua.setDestDirectory(folder);
-        ua.extract();
+        try {
+            FileUtils.copyDirectory(originalMap, mapDestination);
+        } catch (final IOException e) {
+            throw new RuntimeException(e);
+        }
 
-        final World world = Bukkit.createWorld(new WorldCreator(mapName));
+        final World world = Bukkit.createWorld(new WorldCreator(gameId));
         world.setKeepSpawnInMemory(false);
         world.setTime(0);
         world.setStorm(false);
@@ -78,70 +67,6 @@ public final class Util {
         world.setAutoSave(false);
         world.setGameRule(GameRule.ANNOUNCE_ADVANCEMENTS, Boolean.FALSE);
         return world;
-    }
-
-    public static void unzip(final File file, final String newFolderName) throws IOException {
-        final String fileName = file.getName();
-        final int exindex = fileName.lastIndexOf(".");
-        final String dirName = fileName.substring(0, exindex);
-
-        final File toDir = new File(file.getParent(), dirName + "/");
-        unzip(file, toDir, newFolderName);
-    }
-
-    public static void unzip(final File file, final File toDir, final String newFolderName) throws IOException {
-        toDir.mkdirs();
-        if (!toDir.exists()) {
-            throw new IllegalStateException();
-        }
-        final ZipFile zipFile = new ZipFile(file);
-        final Enumeration<? extends ZipEntry> entries = zipFile.entries();
-
-        int len;
-        final byte[] read = new byte[1024];
-        String base = null;
-        while (entries.hasMoreElements()) {
-            final ZipEntry ze = entries.nextElement();
-            if (base == null) {
-                base = ze.getName().split("/")[0];
-            }
-
-            final File outFile = new File(toDir, ze.getName());
-            if (ze.isDirectory()) {
-                outFile.mkdirs();
-            } else {
-                BufferedInputStream bis = null;
-                BufferedOutputStream bos = null;
-                try {
-                    final InputStream is = zipFile.getInputStream(ze);
-                    bis = new BufferedInputStream(is);
-                    bos = new BufferedOutputStream(new FileOutputStream(outFile));
-                    while ((len = bis.read(read)) != -1) {
-                        bos.write(read, 0, len);
-                    }
-                } catch (final FileNotFoundException e) {
-                    throw e;
-                } catch (final IOException e) {
-                    e.printStackTrace();
-                } finally {
-                    try {
-                        if (bis != null) {
-                            bis.close();
-                        }
-                    } catch (final IOException ignored) {
-                    }
-                    try {
-                        if (bos != null) {
-                            bos.close();
-                        }
-                    } catch (final IOException ignored) {
-                    }
-                }
-            }
-        }
-        if (newFolderName != null) {
-            new File(toDir, base).renameTo(new File(toDir, newFolderName));
-        }
     }
 
     public static void deleteWorld(final World world) {

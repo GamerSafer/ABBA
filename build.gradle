@@ -15,6 +15,7 @@ repositories {
     maven { url "https://maven.enginehub.org/repo" }
     maven { url "https://repo.extendedclip.com/content/repositories/placeholderapi/" }
     maven { url "https://jitpack.io" }
+    maven { url "https://maven.playpro.com/" }
 }
 
 dependencies {
@@ -22,13 +23,14 @@ dependencies {
 
     implementation "org.mariadb.jdbc:mariadb-java-client:3.0.6"
     implementation "com.zaxxer:HikariCP:5.0.1"
-    implementation "org.codehaus.plexus:plexus-archiver:2.2" // Future versions hide/remove ConsoleLoggerManager
     implementation "com.github.KyoriPowered:adventure-text-feature-pagination:-SNAPSHOT"
+    implementation 'commons-io:commons-io:2.11.0'
 
     compileOnly "io.papermc.paper:paper-api:1.19.2-R0.1-SNAPSHOT"
     //compileOnly "net.luckperms:api:5.4"
     compileOnly "me.clip:placeholderapi:2.9.2"
     compileOnly "com.sk89q.worldedit:worldedit-bukkit:7.2.12"
+    compileOnly "net.coreprotect:coreprotect:21.2"
 
 //    compile fileTree(dir: "lib", include: ["*.jar"])
 }

@@ -2,7 +2,6 @@ package com.gamersafer.minecraft.abbacaving.game;
 
 import com.gamersafer.minecraft.abbacaving.AbbaCavingPlugin;
 import com.gamersafer.minecraft.abbacaving.util.Util;
-import com.gamersafer.minecraft.abbacaving.worldgen.GiantCavePopulator;
 import com.sk89q.worldedit.EditSession;
 import com.sk89q.worldedit.WorldEdit;
 import com.sk89q.worldedit.WorldEditException;
@@ -29,6 +28,8 @@ import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.Collectors;
+import net.coreprotect.CoreProtect;
+import net.coreprotect.CoreProtectAPI;
 import net.kyori.adventure.key.InvalidKeyException;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.sound.Sound;
@@ -42,7 +43,6 @@ import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
-import org.bukkit.WorldCreator;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.enchantments.Enchantment;
@@ -53,6 +53,7 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.Damageable;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.plugin.Plugin;
 import org.intellij.lang.annotations.Subst;
 
 public class Game {
@@ -60,32 +61,38 @@ public class Game {
     private final AbbaCavingPlugin plugin;
     private World world;
     private final String gameId;
+    private final String mapName;
     private final Map<String, List<Location>> mapSpawns;
     private final Map<String, GamePlayer> players = new HashMap<>();
-    private final boolean generateMap;
+    // List of all players in this round, including players that have died or left
+    private final List<String> allPlayers = new ArrayList<>();
     private List<Location> spawns = new ArrayList<>();
     private Map<GamePlayer, Integer> leaderboard = new LinkedHashMap<>();
-    private GiantCavePopulator caveGenerator;
     private int counter;
     private boolean gracePeriod;
     private GameState state;
 
-    public Game(final AbbaCavingPlugin plugin, final Map<String, List<Location>> mapSpawns, final String gameId) {
+    public Game(final AbbaCavingPlugin plugin, final Map<String, List<Location>> mapSpawns, final String mapName, final String gameId) {
         this.plugin = plugin;
         this.mapSpawns = mapSpawns;
+        this.mapName = mapName;
         this.gameId = gameId;
-
-        this.generateMap = plugin.getConfig().getBoolean("cave-generator.enabled");
-        if (this.generateMap) {
-            this.world = this.generateWorld();
-        } else {
-            this.world = this.loadRandomMap();
-        }
+        this.world = this.loadMap();
 
         this.gameState(GameState.RUNNING);
         this.counter(0);
 
         plugin.getServer().getScheduler().runTaskTimer(plugin, this::nextTick, 0, 20);
+    }
+
+    private <T> T mapSetting(final String key) {
+        final Object value = this.plugin.mapSettings(this.mapName).get(key);
+
+        if (value != null) {
+            return (T) value;
+        }
+
+        return (T) this.plugin.mapSettings("default-settings").get(key);
     }
 
     private void broadcastActionBar(final Component component) {
@@ -155,6 +162,8 @@ public class Game {
     }
 
     public void addPlayer(final GamePlayer gp) {
+        this.allPlayers.add(gp.player().getName());
+
         if (this.players.put(gp.player().getName(), gp) == null) {
             this.broadcast(this.plugin.configMessage("player-joined"), Map.of("player", gp.player().displayName()));
 
@@ -234,7 +243,7 @@ public class Game {
     }
 
     public int maxPlayersPerRound() {
-        return this.plugin.getConfig().getInt("game.maximum-players-per-round");
+        return this.mapSetting("maximum-players-per-round");
     }
 
     public boolean acceptingNewPlayers() {
@@ -244,12 +253,12 @@ public class Game {
 
     private void nextTick() {
         if (this.state == GameState.RUNNING) {
-            final int gameDurationSeconds = this.plugin.getConfig().getInt("game.duration-seconds");
-            final int gracePeriodSeconds = this.plugin.getConfig().getInt("game.grace-period-duration-seconds");
+            final int gameDurationSeconds = this.mapSetting("duration-seconds");
+            final int gracePeriodSeconds = this.mapSetting("grace-period-duration-seconds");
 
             if (this.counter > 0) {
                 if (this.gracePeriod) {
-                    final int gracePeriodRemaining = this.counter - gameDurationSeconds - gracePeriodSeconds;
+                    final int gracePeriodRemaining = this.counter - (gameDurationSeconds - gracePeriodSeconds);
 
                     this.broadcastActionBar(MiniMessage.miniMessage().deserialize(this.plugin.configMessage("game-grace-period"),
                             TagResolver.resolver("seconds", Tag.inserting(Component.text(gracePeriodRemaining))),
@@ -292,7 +301,7 @@ public class Game {
 
     public void start() {
         this.gracePeriod = true;
-        final int gracePeriodSeconds = this.plugin.getConfig().getInt("game.duration-seconds");
+        final int gracePeriodSeconds = this.mapSetting("duration-seconds");
         this.counter(gracePeriodSeconds);
         this.broadcast(this.plugin.configMessage("game-started"));
 
@@ -309,21 +318,17 @@ public class Game {
         this.plugin.getLogger().info("Spawns to use: " + spawnsToUse.size());
 
         for (final GamePlayer gp : this.players.values()) {
-            Location loc = null;
-            if (!this.generateMap) {
-                if (!spawnsToUse.isEmpty()) {
-                    loc = spawnsToUse.remove(ThreadLocalRandom.current().nextInt(spawnsToUse.size()));
-                } else if (!this.spawns.isEmpty()) {
-                    loc = this.spawns.remove(ThreadLocalRandom.current().nextInt(this.spawns.size()));
-                } else {
-                    loc = this.world.getSpawnLocation();
-                }
-                loc.setWorld(this.world);
+            final Location loc;
+
+            if (!spawnsToUse.isEmpty()) {
+                loc = spawnsToUse.remove(ThreadLocalRandom.current().nextInt(spawnsToUse.size()));
+            } else if (!this.spawns.isEmpty()) {
+                loc = this.spawns.remove(ThreadLocalRandom.current().nextInt(this.spawns.size()));
             } else {
-                //                loc = caveGenerator.getSpawns().get(ThreadLocalRandom.current().nextInt(caveGenerator.getSpawns().size()));
-                //                loc.getChunk().load(true);
-                //                spawns.add(loc);
+                loc = this.world.getSpawnLocation();
             }
+
+            loc.setWorld(this.world);
 
             this.plugin.getLogger().info("Teleporting " + gp.player().getName() + " to " + loc);
             gp.spawnLocation(loc);
@@ -385,7 +390,7 @@ public class Game {
             this.broadcast("<green>The game has ended in a draw!");
         }
 
-        final ConfigurationSection sound = this.plugin.getConfig().getConfigurationSection("game.end-of-round.sound");
+        final ConfigurationSection sound = this.mapSetting("end-of-round.sound");
 
         if (sound != null) {
             final @Subst("minecraft:block.bell.use") String soundKey = sound.getString("sound");
@@ -409,8 +414,8 @@ public class Game {
             }
         }
 
-        final String titleText = this.plugin.getConfig().getString("game.end-of-round.title");
-        final String subtitleText = this.plugin.getConfig().getString("game.end-of-round.subtitle");
+        final String titleText = this.mapSetting("end-of-round.title");
+        final String subtitleText = this.mapSetting("end-of-round.subtitle");
 
         Component title = Component.empty();
         Component subtitle = Component.empty();
@@ -439,7 +444,8 @@ public class Game {
         this.gameState(GameState.DONE);
         this.counter(0);
 
-        final String schematicFile = this.plugin.getConfig().getString("game.end-of-game.schematic.name");
+        // TODO: Cleanup, remove schematic at end of round
+        final String schematicFile = this.mapSetting("end-of-game.schematic.name");
 
         if (schematicFile != null && !schematicFile.isBlank()) {
             final File schematicDirectory = new File(this.plugin.getDataFolder(), "schematics");
@@ -454,9 +460,9 @@ public class Game {
                         final Operation operation = new ClipboardHolder(clipboard)
                                 .createPaste(editSession)
                                 .to(BlockVector3.at(
-                                        this.plugin.getConfig().getInt("game.end-of-round.schematic.x"),
-                                        this.plugin.getConfig().getInt("game.end-of-round.schematic.y"),
-                                        this.plugin.getConfig().getInt("game.end-of-round.schematic.z")
+                                        this.mapSetting("end-of-round.schematic.x"),
+                                        this.mapSetting("end-of-round.schematic.y"),
+                                        this.mapSetting("end-of-round.schematic.z")
                                 ))
                                 .ignoreAirBlocks(false)
                                 .build();
@@ -471,7 +477,7 @@ public class Game {
             }
         }
 
-        final ConfigurationSection tpSection = this.plugin.getConfig().getConfigurationSection("end-of-round.teleport");
+        final ConfigurationSection tpSection = this.mapSetting("end-of-round.teleport");
 
         if (tpSection != null) {
             final Location teleportLocation = new Location(this.world(), tpSection.getDouble("x"), tpSection.getDouble("y"),
@@ -482,7 +488,7 @@ public class Game {
             }
         }
 
-        final int postGameGracePeriod = this.plugin.getConfig().getInt("game.game-end-grace-period-seconds");
+        final int postGameGracePeriod = this.mapSetting("game-end-grace-period-seconds");
 
         this.broadcast("<green>Returning to lobby in " + postGameGracePeriod + " seconds...");
 
@@ -491,54 +497,65 @@ public class Game {
                 this.sendToLobby(gp.player());
             }
 
+            //            final CoreProtectAPI coreProtect = this.coreProtect();
+            //
+            //            if (coreProtect != null) {
+            //                // TODO: set world to ready when this is done
+            //                // TODO: restore damage from entities
+            //                coreProtect.performRestore(0, List.of(), List.of(), List.of(), List.of(), List.of(),
+            //                        2000, this.world().getSpawnLocation());
+            //            }
+
             this.plugin.lobby().stop(this);
-            Util.deleteWorld(this.world);
+            Util.deleteWorld(this.world());
         }, 20L * postGameGracePeriod);
     }
 
-    private World generateWorld() {
-        this.plugin.getLogger().info("Deleting existing world...");
+    private CoreProtectAPI coreProtect() {
+        final Plugin plugin = Bukkit.getServer().getPluginManager().getPlugin("CoreProtect");
 
-        if (this.world != null) {
-            Util.deleteWorld(this.world);
-        }
-
-        this.plugin.getLogger().info("Done");
-
-        this.plugin.getLogger().info("Creating new world...");
-        this.world = this.plugin.getServer().createWorld(new WorldCreator(this.gameId));
-
-        this.plugin.getLogger().info("Attaching cave populator to world \"" + this.world.getName() + "\"");
-        this.caveGenerator = new GiantCavePopulator(this.plugin, this.world);
-        this.world.getPopulators().add(this.caveGenerator);
-        this.plugin.getLogger().info("Done");
-
-        return this.world;
-    }
-
-    private World loadRandomMap() {
-        final File mapsDir = new File(this.plugin.getDataFolder(), "maps");
-
-        if (!mapsDir.exists()) {
-            mapsDir.mkdirs();
-        }
-
-        final File[] mapArchives = mapsDir.listFiles();
-        final File mapArchive = mapArchives[ThreadLocalRandom.current().nextInt(mapArchives.length)];
-
-        // TODO: make sure a map loads
-        if (!mapArchive.exists()) {
-            this.plugin.getLogger().warning("Map archive not found: " + mapArchive.getPath());
+        // Check that CoreProtect is loaded
+        if (!(plugin instanceof CoreProtect)) {
             return null;
         }
 
-        this.plugin.getLogger().info("Loading map '" + mapArchive.getName() + "'...");
-        final String mapName = mapArchive.getName().substring(0, mapArchive.getName().lastIndexOf('.'));
+        // Check that the API is enabled
+        final CoreProtectAPI CoreProtect = ((CoreProtect) plugin).getAPI();
+        if (!CoreProtect.isEnabled()) {
+            return null;
+        }
 
-        this.spawns = Objects.requireNonNullElseGet(this.mapSpawns.get(mapName), List::of);
-        this.plugin.getLogger().info("Loaded " + this.spawns.size() + " spawns(s) for map " + mapName);
+        // Check that a compatible version of the API is loaded
+        if (CoreProtect.APIVersion() < 9) {
+            return null;
+        }
 
-        final World world = Util.loadMap(mapArchive, this.gameId);
+        return CoreProtect;
+    }
+
+    private World loadMap() {
+        final File mapsDir = new File(this.plugin.getDataFolder(), "maps");
+
+        // TODO: make sure the map directory exists before loading
+        if (!mapsDir.exists()) {
+            this.plugin.getLogger().warning("Map directory not found: " + mapsDir.getPath());
+            return null;
+        }
+
+        final File mapFolder = new File(mapsDir, this.mapName);
+
+        // TODO: make sure the map exists before loading
+        if (!mapFolder.exists()) {
+            this.plugin.getLogger().warning("Map not found: " + mapFolder.getPath());
+            return null;
+        }
+
+        this.plugin.getLogger().info("Loading map '" + this.mapName + "'...");
+
+        this.spawns = Objects.requireNonNullElseGet(this.mapSpawns.get(this.mapName), List::of);
+        this.plugin.getLogger().info("Loaded " + this.spawns.size() + " spawns(s) for map " + this.mapName + " and gameId " + this.gameId);
+
+        final World world = Util.loadMap(mapFolder, this.gameId);
 
         int removed = 0;
         int items = 0;
@@ -552,7 +569,7 @@ public class Game {
         }
 
         this.plugin.getLogger().info("Removed " + removed + " entities (" + items + " were items)");
-        this.plugin.getLogger().info("Created map from " + mapArchive);
+        this.plugin.getLogger().info("Created map from " + mapFolder);
 
         return world;
     }
@@ -595,7 +612,8 @@ public class Game {
     }
 
     public void resetPlayer(final Player player) {
-        final int maxHealth = this.plugin.getConfig().getInt("game.player-health");
+        // TODO: Make sure this isn't setting players to 40 or so health when they go to lobby
+        final int maxHealth = this.mapSetting("player-health");
         player.getAttribute(Attribute.GENERIC_MAX_HEALTH).setBaseValue(maxHealth);
         player.setHealth(maxHealth);
         player.setFoodLevel(20);
@@ -607,6 +625,21 @@ public class Game {
 
     private void updateLeaderboard() {
         this.leaderboard = Util.sortByValue(this.leaderboard, true);
+    }
+
+    public boolean canAccess(final Location loc, final Location spawn) {
+        final int radius = this.mapSetting("protected-spawn-radius");
+        if (radius < 1) return true;
+
+        return !Util.inBounds(loc,
+                new Location(spawn.getWorld(),
+                        spawn.getX() - radius,
+                        spawn.getY() - radius,
+                        spawn.getZ() - radius),
+                new Location(spawn.getWorld(),
+                        spawn.getX() + radius,
+                        spawn.getY() + radius,
+                        spawn.getZ() + radius));
     }
 
     private void sendToLobby(final Player player) {

@@ -19,8 +19,6 @@ import com.gamersafer.minecraft.abbacaving.listeners.PlayerListener;
 import com.gamersafer.minecraft.abbacaving.lobby.Lobby;
 import com.gamersafer.minecraft.abbacaving.placeholders.GamePlaceholders;
 import com.gamersafer.minecraft.abbacaving.placeholders.LobbyPlaceholders;
-import com.gamersafer.minecraft.abbacaving.util.Util;
-import com.gamersafer.minecraft.abbacaving.worldgen.GiantCavePopulator;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import java.io.File;
@@ -45,8 +43,8 @@ import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
-import org.bukkit.World;
 import org.bukkit.command.CommandSender;
+import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -62,6 +60,7 @@ public class AbbaCavingPlugin extends JavaPlugin {
     private Lobby lobby;
     private Map<String, List<Location>> mapSpawns;
     private HikariDataSource dataSource;
+    private FileConfiguration mapsConfig = new YamlConfiguration();
     private FileConfiguration messagesConfig = new YamlConfiguration();
     private FileConfiguration pointsConfig = new YamlConfiguration();
 
@@ -75,29 +74,6 @@ public class AbbaCavingPlugin extends JavaPlugin {
 
         if (!schematicDirectory.exists()) {
             schematicDirectory.mkdirs();
-        }
-
-        if (this.getConfig().getBoolean("cave-generator.generator-mode")) {
-            this.getLogger().info("Generator mode");
-
-            for (final World world : this.getServer().getWorlds()) {
-                if (world.getName().startsWith("abbacaving")) {
-                    this.getLogger().info("Attaching giant cave populator to world \"" + world.getName() + "\"");
-                    final GiantCavePopulator cavePopulator = new GiantCavePopulator(this, world);
-                    this.getServer().getPluginManager().registerEvents(cavePopulator, this);
-                    world.getPopulators().add(cavePopulator);
-
-                    final int borderSize = this.getConfig().getInt("cave-generator.border-size");
-                    this.getServer().dispatchCommand(this.getServer().getConsoleSender(), "wb shape square");
-                    this.getServer().dispatchCommand(this.getServer().getConsoleSender(), "wb fillautosave 0");
-                    this.getServer().dispatchCommand(this.getServer().getConsoleSender(), "wb " + world.getName() + " set " + borderSize + " " + borderSize + " 0 0");
-                    this.getServer().dispatchCommand(this.getServer().getConsoleSender(), "wb " + world.getName() + " fill 500 112");
-                    this.getServer().dispatchCommand(this.getServer().getConsoleSender(), "wb fill confirm");
-                    break;
-                }
-            }
-
-            return;
         }
 
         this.getServer().getMessenger().registerOutgoingPluginChannel(this, "BungeeCord");
@@ -135,6 +111,7 @@ public class AbbaCavingPlugin extends JavaPlugin {
     public void reloadConfig() {
         super.reloadConfig();
 
+        this.mapsConfig = this.fileConfiguration("maps.yml");
         this.messagesConfig = this.fileConfiguration("messages.yml");
         this.pointsConfig = this.fileConfiguration("points.yml");
     }
@@ -204,23 +181,30 @@ public class AbbaCavingPlugin extends JavaPlugin {
         return player.hasPermission(permissionNode);
     }
 
-    public boolean canAccess(final Location loc, final Location spawn) {
-        final int radius = this.getConfig().getInt("game.protected-spawn-radius");
-        if (radius < 1) return true;
-
-        return !Util.inBounds(loc,
-                new Location(spawn.getWorld(),
-                        spawn.getX() - radius,
-                        spawn.getY() - radius,
-                        spawn.getZ() - radius),
-                new Location(spawn.getWorld(),
-                        spawn.getX() + radius,
-                        spawn.getY() + radius,
-                        spawn.getZ() + radius));
-    }
-
     public String configMessage(final String name) {
         return this.messagesConfig.getString(name);
+    }
+
+    public List<String> configuredMapNames() {
+        final List<String> mapNames = new ArrayList<>();
+
+        for (final String key : this.mapsConfig.getKeys(false)) {
+            if (!key.equals("default-settings")) {
+                mapNames.add(key);
+            }
+        }
+
+        return mapNames;
+    }
+
+    public ConfigurationSection mapSettings(final String mapName) {
+        final ConfigurationSection section = this.mapsConfig.getConfigurationSection(mapName);
+
+        if (section != null) {
+            return section;
+        }
+
+        return this.mapsConfig.getConfigurationSection("default-settings");
     }
 
     public void broadcast(final String message) {

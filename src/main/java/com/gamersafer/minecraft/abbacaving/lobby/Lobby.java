@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.ThreadLocalRandom;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.kyori.adventure.text.minimessage.tag.Tag;
@@ -52,7 +53,7 @@ public class Lobby implements Listener {
     }
 
     public List<UUID> nextGamePlayerQueue() {
-        final int maxPlayers = this.plugin.getConfig().getInt("game.maximum-players-per-round");
+        final int maxPlayers = this.plugin.mapSettings("default-settings").getInt("maximum-players-per-round");
         final int playersToGrab = Math.min(maxPlayers, this.playerLobbyQueue.size());
 
         return this.playerLobbyQueue.subList(0, playersToGrab);
@@ -134,7 +135,11 @@ public class Lobby implements Listener {
             }
 
             if (this.counter == 0) {
-                this.start();
+                // TODO: better map picking, don't start two games on one map
+                final List<String> mapNames = this.plugin.configuredMapNames();
+                final String mapName = mapNames.get(ThreadLocalRandom.current().nextInt(mapNames.size()));
+
+                this.start(mapName);
             } else {
                 if (this.counter % 60 == 0 || this.counter == 30 || this.counter == 15
                         || this.counter == 10 || this.counter <= 5) {
@@ -157,7 +162,7 @@ public class Lobby implements Listener {
     }
 
     public void preStart() {
-        this.counter(this.plugin.getConfig().getInt("game.start-countdown-seconds"));
+        this.counter(this.plugin.mapSettings("default-settings").getInt("start-countdown-seconds"));
         this.lobbyState(LobbyState.STARTING);
     }
 
@@ -167,7 +172,7 @@ public class Lobby implements Listener {
         // TODO: Feedback to let players know the countdown was cancelled. Message? Actionbar? Sound?
     }
 
-    public Game start() {
+    public Game start(final String mapName) {
         this.lobbyState = LobbyState.WAITING;
         this.counter = 0; // TODO: replace this and other lines with method invocation | this.counter(0);
 
@@ -179,7 +184,7 @@ public class Lobby implements Listener {
             }
         }
 
-        final Game game = new Game(this.plugin, this.plugin.mapSpawns(), Util.randomString(6));
+        final Game game = new Game(this.plugin, this.plugin.mapSpawns(), mapName, Util.randomString(6));
 
         this.plugin.gameTracker().currentGames().add(game);
         final List<UUID> uuidsToRemove = new ArrayList<>();
@@ -210,7 +215,7 @@ public class Lobby implements Listener {
     }
 
     public int playersRequiredToStart() {
-        return this.plugin.getConfig().getInt("game.players-required-to-start");
+        return this.plugin.mapSettings("default-settings").getInt("players-required-to-start");
     }
 
 }

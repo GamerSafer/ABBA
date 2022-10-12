@@ -1,0 +1,28 @@
+default-settings:
+  players-required-to-start: 5
+  maximum-players-per-round: 12
+  duration-seconds: 120
+  start-countdown-seconds: 10
+  grace-period-duration-seconds: 60
+  game-end-grace-period-seconds: 60
+  # Set protected-spawn-radius to 0 to disable.
+  protected-spawn-radius: 20
+  player-health: 40
+  end-of-round:
+    title: "<green>Round has ended!"
+    subtitle: "<aqua>Example subtitle."
+    schematic:
+      name: AbbaEnd
+      x: 0
+      y: 100
+      z: 0
+    teleport:
+      x: 0
+      y: 200
+      z: 0
+    sound:
+      key: "block.bell.use"
+      source: NEUTRAL
+      pitch: 1.0
+      volume: 1.0
+example_map_name: ""
