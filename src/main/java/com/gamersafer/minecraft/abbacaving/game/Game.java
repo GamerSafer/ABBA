@@ -504,14 +504,14 @@ public class Game {
         this.broadcast("<green>Returning to lobby in " + postGameGracePeriod + " seconds...");
 
         this.plugin.getServer().getScheduler().runTaskLater(this.plugin, () -> {
-            for (final GamePlayer gp : this.players.values()) {
-                this.sendToLobby(gp.player());
-            }
+            //            for (final GamePlayer gp : this.players.values()) {
+            //                this.sendToLobby(gp.player());
+            //            }
 
             this.resetMap();
 
-            this.gameState(GameState.READY);
-            this.plugin.lobby().stop(this);
+            //            this.gameState(GameState.READY);
+            //            this.plugin.lobby().stop(this);
         }, 20L * postGameGracePeriod);
     }
 
@@ -519,22 +519,21 @@ public class Game {
         final Plugin plugin = Bukkit.getServer().getPluginManager().getPlugin("CoreProtect");
 
         // Check that CoreProtect is loaded
-        if (!(plugin instanceof CoreProtect)) {
+        if (!(plugin instanceof CoreProtect coreProtect)) {
             return null;
         }
 
         // Check that the API is enabled
-        final CoreProtectAPI CoreProtect = ((CoreProtect) plugin).getAPI();
-        if (!CoreProtect.isEnabled()) {
+        if (!coreProtect.isEnabled() || !coreProtect.getAPI().isEnabled()) {
             return null;
         }
 
         // Check that a compatible version of the API is loaded
-        if (CoreProtect.APIVersion() < 9) {
+        if (coreProtect.getAPI().APIVersion() < 9) {
             return null;
         }
 
-        return CoreProtect;
+        return coreProtect.getAPI();
     }
 
     private World loadMap() {

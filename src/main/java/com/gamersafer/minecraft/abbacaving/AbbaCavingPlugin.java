@@ -106,7 +106,7 @@ public class AbbaCavingPlugin extends JavaPlugin {
         this.getCommand("stats").setExecutor(new StatsCommand(this));
 
         for (final String mapName : this.configuredMapNames()) {
-            this.maps.put(mapName, new Game(this, null, mapName));
+            this.maps.put(mapName, new Game(this, this.mapSpawns, mapName));
         }
 
         this.gameTracker = new GameTracker(this);
