@@ -184,7 +184,7 @@ public class Lobby implements Listener {
             }
         }
 
-        final Game game = new Game(this.plugin, this.plugin.mapSpawns(), mapName, Util.randomString(6));
+        final Game game = this.plugin.game(mapName);
 
         this.plugin.gameTracker().currentGames().add(game);
         final List<UUID> uuidsToRemove = new ArrayList<>();
@@ -203,7 +203,7 @@ public class Lobby implements Listener {
         }
 
         this.playerLobbyQueue.removeAll(uuidsToRemove);
-        game.start();
+        game.start(Util.randomString(6));
 
         return game;
     }

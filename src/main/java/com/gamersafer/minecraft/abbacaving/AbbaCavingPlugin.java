@@ -9,6 +9,7 @@ import com.gamersafer.minecraft.abbacaving.commands.PointsCommand;
 import com.gamersafer.minecraft.abbacaving.commands.StatsCommand;
 import com.gamersafer.minecraft.abbacaving.game.CaveLoot;
 import com.gamersafer.minecraft.abbacaving.game.CaveOre;
+import com.gamersafer.minecraft.abbacaving.game.Game;
 import com.gamersafer.minecraft.abbacaving.game.GamePlayer;
 import com.gamersafer.minecraft.abbacaving.game.GameTracker;
 import com.gamersafer.minecraft.abbacaving.listeners.BlockBreakListener;
@@ -63,6 +64,7 @@ public class AbbaCavingPlugin extends JavaPlugin {
     private FileConfiguration mapsConfig = new YamlConfiguration();
     private FileConfiguration messagesConfig = new YamlConfiguration();
     private FileConfiguration pointsConfig = new YamlConfiguration();
+    private final Map<String, Game> maps = new HashMap<>();
 
     @Override
     public void onEnable() {
@@ -103,6 +105,10 @@ public class AbbaCavingPlugin extends JavaPlugin {
         this.getCommand("points").setExecutor(new PointsCommand(this));
         this.getCommand("stats").setExecutor(new StatsCommand(this));
 
+        for (final String mapName : this.configuredMapNames()) {
+            this.maps.put(mapName, new Game(this, null, mapName));
+        }
+
         this.gameTracker = new GameTracker(this);
         this.lobby = new Lobby(this);
     }
@@ -114,6 +120,10 @@ public class AbbaCavingPlugin extends JavaPlugin {
         this.mapsConfig = this.fileConfiguration("maps.yml");
         this.messagesConfig = this.fileConfiguration("messages.yml");
         this.pointsConfig = this.fileConfiguration("points.yml");
+    }
+
+    public Game game(final String mapName) {
+        return this.maps.get(mapName);
     }
 
     private FileConfiguration fileConfiguration(final String fileName) {

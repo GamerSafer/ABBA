@@ -60,7 +60,7 @@ public class Game {
 
     private final AbbaCavingPlugin plugin;
     private World world;
-    private final String gameId;
+    private String gameId;
     private final String mapName;
     private final Map<String, List<Location>> mapSpawns;
     private final Map<String, GamePlayer> players = new HashMap<>();
@@ -72,14 +72,13 @@ public class Game {
     private boolean gracePeriod;
     private GameState state;
 
-    public Game(final AbbaCavingPlugin plugin, final Map<String, List<Location>> mapSpawns, final String mapName, final String gameId) {
+    public Game(final AbbaCavingPlugin plugin, final Map<String, List<Location>> mapSpawns, final String mapName) {
         this.plugin = plugin;
         this.mapSpawns = mapSpawns;
         this.mapName = mapName;
-        this.gameId = gameId;
         this.world = this.loadMap();
 
-        this.gameState(GameState.RUNNING);
+        this.gameState(GameState.READY);
         this.counter(0);
 
         plugin.getServer().getScheduler().runTaskTimer(plugin, this::nextTick, 0, 20);
@@ -303,7 +302,9 @@ public class Game {
         this.counter--;
     }
 
-    public void start() {
+    public void start(final String gameId) {
+        this.gameId = gameId;
+
         this.gracePeriod = true;
         final int gracePeriodSeconds = this.mapSetting("duration-seconds");
         this.counter(gracePeriodSeconds);
@@ -312,8 +313,11 @@ public class Game {
         final List<Location> spawnsToUse = new ArrayList<>(this.spawns);
 
         final Iterator<Location> itr = spawnsToUse.iterator();
+        Location spawn;
+
         while (itr.hasNext()) {
-            final Location spawn = itr.next();
+            spawn = itr.next();
+
             if (spawn.getY() >= 50) {
                 this.plugin.getLogger().info(spawn + " spawn is too high");
                 itr.remove();
@@ -472,6 +476,7 @@ public class Game {
                                 .build();
 
                         Operations.complete(operation);
+                        // TODO: cache so the schematic can be undone/removed
                     } catch (final WorldEditException e) {
                         throw new RuntimeException(e);
                     }
@@ -501,17 +506,9 @@ public class Game {
                 this.sendToLobby(gp.player());
             }
 
-            final CoreProtectAPI coreProtect = this.coreProtect();
+            this.resetMap();
 
-            if (coreProtect != null) {
-                // TODO: set world to ready when this is done
-                // TODO: ensure time is never less than the round duration
-                coreProtect.performRestore(3600, List.of(), List.of(), List.of(), List.of(), List.of(),
-                        2000, this.world().getSpawnLocation());
-
-                this.gameState(GameState.READY);
-            }
-
+            this.gameState(GameState.READY);
             this.plugin.lobby().stop(this);
         }, 20L * postGameGracePeriod);
     }
@@ -546,10 +543,23 @@ public class Game {
 
         final World world = Util.loadMap(this.mapName);
 
+        return world;
+    }
+
+    private void resetMap() {
+        final CoreProtectAPI coreProtect = this.coreProtect();
+
+        if (coreProtect != null) {
+            // TODO: ensure time is never less than the round duration
+            coreProtect.performRestore(3600, List.of(), List.of(), List.of(), List.of(), List.of(),
+                    2000, this.world().getSpawnLocation());
+
+        }
+
         int removed = 0;
         int items = 0;
 
-        for (final Entity e : world.getEntities()) {
+        for (final Entity e : this.world.getEntities()) {
             if (e.getType() == EntityType.DROPPED_ITEM) {
                 items++;
             }
@@ -558,8 +568,6 @@ public class Game {
         }
 
         this.plugin.getLogger().info("Removed " + removed + " entities (" + items + " were items)");
-
-        return world;
     }
 
     private void startingInventory(final Player player) {
