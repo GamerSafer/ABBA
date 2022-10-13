@@ -59,7 +59,7 @@ tasks {
         // Your plugin's jar (or shadowJar if present) will be used automatically.
         minecraftVersion("1.19.2")
 
-        jvmArgs "-XX:+AllowEnhancedClassRedefinition", "-XX:HotswapAgent=fatjar"
+        jvmArgs "-XX:+AllowEnhancedClassRedefinition"
     }
 
     build {

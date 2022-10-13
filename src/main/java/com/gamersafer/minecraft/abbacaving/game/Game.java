@@ -504,14 +504,14 @@ public class Game {
         this.broadcast("<green>Returning to lobby in " + postGameGracePeriod + " seconds...");
 
         this.plugin.getServer().getScheduler().runTaskLater(this.plugin, () -> {
-            //            for (final GamePlayer gp : this.players.values()) {
-            //                this.sendToLobby(gp.player());
-            //            }
+            for (final GamePlayer gp : this.players.values()) {
+                this.sendToLobby(gp.player());
+            }
 
             this.resetMap();
 
-            //            this.gameState(GameState.READY);
-            //            this.plugin.lobby().stop(this);
+            this.gameState(GameState.READY);
+            this.plugin.lobby().stop(this);
         }, 20L * postGameGracePeriod);
     }
 
@@ -554,8 +554,8 @@ public class Game {
             final int gameDurationSeconds = this.mapSetting("duration-seconds");
             final int offsetSeconds = 300; // 5 minutes, this makes sure the restore covers the entire game duration
 
-            coreProtect.performRestore(gameDurationSeconds + offsetSeconds, List.of(), List.of(), List.of(), List.of(), List.of(),
-                    2000, this.world().getSpawnLocation());
+            coreProtect.performRestore(gameDurationSeconds + offsetSeconds, null, null, null,
+                    null, null, 10000, this.world().getSpawnLocation());
 
             this.plugin.getLogger().info("Reset block changes");
         }
@@ -570,9 +570,14 @@ public class Game {
         int items = 0;
 
         for (final Entity e : this.world.getEntities()) {
+            if (e.getType() == EntityType.PLAYER) {
+                continue;
+            }
+
             if (e.getType() == EntityType.DROPPED_ITEM) {
                 items++;
             }
+
             removed++;
             e.remove();
         }
