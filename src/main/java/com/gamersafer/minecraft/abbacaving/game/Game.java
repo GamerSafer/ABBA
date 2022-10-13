@@ -71,6 +71,7 @@ public class Game {
     private int counter;
     private boolean gracePeriod;
     private GameState state;
+    private EditSession editSession = null;
 
     public Game(final AbbaCavingPlugin plugin, final Map<String, List<Location>> mapSpawns, final String mapName) {
         this.plugin = plugin;
@@ -464,9 +465,11 @@ public class Game {
                 try (final ClipboardReader reader = format.getReader(new FileInputStream(schematic))) {
                     final Clipboard clipboard = reader.read();
 
-                    try (final EditSession editSession = WorldEdit.getInstance().newEditSession(BukkitAdapter.adapt(this.world))) {
+                    try {
+                        this.editSession = WorldEdit.getInstance().newEditSession(BukkitAdapter.adapt(this.world));
+
                         final Operation operation = new ClipboardHolder(clipboard)
-                                .createPaste(editSession)
+                                .createPaste(this.editSession)
                                 .to(BlockVector3.at(
                                         this.mapSetting("end-of-round.schematic.x"),
                                         this.mapSetting("end-of-round.schematic.y"),
@@ -476,7 +479,6 @@ public class Game {
                                 .build();
 
                         Operations.complete(operation);
-                        // TODO: cache so the schematic can be undone/removed
                     } catch (final WorldEditException e) {
                         throw new RuntimeException(e);
                     }
@@ -554,6 +556,13 @@ public class Game {
             coreProtect.performRestore(3600, List.of(), List.of(), List.of(), List.of(), List.of(),
                     2000, this.world().getSpawnLocation());
 
+            this.plugin.getLogger().info("Reset block changes");
+        }
+
+        if (this.editSession != null) {
+            this.editSession.undo(this.editSession);
+
+            this.plugin.getLogger().info("Removed end-of-game schematic");
         }
 
         int removed = 0;
