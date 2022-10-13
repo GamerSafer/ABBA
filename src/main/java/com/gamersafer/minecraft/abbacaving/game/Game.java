@@ -552,8 +552,10 @@ public class Game {
         final CoreProtectAPI coreProtect = this.coreProtect();
 
         if (coreProtect != null) {
-            // TODO: ensure time is never less than the round duration
-            coreProtect.performRestore(3600, List.of(), List.of(), List.of(), List.of(), List.of(),
+            final int gameDurationSeconds = this.mapSetting("duration-seconds");
+            final int offsetSeconds = 300; // 5 minutes, this makes sure the restore covers the entire game duration
+
+            coreProtect.performRestore(gameDurationSeconds + offsetSeconds, List.of(), List.of(), List.of(), List.of(), List.of(),
                     2000, this.world().getSpawnLocation());
 
             this.plugin.getLogger().info("Reset block changes");
