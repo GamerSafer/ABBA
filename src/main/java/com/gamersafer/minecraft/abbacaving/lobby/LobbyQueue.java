@@ -6,15 +6,21 @@ import java.util.UUID;
 public class LobbyQueue {
 
     private final String mapName;
+    private final int maxPlayers;
     private final List<UUID> playerQueue;
 
     private int counter = 0;
     private QueueState state;
 
-    public LobbyQueue(final String mapName, final List<UUID> playerQueue) {
+    public LobbyQueue(final String mapName, final int maxPlayers, final List<UUID> playerQueue) {
         this.mapName = mapName;
+        this.maxPlayers = maxPlayers;
         this.playerQueue = playerQueue;
         this.state = QueueState.WAITING;
+    }
+
+    public int maxPlayers() {
+        return this.maxPlayers;
     }
 
     public String mapName() {

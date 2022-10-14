@@ -1,7 +1,9 @@
 package com.gamersafer.minecraft.abbacaving.placeholders;
 
 import com.gamersafer.minecraft.abbacaving.AbbaCavingPlugin;
+import com.gamersafer.minecraft.abbacaving.lobby.LobbyQueue;
 import me.clip.placeholderapi.expansion.PlaceholderExpansion;
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
 public class LobbyPlaceholders extends PlaceholderExpansion {
@@ -37,16 +39,37 @@ public class LobbyPlaceholders extends PlaceholderExpansion {
         this.plugin.getLogger().info("PlaceholderAPI request: " + player.getName() + ", " + identifier);
 
         if ("online".equals(identifier)) {
-            // TODO: return the number of online players in each game
-            //            int totalOnline = 0;
-            //            if (this.plugin.servers() != null) {
-            //                for (final ServerInfo info : this.plugin.servers().values()) {
-            //                    totalOnline += info.playerCount;
-            //                }
-            //            }
-            //            return Integer.toString(totalOnline);
+            return Integer.toString(Bukkit.getServer().getOnlinePlayers().size());
         }
-        return "";
+
+        if (!identifier.startsWith("map_")) {
+            return "";
+        }
+
+        final String trimmed = identifier.substring("map_".length());
+
+        if (!trimmed.contains("_")) {
+            return "";
+        }
+
+        final String mapName = trimmed.substring(0, trimmed.lastIndexOf("_"));
+        final String suffix = trimmed.substring(trimmed.lastIndexOf("_") + 1);
+
+        final LobbyQueue queue = this.plugin.lobby().lobbyQueue(mapName);
+
+        if (queue == null) {
+            return "";
+        }
+
+        // TODO: show in-progress game information when applicable
+        return switch (suffix) {
+            case "state" -> queue.state().displayName();
+            case "players" -> Integer.toString(queue.playerQueue().size());
+            case "slots" -> Integer.toString(queue.maxPlayers());
+            case "counter" -> Integer.toString(queue.counter());
+            default -> "";
+        };
+
     }
 
 }

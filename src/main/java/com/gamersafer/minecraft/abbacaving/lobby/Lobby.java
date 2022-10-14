@@ -17,6 +17,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.attribute.Attribute;
+import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -34,7 +35,7 @@ public class Lobby implements Listener {
         Bukkit.getPluginManager().registerEvents(this, this.plugin);
 
         for (final String mapName : this.plugin.configuredMapNames()) {
-            this.lobbyQueues.put(mapName, new LobbyQueue(mapName, new LinkedList<>()));
+            this.lobbyQueues.put(mapName, new LobbyQueue(mapName, this.playersRequiredToStart(mapName), new LinkedList<>()));
         }
     }
 
@@ -90,7 +91,7 @@ public class Lobby implements Listener {
     }
     
     private void handleQueueWaiting(final LobbyQueue queue) {
-        if (queue.playerQueue().size() >= this.playersRequiredToStart()) {
+        if (queue.playerQueue().size() >= this.playersRequiredToStart(queue.mapName())) {
             this.preStart(queue);
         } else {
             for (final UUID uuid : queue.playerQueue()) {
@@ -99,14 +100,14 @@ public class Lobby implements Listener {
                 if (player != null) {
                     player.sendActionBar(MiniMessage.miniMessage().deserialize(this.plugin.configMessage("lobby-count"),
                             TagResolver.resolver("current", Tag.inserting(Component.text(queue.playerQueue().size()))),
-                            TagResolver.resolver("max", Tag.inserting(Component.text(this.playersRequiredToStart())))));
+                            TagResolver.resolver("max", Tag.inserting(Component.text(this.playersRequiredToStart(queue.mapName()))))));
                 }
             }
         }
     }
     
     private void handleQueueStarting(final LobbyQueue queue) {
-        if (queue.playerQueue().size() < this.playersRequiredToStart()) {
+        if (queue.playerQueue().size() < this.playersRequiredToStart(queue.mapName())) {
             this.cancelPreStart(queue);
             return;
         }
@@ -188,7 +189,15 @@ public class Lobby implements Listener {
         return game;
     }
 
-    public int playersRequiredToStart() {
+    public int playersRequiredToStart(final String mapName) {
+        final ConfigurationSection section = this.plugin.mapSettings(mapName);
+
+        if (section != null) {
+            if (section.contains("players-required-to-start")) {
+                return section.getInt("players-required-to-start");
+            }
+        }
+
         return this.plugin.mapSettings("default-settings").getInt("players-required-to-start");
     }
 
