@@ -1,6 +1,7 @@
 package com.gamersafer.minecraft.abbacaving.commands;
 
 import com.gamersafer.minecraft.abbacaving.AbbaCavingPlugin;
+import com.gamersafer.minecraft.abbacaving.lobby.LobbyQueue;
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 import org.bukkit.command.Command;
@@ -41,7 +42,10 @@ public class ForceStartCommand implements CommandExecutor {
             mapName = mapNames.get(ThreadLocalRandom.current().nextInt(mapNames.size()));
         }
 
-        this.plugin.lobby().start(mapName);
+        final LobbyQueue queue = this.plugin.lobby().lobbyQueue(mapName);
+
+        this.plugin.lobby().start(queue);
+
         return true;
     }
 

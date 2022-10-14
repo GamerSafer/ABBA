@@ -1,13 +1,14 @@
 package com.gamersafer.minecraft.abbacaving.lobby;
 
-public enum LobbyState {
+public enum QueueState {
 
     WAITING("Waiting for players"),
-    STARTING("Starting game");
+    STARTING("Starting game"),
+    LOCKED("Game started");
 
     private final String displayName;
 
-    LobbyState(final String displayName) {
+    QueueState(final String displayName) {
         this.displayName = displayName;
     }
 

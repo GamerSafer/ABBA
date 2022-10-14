@@ -2,13 +2,13 @@ package com.gamersafer.minecraft.abbacaving.lobby;
 
 import com.gamersafer.minecraft.abbacaving.AbbaCavingPlugin;
 import com.gamersafer.minecraft.abbacaving.game.Game;
-import com.gamersafer.minecraft.abbacaving.game.GamePlayer;
 import com.gamersafer.minecraft.abbacaving.util.Util;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
-import java.util.concurrent.ThreadLocalRandom;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.kyori.adventure.text.minimessage.tag.Tag;
@@ -26,37 +26,20 @@ import org.bukkit.event.player.PlayerQuitEvent;
 public class Lobby implements Listener {
 
     private final AbbaCavingPlugin plugin;
-    private List<UUID> playerLobbyQueue = new LinkedList<>();
-    private LobbyState lobbyState = LobbyState.WAITING;
-    private int counter = 0;
+    private final Map<String, LobbyQueue> lobbyQueues = new HashMap<>();
 
     public Lobby(final AbbaCavingPlugin plugin) {
         this.plugin = plugin;
         plugin.getServer().getScheduler().runTaskTimer(plugin, this::nextTick, 0, 20);
         Bukkit.getPluginManager().registerEvents(this, this.plugin);
+
+        for (final String mapName : this.plugin.configuredMapNames()) {
+            this.lobbyQueues.put(mapName, new LobbyQueue(mapName, new LinkedList<>()));
+        }
     }
 
-    public int counter() {
-        return this.counter;
-    }
-
-    public void counter(final int counter) {
-        this.counter = counter;
-    }
-
-    public LobbyState lobbyState() {
-        return this.lobbyState;
-    }
-
-    public void lobbyState(final LobbyState lobbyState) {
-        this.lobbyState = lobbyState;
-    }
-
-    public List<UUID> nextGamePlayerQueue() {
-        final int maxPlayers = this.plugin.mapSettings("default-settings").getInt("maximum-players-per-round");
-        final int playersToGrab = Math.min(maxPlayers, this.playerLobbyQueue.size());
-
-        return this.playerLobbyQueue.subList(0, playersToGrab);
+    public LobbyQueue lobbyQueue(final String mapName) {
+        return this.lobbyQueues.get(mapName);
     }
 
     @EventHandler
@@ -86,97 +69,94 @@ public class Lobby implements Listener {
                 this.plugin.getConfig().getDouble("lobby-spawn-location.z"),
                 (float) this.plugin.getConfig().getDouble("lobby-spawn-location.yaw"),
                 (float) this.plugin.getConfig().getDouble("lobby-spawn-location.pitch")));
-
-        this.playerLobbyQueue.add(event.getPlayer().getUniqueId());
     }
 
     @EventHandler
     public void onPlayerQuit(final PlayerQuitEvent event) {
-        this.playerLobbyQueue.remove(event.getPlayer().getUniqueId());
-        // TODO: stop counter when lobby player counts < minimum required players
+        for (final LobbyQueue queue : this.lobbyQueues.values()) {
+            queue.playerQueue().remove(event.getPlayer().getUniqueId());
+        }
     }
 
     private void nextTick() {
-        if (this.lobbyState == LobbyState.WAITING) {
-            if (this.playerLobbyQueue.size() >= this.playersRequiredToStart()) {
-                //                if (caveGenerator != null && !caveGenerator.isReady()) {
-                //                    plugin.getLogger().info("Waiting for the world to be generated...");
-                //                } else {
-                //                    preStart();
-                //                }
-                this.preStart();
-            } else {
-                for (final UUID uuid : this.nextGamePlayerQueue()) {
-                    final Player player = Bukkit.getPlayer(uuid);
+        for (final LobbyQueue queue : this.lobbyQueues.values()) {
+            if (queue.state() == QueueState.WAITING) {
+                this.handleQueueWaiting(queue);
+            } else if (queue.state() == QueueState.STARTING) {
+                this.handleQueueStarting(queue);
+                queue.decrementCounter();
+            }
+        }
+    }
+    
+    private void handleQueueWaiting(final LobbyQueue queue) {
+        if (queue.playerQueue().size() >= this.playersRequiredToStart()) {
+            this.preStart(queue);
+        } else {
+            for (final UUID uuid : queue.playerQueue()) {
+                final Player player = Bukkit.getPlayer(uuid);
 
-                    if (player != null) {
-                        player.sendActionBar(MiniMessage.miniMessage().deserialize(this.plugin.configMessage("lobby-count"),
-                                TagResolver.resolver("current", Tag.inserting(Component.text(this.playerLobbyQueue.size()))),
-                                TagResolver.resolver("max", Tag.inserting(Component.text(this.playersRequiredToStart())))));
-                    }
+                if (player != null) {
+                    player.sendActionBar(MiniMessage.miniMessage().deserialize(this.plugin.configMessage("lobby-count"),
+                            TagResolver.resolver("current", Tag.inserting(Component.text(queue.playerQueue().size()))),
+                            TagResolver.resolver("max", Tag.inserting(Component.text(this.playersRequiredToStart())))));
                 }
             }
-        } else if (this.lobbyState == LobbyState.STARTING) {
-            if (this.playerLobbyQueue.size() < this.playersRequiredToStart()) {
-                this.cancelPreStart();
-                return;
-            }
+        }
+    }
+    
+    private void handleQueueStarting(final LobbyQueue queue) {
+        if (queue.playerQueue().size() < this.playersRequiredToStart()) {
+            this.cancelPreStart(queue);
+            return;
+        }
 
-            if (this.counter >= 0) {
-                for (final UUID uuid : this.nextGamePlayerQueue()) {
-                    final Player player = Bukkit.getPlayer(uuid);
+        if (queue.counter() >= 0) {
+            for (final UUID uuid : queue.playerQueue()) {
+                final Player player = Bukkit.getPlayer(uuid);
 
-                    if (player != null) {
-                        player.sendActionBar(MiniMessage.miniMessage().deserialize(this.plugin.configMessage("game-starting"),
-                                TagResolver.resolver("seconds", Tag.inserting(Component.text(this.counter))),
-                                TagResolver.resolver("optional-s", Tag.inserting(Component.text(this.counter != 1 ? "s" : "")))));
-                    }
-                }
-            }
-
-            if (this.counter == 0) {
-                // TODO: better map picking, don't start two games on one map
-                final List<String> mapNames = this.plugin.configuredMapNames();
-                final String mapName = mapNames.get(ThreadLocalRandom.current().nextInt(mapNames.size()));
-
-                this.start(mapName);
-            } else {
-                if (this.counter % 60 == 0 || this.counter == 30 || this.counter == 15
-                        || this.counter == 10 || this.counter <= 5) {
-                    for (final UUID uuid : this.nextGamePlayerQueue()) {
-                        final Player player = Bukkit.getPlayer(uuid);
-
-                        if (player != null) {
-                            this.plugin.message(player, this.plugin.configMessage("game-starting"),
-                                    TagResolver.resolver("seconds", Tag.inserting(Component.text(this.counter))),
-                                    TagResolver.resolver("optional-s", Tag.inserting(Component.text(this.counter != 1 ? "s" : ""))));
-                        }
-                    }
+                if (player != null) {
+                    player.sendActionBar(MiniMessage.miniMessage().deserialize(this.plugin.configMessage("game-starting"),
+                            TagResolver.resolver("seconds", Tag.inserting(Component.text(queue.counter()))),
+                            TagResolver.resolver("optional-s", Tag.inserting(Component.text(queue.counter() != 1 ? "s" : "")))));
                 }
             }
         }
 
-        if (this.lobbyState == LobbyState.STARTING) {
-            this.counter--;
+        if (queue.counter() == 0) {
+            this.start(queue);
+        } else {
+            if (queue.counter() % 60 == 0 || queue.counter() == 30 || queue.counter() == 15
+                    || queue.counter() == 10 || queue.counter() <= 5) {
+                for (final UUID uuid : queue.playerQueue()) {
+                    final Player player = Bukkit.getPlayer(uuid);
+
+                    if (player != null) {
+                        this.plugin.message(player, this.plugin.configMessage("game-starting"),
+                                TagResolver.resolver("seconds", Tag.inserting(Component.text(queue.counter()))),
+                                TagResolver.resolver("optional-s", Tag.inserting(Component.text(queue.counter() != 1 ? "s" : ""))));
+                    }
+                }
+            }
         }
     }
 
-    public void preStart() {
-        this.counter(this.plugin.mapSettings("default-settings").getInt("start-countdown-seconds"));
-        this.lobbyState(LobbyState.STARTING);
+    public void preStart(final LobbyQueue queue) {
+        queue.counter(this.plugin.mapSettings("default-settings").getInt("start-countdown-seconds"));
+        queue.state(QueueState.STARTING);
     }
 
-    public void cancelPreStart() {
-        this.lobbyState(LobbyState.WAITING);
-        this.counter(0);
+    public void cancelPreStart(final LobbyQueue queue) {
+        queue.state(QueueState.WAITING);
+        queue.counter(0);
         // TODO: Feedback to let players know the countdown was cancelled. Message? Actionbar? Sound?
     }
 
-    public Game start(final String mapName) {
-        this.lobbyState = LobbyState.WAITING;
-        this.counter = 0; // TODO: replace this and other lines with method invocation | this.counter(0);
+    public Game start(final LobbyQueue queue) {
+        queue.state(QueueState.LOCKED);
+        queue.counter(0);
 
-        for (final UUID playerId : this.playerLobbyQueue) {
+        for (final UUID playerId : queue.playerQueue()) {
             final Player player = Bukkit.getPlayer(playerId);
 
             if (player != null) {
@@ -184,12 +164,12 @@ public class Lobby implements Listener {
             }
         }
 
-        final Game game = this.plugin.game(mapName);
+        final Game game = this.plugin.game(queue.mapName());
 
         this.plugin.gameTracker().currentGames().add(game);
         final List<UUID> uuidsToRemove = new ArrayList<>();
 
-        for (final UUID playerId : this.playerLobbyQueue) {
+        for (final UUID playerId : queue.playerQueue()) {
             if (game.players().size() >= game.maxPlayersPerRound()) {
                 break;
             }
@@ -202,16 +182,10 @@ public class Lobby implements Listener {
             }
         }
 
-        this.playerLobbyQueue.removeAll(uuidsToRemove);
+        queue.playerQueue().removeAll(uuidsToRemove);
         game.start(Util.randomString(6));
 
         return game;
-    }
-
-    public void stop(final Game game) {
-        for (final GamePlayer player : game.players()) {
-            this.playerLobbyQueue.add(player.player().getUniqueId());
-        }
     }
 
     public int playersRequiredToStart() {

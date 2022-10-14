@@ -509,9 +509,7 @@ public class Game {
             }
 
             this.resetMap();
-
             this.gameState(GameState.READY);
-            this.plugin.lobby().stop(this);
         }, 20L * postGameGracePeriod);
     }
 

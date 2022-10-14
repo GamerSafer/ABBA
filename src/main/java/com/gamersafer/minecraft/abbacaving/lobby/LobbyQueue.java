@@ -1,0 +1,52 @@
+package com.gamersafer.minecraft.abbacaving.lobby;
+
+import java.util.List;
+import java.util.UUID;
+
+public class LobbyQueue {
+
+    private final String mapName;
+    private final List<UUID> playerQueue;
+
+    private int counter = 0;
+    private QueueState state;
+
+    public LobbyQueue(final String mapName, final List<UUID> playerQueue) {
+        this.mapName = mapName;
+        this.playerQueue = playerQueue;
+        this.state = QueueState.WAITING;
+    }
+
+    public String mapName() {
+        return this.mapName;
+    }
+
+    public List<UUID> playerQueue() {
+        return this.playerQueue;
+    }
+
+    public QueueState state() {
+        return this.state;
+    }
+
+    public void state(final QueueState state) {
+        this.state = state;
+    }
+
+    public int counter() {
+        return this.counter;
+    }
+
+    public void counter(final int value) {
+        this.counter = value;
+    }
+
+    public int incrementCounter() {
+        return ++this.counter;
+    }
+
+    public int decrementCounter() {
+        return --this.counter;
+    }
+
+}
