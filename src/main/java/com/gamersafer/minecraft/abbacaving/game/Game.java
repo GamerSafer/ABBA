@@ -268,10 +268,11 @@ public class Game {
                             TagResolver.resolver("seconds", Tag.inserting(Component.text(gracePeriodRemaining))),
                             TagResolver.resolver("optional-s", Tag.inserting(Component.text(gracePeriodRemaining != 1 ? "s" : "")))));
                 } else {
-                    this.broadcastActionBar(MiniMessage.miniMessage().deserialize("<gray>Ending In: <green>" + this.counter));
+                    this.broadcastActionBar(MiniMessage.miniMessage().deserialize(this.plugin.configMessage("game-ending-ab"),
+                            TagResolver.resolver("counter", Tag.inserting(Component.text(this.counter)))));
                 }
             } else if (this.counter == 0) {
-                this.broadcastActionBar(MiniMessage.miniMessage().deserialize("<red>Game Over"));
+                this.broadcastActionBar(MiniMessage.miniMessage().deserialize(this.plugin.configMessage("game-over")));
             }
 
             if (this.counter == gameDurationSeconds - gracePeriodSeconds) {
@@ -383,20 +384,18 @@ public class Game {
                     "optional-s", Component.text(winner.getKey().score() != 1 ? "s" : "")
             ));
 
-            this.broadcast("");
-
-            this.broadcast("<dark_aqua><bold>TOP PLAYERS</bold>");
+            this.broadcast(this.plugin.configMessage("game-top-players"));
 
             final List<GamePlayer> sorted = new ArrayList<>(sortedLeaderboards.keySet());
 
             for (int i = 0; i < Math.min(sorted.size(), 5); i++) {
                 final GamePlayer gp = sorted.get(i);
-                // TODO: replace all broadcasts with world broadcasts
+                // TODO: Move this to messages.yml
                 this.broadcast("<gray>#" + (i + 1) + ": <green><displayname> <gray>- " + Util.addCommas(this.leaderboard.get(gp)),
                         TagResolver.resolver("displayname", Tag.inserting(gp.player().displayName())));
             }
         } else {
-            this.broadcast("<green>The game has ended in a draw!");
+            this.broadcast(this.plugin.configMessage("game-end-draw"));
         }
 
         final ConfigurationSection sound = this.mapSetting("end-of-round.sound");
@@ -453,7 +452,6 @@ public class Game {
         this.gameState(GameState.DONE);
         this.counter(0);
 
-        // TODO: Cleanup, remove schematic at end of round
         final String schematicFile = this.mapSetting("end-of-game.schematic.name");
 
         if (schematicFile != null && !schematicFile.isBlank()) {
@@ -501,7 +499,7 @@ public class Game {
 
         final int postGameGracePeriod = this.mapSetting("game-end-grace-period-seconds");
 
-        this.broadcast("<green>Returning to lobby in " + postGameGracePeriod + " seconds...");
+        this.broadcast(this.plugin.configMessage("game-end-lobby"), Map.of("counter", Component.text(postGameGracePeriod)));
 
         this.plugin.getServer().getScheduler().runTaskLater(this.plugin, () -> {
             for (final GamePlayer gp : this.players.values()) {

@@ -38,7 +38,7 @@ public class StatsCommand implements CommandExecutor {
                 return true;
             }
 
-            this.plugin.message(player, "<dark_aqua><bold>" + target.getName().toUpperCase() + "'s STATS:");
+            this.plugin.message(player, this.plugin.configMessage("stats-other"), Map.of("player", target.getName().toUpperCase()));
         } else {
             gp = this.plugin.gameTracker().findPlayer(player);
             if (gp == null) {
@@ -46,12 +46,12 @@ public class StatsCommand implements CommandExecutor {
                 return true;
             }
 
-            this.plugin.message(player, "<dark_aqua><bold>YOUR STATS:");
+            this.plugin.message(player, this.plugin.configMessage("stats-own"));
         }
 
-        this.plugin.message(player, " <gray>Wins: <green>" + Util.addCommas(gp.wins()));
-        this.plugin.message(player, " <gray>Highest Score: <green>" + Util.addCommas(gp.highestScore()));
-        this.plugin.message(player, " <gray>Ores Mined: <green>" + Util.addCommas(gp.totalOresMined()));
+        this.plugin.message(player, this.plugin.configMessage("stats-wins"), Map.of("wins", Util.addCommas(gp.wins())));
+        this.plugin.message(player, this.plugin.configMessage("stats-score"), Map.of("score", Util.addCommas(gp.highestScore())));
+        this.plugin.message(player, this.plugin.configMessage("stats-ores"), Map.of("ores", Util.addCommas(gp.totalOresMined())));
         return true;
     }
 
