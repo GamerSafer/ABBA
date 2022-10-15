@@ -23,7 +23,7 @@ public class NightVisionCommand implements CommandExecutor {
             return true;
         }
 
-        if (!this.plugin.hasPermission(player, "nightvision")) {
+        if (!player.hasPermission("abbacaving.nightvision")) {
             this.plugin.message(sender, this.plugin.configMessage("no-permission"));
             return false;
         }

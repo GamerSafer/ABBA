@@ -184,7 +184,7 @@ public class Game {
         this.resetPlayer(player);
 
         if (!quit) {
-            if (this.plugin.hasPermission(player, "respawn") && !gp.hasRespawned()) {
+            if (player.hasPermission("abbacaving.respawn") && !gp.hasRespawned()) {
                 gp.hasRespawned(true);
                 gp.score(0);
                 gp.bucketUses(0);

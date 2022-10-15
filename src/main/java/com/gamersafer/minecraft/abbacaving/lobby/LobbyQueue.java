@@ -19,6 +19,14 @@ public class LobbyQueue {
         this.state = QueueState.WAITING;
     }
 
+    public boolean acceptingNewPlayers() {
+        return this.playerQueue.size() < this.maxPlayers;
+    }
+
+    public void addPlayer(final UUID uuid) {
+        this.playerQueue().add(uuid);
+    }
+
     public int maxPlayers() {
         return this.maxPlayers;
     }

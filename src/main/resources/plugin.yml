@@ -3,21 +3,28 @@ main: com.gamersafer.minecraft.abbacaving.AbbaCavingPlugin
 version: '${version}'
 author: GamerSafer
 api-version: 1.16
-depend: [ WorldEdit ]
+depend: [ WorldEdit, CoreProtect ]
 softdepend: [ PlaceholderAPI ]
 commands:
   acreload:
     description: Reloads the configuration.
+    permission: abbacaving.reload
   aclookup:
     description: Looks up stats for a specific round.
+    permission: abbacaving.aclookup
   bcastnp:
     description: Broadcast a message.
+    permission: abbacaving.broadcast
     aliases: [ bcast ]
   forcestart:
     description: Force starts the game.
     permission: abbacaving.forcestart
     permission-message: You are not allowed to do this.
     aliases: [ fs ]
+  join:
+    description: Joins a game lobby.
+    permission: abbacaving.join
+    permission-message: You are not allowed to join lobbies.
   nightvision:
     description: Night vision toggle.
     permission: abbacaving.nightvision
@@ -33,21 +40,17 @@ commands:
     permission-message: You are not allowed to view points.
 permissions:
   abbacaving.*:
-    description: Gives access to all Abba Caving commands.
+    description: Gives access to all Abba Caving permissions.
     children:
+      abbacaving.reload: true
+      abbacaving.aclookup: true
+      abbacaving.broadcast: true
       abbacaving.forcestart: true
+      abbacaving.join: true
+      abbacaving.join.full: true
       abbacaving.nightvision: true
       abbacaving.stats: true
       abbacaving.points: true
-  abbacaving.forcestart:
-    description: Permission to force start a game.
-    default: op
-  abbacaving.nightvision:
-    description: Permission to view points.
-    default: op
-  abbacaving.stats:
-    description: Permission to view a player's stats.
-    default: op
-  abbacaving.points:
-    description: Permission to view points.
-    default: op
+  abbacaving.join:
+    children:
+      abbacaving.join.full: false

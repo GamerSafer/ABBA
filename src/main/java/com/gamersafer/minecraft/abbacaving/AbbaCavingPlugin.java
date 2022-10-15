@@ -4,6 +4,7 @@ import com.gamersafer.minecraft.abbacaving.commands.ACLookupCommand;
 import com.gamersafer.minecraft.abbacaving.commands.ACReloadCommand;
 import com.gamersafer.minecraft.abbacaving.commands.BroadcastNPCommand;
 import com.gamersafer.minecraft.abbacaving.commands.ForceStartCommand;
+import com.gamersafer.minecraft.abbacaving.commands.JoinCommand;
 import com.gamersafer.minecraft.abbacaving.commands.NightVisionCommand;
 import com.gamersafer.minecraft.abbacaving.commands.PointsCommand;
 import com.gamersafer.minecraft.abbacaving.commands.StatsCommand;
@@ -49,7 +50,6 @@ import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
-import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -101,6 +101,7 @@ public class AbbaCavingPlugin extends JavaPlugin {
         this.getCommand("acreload").setExecutor(new ACReloadCommand(this));
         this.getCommand("bcastnp").setExecutor(new BroadcastNPCommand(this));
         this.getCommand("forcestart").setExecutor(new ForceStartCommand(this));
+        this.getCommand("join").setExecutor(new JoinCommand(this));
         this.getCommand("nightvision").setExecutor(new NightVisionCommand(this));
         this.getCommand("points").setExecutor(new PointsCommand(this));
         this.getCommand("stats").setExecutor(new StatsCommand(this));
@@ -183,12 +184,6 @@ public class AbbaCavingPlugin extends JavaPlugin {
             }
         }
         return null;
-    }
-
-    public boolean hasPermission(final Player player, final String permissionName) {
-        final String permissionNode = this.getConfig().getString("permissions." + permissionName);
-
-        return player.hasPermission(permissionNode);
     }
 
     public String configMessage(final String name) {

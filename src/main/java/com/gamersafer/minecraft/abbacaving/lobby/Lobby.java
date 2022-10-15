@@ -55,14 +55,6 @@ public class Lobby implements Listener {
         event.getPlayer().getInventory().clear();
         event.getPlayer().getInventory().setArmorContents(null);
 
-        for (final Game game : this.plugin.gameTracker().currentGames()) {
-            if (game.acceptingNewPlayers()) {
-                this.plugin.gameTracker().addPlayerToGame(game, event.getPlayer());
-                event.getPlayer().sendMessage(MiniMessage.miniMessage().deserialize(this.plugin.configMessage("joining-in-progress")));
-                return;
-            }
-        }
-
         event.getPlayer().teleport(new Location(
                 Bukkit.getWorld(this.plugin.getConfig().getString("lobby-spawn-location.world")),
                 this.plugin.getConfig().getDouble("lobby-spawn-location.x"),
