@@ -11,6 +11,7 @@ game-win: "<green><player> <gray>won the game with <green><score> <gray>point<op
 grace-period-ended: "<dark_aqua>Grace period has ended. You will now take damage!"
 join-full: "<red>That lobby is full!"
 join-invalid-map: "<red>That map does not exist!"
+join-lobby: "<gray>Joined <green><map></green>!"
 joining-in-progress: "<green>Joining in-progress game!"
 lobby-count: "<green><current><gray>/<green><max> <gray>players required!"
 lookup-title: "Top scores for match "

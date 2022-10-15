@@ -2,6 +2,7 @@ package com.gamersafer.minecraft.abbacaving.commands;
 
 import com.gamersafer.minecraft.abbacaving.AbbaCavingPlugin;
 import com.gamersafer.minecraft.abbacaving.lobby.LobbyQueue;
+import java.util.Map;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -42,6 +43,8 @@ public class JoinCommand implements CommandExecutor {
         }
 
         queue.addPlayer(player.getUniqueId());
+
+        this.plugin.message(player, this.plugin.configMessage("join-lobby"), Map.of("map", input));
 
         return true;
     }
