@@ -550,7 +550,7 @@ public class Game {
             final int gameDurationSeconds = this.mapSetting("duration-seconds");
             final int offsetSeconds = 300; // 5 minutes, this makes sure the restore covers the entire game duration
 
-            coreProtect.performRestore(gameDurationSeconds + offsetSeconds, null, null, null,
+            coreProtect.performRestore(gameDurationSeconds + offsetSeconds, this.allPlayers, null, null,
                     null, null, 10000, this.world().getSpawnLocation());
 
             this.plugin.getLogger().info("Reset block changes");
