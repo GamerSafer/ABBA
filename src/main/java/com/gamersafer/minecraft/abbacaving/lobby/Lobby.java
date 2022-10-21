@@ -39,6 +39,18 @@ public class Lobby implements Listener {
         }
     }
 
+    public List<LobbyQueue> activeQueues() {
+        final List<LobbyQueue> queues = new ArrayList<>();
+
+        for (final LobbyQueue queue : this.lobbyQueues.values()) {
+            if (queue.state() == QueueState.WAITING) {
+                queues.add(queue);
+            }
+        }
+
+        return queues;
+    }
+
     public LobbyQueue lobbyQueue(final String mapName) {
         return this.lobbyQueues.get(mapName);
     }

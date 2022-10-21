@@ -25,12 +25,8 @@ public class JoinCommand implements CommandExecutor {
         final LobbyQueue queue;
 
         if (args.length == 0 || args[0].equalsIgnoreCase("random")) {
-            final List<String> mapNames = this.plugin.configuredMapNames();
-            final String mapName = mapNames.get(ThreadLocalRandom.current().nextInt(mapNames.size()));
-
-            queue = this.plugin.lobby().lobbyQueue(mapName);
-            // TODO: don't try to put player into active games or full lobbies
-            //  add activeQueues() method to Lobby class and pick random from there.
+            final List<LobbyQueue> queues = this.plugin.lobby().activeQueues();
+            queue = queues.get(ThreadLocalRandom.current().nextInt(queues.size()));
         } else {
             final String input = args[0];
 
