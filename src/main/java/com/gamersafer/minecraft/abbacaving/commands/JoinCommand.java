@@ -26,6 +26,12 @@ public class JoinCommand implements CommandExecutor {
 
         if (args.length == 0 || args[0].equalsIgnoreCase("random")) {
             final List<LobbyQueue> queues = this.plugin.lobby().activeQueues();
+
+            if (queues.isEmpty()) {
+                this.plugin.message(sender, this.plugin.configMessage("no-open-queues"));
+                return true;
+            }
+
             queue = queues.get(ThreadLocalRandom.current().nextInt(queues.size()));
         } else {
             final String input = args[0];
@@ -51,7 +57,7 @@ public class JoinCommand implements CommandExecutor {
             if (sender instanceof Player playerSender) {
                 player = playerSender;
             } else {
-                return true;
+                return false;
             }
         }
 
