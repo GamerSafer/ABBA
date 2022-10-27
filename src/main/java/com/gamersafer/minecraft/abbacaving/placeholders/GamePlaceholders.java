@@ -82,6 +82,12 @@ public class GamePlaceholders extends PlaceholderExpansion {
                     return Util.addCommas(gp.wins());
                 case "game_players":
                     return Integer.toString(game.players().size());
+                case "game_maxplayers":
+                    return Integer.toString(game.maxPlayersPerRound());
+                case "map_name":
+                    return game.mapName();
+                case "game_id":
+                    return game.gameId();
                 case "game_state":
                     return game.gameState().displayName();
             }

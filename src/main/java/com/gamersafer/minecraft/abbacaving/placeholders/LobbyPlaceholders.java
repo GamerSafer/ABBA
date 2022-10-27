@@ -1,6 +1,7 @@
 package com.gamersafer.minecraft.abbacaving.placeholders;
 
 import com.gamersafer.minecraft.abbacaving.AbbaCavingPlugin;
+import com.gamersafer.minecraft.abbacaving.game.Game;
 import com.gamersafer.minecraft.abbacaving.lobby.LobbyQueue;
 import me.clip.placeholderapi.expansion.PlaceholderExpansion;
 import org.bukkit.Bukkit;
@@ -57,19 +58,17 @@ public class LobbyPlaceholders extends PlaceholderExpansion {
 
         final LobbyQueue queue = this.plugin.lobby().lobbyQueue(mapName);
 
-        if (queue == null) {
-            return "";
+        if (queue != null) {
+            return switch (suffix) {
+                case "state" -> queue.state().displayName();
+                case "players" -> Integer.toString(queue.playerQueue().size());
+                case "slots" -> Integer.toString(queue.maxPlayers());
+                case "counter" -> Integer.toString(queue.counter());
+                default -> "";
+            };
         }
 
-        // TODO: show in-progress game information when applicable
-        return switch (suffix) {
-            case "state" -> queue.state().displayName();
-            case "players" -> Integer.toString(queue.playerQueue().size());
-            case "slots" -> Integer.toString(queue.maxPlayers());
-            case "counter" -> Integer.toString(queue.counter());
-            default -> "";
-        };
-
+        return "";
     }
 
 }

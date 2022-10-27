@@ -40,6 +40,16 @@ public class GameTracker {
         return null;
     }
 
+    public Game gameByMapName(final String mapName) {
+        for (final Game game : this.currentGames()) {
+            if (game.mapName().equals(mapName)) {
+                return game;
+            }
+        }
+
+        return null;
+    }
+
     public Game findGame(final World world) {
         for (final Game game : this.currentGames()) {
             if (game.world().equals(world)) {

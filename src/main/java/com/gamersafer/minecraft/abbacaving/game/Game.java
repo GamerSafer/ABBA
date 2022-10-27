@@ -161,6 +161,10 @@ public class Game {
         return this.gameId;
     }
 
+    public String mapName() {
+        return this.mapName;
+    }
+
     public void addPlayer(final GamePlayer gp) {
         this.allPlayers.add(gp.player().getName());
 
