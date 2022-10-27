@@ -167,7 +167,7 @@ public class Game {
         if (this.players.put(gp.player().getName(), gp) == null) {
             this.broadcast(this.plugin.configMessage("player-joined"), Map.of("player", gp.player().displayName()));
 
-            this.resetPlayer(gp.player());
+            this.preparePlayer(gp.player());
         }
     }
 
@@ -180,8 +180,6 @@ public class Game {
     public GamePlayer removePlayer(final Player player, final boolean quit) {
         final GamePlayer gp = this.players.get(player.getName());
         if (gp == null) return null;
-
-        this.resetPlayer(player);
 
         if (!quit) {
             if (player.hasPermission("abbacaving.respawn") && !gp.hasRespawned()) {
@@ -211,12 +209,14 @@ public class Game {
                     ));
                 }
                 gp.isDead(true);
+                this.plugin.lobby().resetPlayer(player);
                 this.sendToLobby(player);
             }
         } else {
             this.players.remove(player.getName());
             this.leaderboard.remove(gp);
             this.updateLeaderboard();
+            this.plugin.lobby().resetPlayer(player);
 
             this.broadcast(this.plugin.configMessage("player-left"), Map.of("player", player.displayName()));
         }
@@ -244,11 +244,6 @@ public class Game {
 
     public int maxPlayersPerRound() {
         return this.mapSetting("maximum-players-per-round");
-    }
-
-    public boolean acceptingNewPlayers() {
-        // TODO: config option to disable joining non-full in-progress games
-        return this.players.size() < this.maxPlayersPerRound();
     }
 
     private void nextTick() {
@@ -345,7 +340,7 @@ public class Game {
             gp.player().teleport(loc);
 
             this.leaderboard.put(gp, 0);
-            this.resetPlayer(gp.player());
+            this.preparePlayer(gp.player());
             gp.score(0);
             gp.bucketUses(0);
             this.startingInventory(gp.player());
@@ -439,7 +434,7 @@ public class Game {
         final Title mainTitle = Title.title(title, subtitle);
 
         for (final GamePlayer gp : this.players.values()) {
-            this.resetPlayer(gp.player());
+            this.preparePlayer(gp.player());
             gp.player().showTitle(mainTitle);
         }
 
@@ -618,8 +613,7 @@ public class Game {
         player.getInventory().setBoots(new ItemStack(Material.IRON_BOOTS));
     }
 
-    public void resetPlayer(final Player player) {
-        // TODO: Make sure this isn't setting players to 40 or so health when they go to lobby
+    public void preparePlayer(final Player player) {
         final int maxHealth = this.mapSetting("player-health");
         player.getAttribute(Attribute.GENERIC_MAX_HEALTH).setBaseValue(maxHealth);
         player.setHealth(maxHealth);

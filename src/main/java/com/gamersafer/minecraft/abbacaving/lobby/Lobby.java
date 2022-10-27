@@ -55,17 +55,21 @@ public class Lobby implements Listener {
         return this.lobbyQueues.get(mapName);
     }
 
+    public void resetPlayer(final Player player) {
+        player.setGameMode(GameMode.ADVENTURE);
+        player.getAttribute(Attribute.GENERIC_MAX_HEALTH).setBaseValue(20);
+        player.setHealth(20);
+        player.setFoodLevel(20);
+
+        player.getInventory().clear();
+        player.getInventory().setArmorContents(null);
+    }
+
     @EventHandler
     public void onPlayerJoin(final PlayerJoinEvent event) {
         event.joinMessage(null);
 
-        event.getPlayer().setGameMode(GameMode.ADVENTURE);
-        event.getPlayer().getAttribute(Attribute.GENERIC_MAX_HEALTH).setBaseValue(20);
-        event.getPlayer().setHealth(20);
-        event.getPlayer().setFoodLevel(20);
-
-        event.getPlayer().getInventory().clear();
-        event.getPlayer().getInventory().setArmorContents(null);
+        this.resetPlayer(event.getPlayer());
 
         event.getPlayer().teleport(new Location(
                 Bukkit.getWorld(this.plugin.getConfig().getString("lobby-spawn-location.world")),

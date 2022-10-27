@@ -130,8 +130,6 @@ public class GamePlayer {
             }
             this.highestScore = this.score;
         }
-
-        // TODO: update score
     }
 
 }
