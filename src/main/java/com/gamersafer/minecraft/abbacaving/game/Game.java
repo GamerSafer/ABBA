@@ -385,8 +385,9 @@ public class Game {
 
             for (int i = 0; i < Math.min(sorted.size(), 5); i++) {
                 final GamePlayer gp = sorted.get(i);
-                // TODO: Move this to messages.yml
-                this.broadcast("<gray>#" + (i + 1) + ": <green><displayname> <gray>- " + Util.addCommas(this.leaderboard.get(gp)),
+                this.broadcast(this.plugin.configMessage("top-player"),
+                        TagResolver.resolver("index", Tag.inserting(Component.text(i + 1))),
+                        TagResolver.resolver("score", Tag.inserting(Component.text(Util.addCommas(this.leaderboard.get(gp))))),
                         TagResolver.resolver("displayname", Tag.inserting(gp.player().displayName())));
             }
         } else {
