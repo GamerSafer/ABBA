@@ -17,7 +17,6 @@ import org.bukkit.WorldCreator;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
-// TODO: modernize, replace legacy with components
 public final class Util {
 
     private static final DecimalFormat commaFormat = new DecimalFormat("#,###");

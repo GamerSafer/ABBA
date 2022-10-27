@@ -48,7 +48,7 @@ public class ACLookupCommand implements CommandExecutor, Pagination.Renderer.Row
         final List<GamePlayer> sortedScores = new ArrayList<>(game.leaderboard().keySet());
 
         if (sortedScores.isEmpty()) {
-            // TODO: lang entry and error message
+            this.plugin.message(sender, this.plugin.configMessage("no-scores"));
             return true;
         }
 
