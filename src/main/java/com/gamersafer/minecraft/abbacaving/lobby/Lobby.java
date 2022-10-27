@@ -158,7 +158,16 @@ public class Lobby implements Listener {
     public void cancelPreStart(final LobbyQueue queue) {
         queue.state(QueueState.WAITING);
         queue.counter(0);
-        // TODO: Feedback to let players know the countdown was cancelled. Message? Actionbar? Sound?
+
+        final Component queueStopped = MiniMessage.miniMessage().deserialize(this.plugin.configMessage("queue-stopped"));
+
+        for (final UUID uuid : queue.playerQueue()) {
+            final Player player = Bukkit.getPlayer(uuid);
+
+            if (player != null) {
+                player.sendActionBar(queueStopped);
+            }
+        }
     }
 
     public Game start(final LobbyQueue queue) {
