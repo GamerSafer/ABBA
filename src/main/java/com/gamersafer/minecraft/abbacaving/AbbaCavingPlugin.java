@@ -95,7 +95,11 @@ public class AbbaCavingPlugin extends JavaPlugin {
             new LobbyPlaceholders(this);
         }
 
-        this.dataSource = this.initDataSource(); // TODO: gracefully shut down when datasource init fails
+        try {
+            this.dataSource = this.initDataSource();
+        } catch (final ClassNotFoundException | IllegalArgumentException | IllegalStateException exception) {
+            throw new RuntimeException(exception);
+        }
 
         this.getCommand("aclookup").setExecutor(new ACLookupCommand(this));
         this.getCommand("acreload").setExecutor(new ACReloadCommand(this));
@@ -328,12 +332,8 @@ public class AbbaCavingPlugin extends JavaPlugin {
         this.getLogger().info("Loaded spawns for " + this.mapSpawns.size() + " map(s)");
     }
 
-    private HikariDataSource initDataSource() {
-        try {
-            Class.forName("org.mariadb.jdbc.Driver");
-        } catch (final ClassNotFoundException e) {
-            e.printStackTrace();
-        }
+    private HikariDataSource initDataSource() throws ClassNotFoundException, IllegalStateException, IllegalArgumentException {
+        Class.forName("org.mariadb.jdbc.Driver");
 
         final String host = this.getConfig().getString("mysql.host");
         final String name = this.getConfig().getString("mysql.database-name");
