@@ -193,7 +193,14 @@ public class Game {
                 this.updateLeaderboard();
                 this.startingInventory(player);
 
-                final Location loc = this.spawns.get(ThreadLocalRandom.current().nextInt(this.spawns.size()));
+                final Location loc;
+
+                if (this.spawns.isEmpty()) {
+                    loc = this.world.getSpawnLocation();
+                } else {
+                    loc = this.spawns.get(ThreadLocalRandom.current().nextInt(this.spawns.size()));
+                }
+
                 loc.setWorld(this.world);
                 gp.spawnLocation(loc);
                 player.teleport(loc);
@@ -546,15 +553,15 @@ public class Game {
     private void resetMap() {
         final CoreProtectAPI coreProtect = this.coreProtect();
 
-        if (coreProtect != null) {
-            final int gameDurationSeconds = this.mapSetting("duration-seconds");
-            final int offsetSeconds = 300; // 5 minutes, this makes sure the restore covers the entire game duration
+        final int gameDurationSeconds = this.mapSetting("duration-seconds");
+        final int offsetSeconds = 300; // 5 minutes, this makes sure the restore covers the entire game duration
 
-            coreProtect.performRestore(gameDurationSeconds + offsetSeconds, this.allPlayers, null, null,
+        Bukkit.getScheduler().runTaskAsynchronously(this.plugin, () -> {
+            coreProtect.performRollback(gameDurationSeconds + offsetSeconds, null, null, null,
                     null, null, 10000, this.world().getSpawnLocation());
 
             this.plugin.getLogger().info("Reset block changes");
-        }
+        });
 
         if (this.editSession != null) {
             this.editSession.undo(this.editSession);

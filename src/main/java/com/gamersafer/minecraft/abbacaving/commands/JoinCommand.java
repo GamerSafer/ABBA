@@ -24,6 +24,8 @@ public class JoinCommand implements CommandExecutor {
     public boolean onCommand(@NotNull final CommandSender sender, @NotNull final Command command, @NotNull final String label, @NotNull final String[] args) {
         final LobbyQueue queue;
 
+        // TODO: check if player's in queue, if they are, remove them from it
+
         if (args.length == 0 || args[0].equalsIgnoreCase("random")) {
             final List<LobbyQueue> queues = this.plugin.lobby().activeQueues();
 
