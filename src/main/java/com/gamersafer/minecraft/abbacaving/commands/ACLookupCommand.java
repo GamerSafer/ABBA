@@ -44,7 +44,13 @@ public class ACLookupCommand implements CommandExecutor, Pagination.Renderer.Row
             return false;
         }
 
-        final Game game = this.plugin.gameTracker().gameById(args[0]);
+        final Game game = this.plugin.gameTracker().gameByMapName(args[0]);
+
+        if (game == null) {
+            this.plugin.message(sender, this.plugin.configMessage("no-scores"));
+            return true;
+        }
+
         final List<GamePlayer> sortedScores = new ArrayList<>(game.leaderboard().keySet());
 
         if (sortedScores.isEmpty()) {
