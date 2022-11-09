@@ -45,8 +45,6 @@ public class GamePlaceholders extends PlaceholderExpansion {
 
         final GamePlayer gp = this.plugin.gameTracker().findPlayer(player);
         final Game game = this.plugin.gameTracker().findGame(player);
-        // TODO: might not be desired behaviour
-        // We might want to identify by game ID or something else.
 
         if (identifier.startsWith("leaderboard_score_")) {
             final int n = Integer.parseInt(identifier.replace("leaderboard_score_", ""));
