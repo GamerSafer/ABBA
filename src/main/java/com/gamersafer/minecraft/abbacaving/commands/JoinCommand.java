@@ -24,8 +24,6 @@ public class JoinCommand implements CommandExecutor {
     public boolean onCommand(@NotNull final CommandSender sender, @NotNull final Command command, @NotNull final String label, @NotNull final String[] args) {
         final LobbyQueue queue;
 
-        // TODO: check if player's in queue, if they are, remove them from it
-
         if (args.length == 0 || args[0].equalsIgnoreCase("random")) {
             final List<LobbyQueue> queues = this.plugin.lobby().activeQueues();
 
@@ -66,6 +64,12 @@ public class JoinCommand implements CommandExecutor {
         if (!queue.acceptingNewPlayers() && !player.hasPermission("abbacaving.join.full")) {
             this.plugin.message(sender, this.plugin.configMessage("join-full"));
             return false;
+        }
+
+        final LobbyQueue oldQueue = this.plugin.lobby().lobbyQueue(player);
+
+        if (oldQueue != null) {
+            oldQueue.removePlayer(player.getUniqueId());
         }
 
         queue.addPlayer(player.getUniqueId());

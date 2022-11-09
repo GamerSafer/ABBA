@@ -23,6 +23,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
+import org.jetbrains.annotations.Nullable;
 
 public class Lobby implements Listener {
 
@@ -53,6 +54,16 @@ public class Lobby implements Listener {
 
     public LobbyQueue lobbyQueue(final String mapName) {
         return this.lobbyQueues.get(mapName);
+    }
+
+    public @Nullable LobbyQueue lobbyQueue(final Player player) {
+        for (final LobbyQueue queue : this.lobbyQueues.values()) {
+            if (queue.playerQueue().contains(player.getUniqueId())) {
+                return queue;
+            }
+        }
+
+        return null;
     }
 
     public void resetPlayer(final Player player) {

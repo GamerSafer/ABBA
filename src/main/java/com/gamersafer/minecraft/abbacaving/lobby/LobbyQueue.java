@@ -27,6 +27,10 @@ public class LobbyQueue {
         this.playerQueue().add(uuid);
     }
 
+    public void removePlayer(final UUID uuid) {
+        this.playerQueue().remove(uuid);
+    }
+
     public int maxPlayers() {
         return this.maxPlayers;
     }
