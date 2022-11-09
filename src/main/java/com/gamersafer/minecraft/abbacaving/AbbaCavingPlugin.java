@@ -5,6 +5,7 @@ import com.gamersafer.minecraft.abbacaving.commands.ACReloadCommand;
 import com.gamersafer.minecraft.abbacaving.commands.BroadcastNPCommand;
 import com.gamersafer.minecraft.abbacaving.commands.ForceStartCommand;
 import com.gamersafer.minecraft.abbacaving.commands.JoinCommand;
+import com.gamersafer.minecraft.abbacaving.commands.LeaveCommand;
 import com.gamersafer.minecraft.abbacaving.commands.NightVisionCommand;
 import com.gamersafer.minecraft.abbacaving.commands.PointsCommand;
 import com.gamersafer.minecraft.abbacaving.commands.StatsCommand;
@@ -106,6 +107,7 @@ public class AbbaCavingPlugin extends JavaPlugin {
         this.getCommand("bcastnp").setExecutor(new BroadcastNPCommand(this));
         this.getCommand("forcestart").setExecutor(new ForceStartCommand(this));
         this.getCommand("join").setExecutor(new JoinCommand(this));
+        this.getCommand("leave").setExecutor(new LeaveCommand(this));
         this.getCommand("nightvision").setExecutor(new NightVisionCommand(this));
         this.getCommand("points").setExecutor(new PointsCommand(this));
         this.getCommand("stats").setExecutor(new StatsCommand(this));

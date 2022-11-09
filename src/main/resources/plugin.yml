@@ -25,6 +25,10 @@ commands:
     description: Joins a game lobby.
     permission: abbacaving.join
     permission-message: You are not allowed to join lobbies.
+  leave:
+    description: Leaves a game lobby.
+    permission: abbacaving.leave
+    permission-message: You are not allowed to leave lobbies.
   nightvision:
     description: Night vision toggle.
     permission: abbacaving.nightvision
