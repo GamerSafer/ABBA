@@ -12,13 +12,13 @@ default-settings:
     title: "<green>Round has ended!"
     subtitle: "<aqua>Example subtitle."
     schematic:
-      name: AbbaEnd
+      name: "AbbaEnd.schem"
       x: 0
       y: 100
       z: 0
     teleport:
       x: 0
-      y: 200
+      y: 105
       z: 0
     sound:
       key: "block.bell.use"

@@ -366,6 +366,8 @@ public class Game {
     }
 
     private void stop() {
+        this.plugin.getLogger().info("Game ended for map [" + this.mapName + "] and game ID [" + this.gameId + "]");
+
         this.broadcast(this.plugin.configMessage("game-ended"));
 
         if (this.leaderboard.size() > 0) {
@@ -459,14 +461,17 @@ public class Game {
         this.gameState(GameState.DONE);
         this.counter(0);
 
-        final String schematicFile = this.mapSetting("end-of-game.schematic.name");
+        final String schematicFile = this.mapSetting("end-of-round.schematic.name");
 
         if (schematicFile != null && !schematicFile.isBlank()) {
             final File schematicDirectory = new File(this.plugin.getDataFolder(), "schematics");
             final File schematic = new File(schematicDirectory, schematicFile);
 
             if (schematic.exists()) {
+                this.plugin.getLogger().info("Pasting end of round schematic");
+
                 final ClipboardFormat format = ClipboardFormats.findByFile(schematic);
+
                 try (final ClipboardReader reader = format.getReader(new FileInputStream(schematic))) {
                     final Clipboard clipboard = reader.read();
 
@@ -484,11 +489,13 @@ public class Game {
                                 .build();
 
                         Operations.complete(operation);
+                        // Replace with this.editSession.flushQueue() if there are issues with undoing pastes after closing this
+                        this.editSession.close();
                     } catch (final WorldEditException e) {
-                        throw new RuntimeException(e);
+                        e.printStackTrace();
                     }
                 } catch (final IOException e) {
-                    throw new RuntimeException(e);
+                    e.printStackTrace();
                 }
             }
         }
@@ -543,11 +550,9 @@ public class Game {
         this.plugin.getLogger().info("Loading map '" + this.mapName + "'...");
 
         this.spawns = Objects.requireNonNullElseGet(this.mapSpawns.get(this.mapName), List::of);
-        this.plugin.getLogger().info("Loaded " + this.spawns.size() + " spawns(s) for map " + this.mapName + " and gameId " + this.gameId);
+        this.plugin.getLogger().info("Loaded " + this.spawns.size() + " spawns(s) for map " + this.mapName);
 
-        final World world = Util.loadMap(this.mapName);
-
-        return world;
+        return Util.loadMap(this.mapName);
     }
 
     private void resetMap() {
@@ -557,16 +562,20 @@ public class Game {
         final int offsetSeconds = 300; // 5 minutes, this makes sure the restore covers the entire game duration
 
         Bukkit.getScheduler().runTaskAsynchronously(this.plugin, () -> {
+            this.plugin.getLogger().info("Rolling back block changes (CoreProtect)");
+
             coreProtect.performRollback(gameDurationSeconds + offsetSeconds, null, null, null,
                     null, null, 10000, this.world().getSpawnLocation());
 
-            this.plugin.getLogger().info("Reset block changes");
+            this.plugin.getLogger().info("Block changes rolled back");
         });
 
         if (this.editSession != null) {
+            this.plugin.getLogger().info("Rolling back schematics");
+
             this.editSession.undo(this.editSession);
 
-            this.plugin.getLogger().info("Removed end-of-game schematic");
+            this.plugin.getLogger().info("Schematics rolled back");
         }
 
         int removed = 0;
