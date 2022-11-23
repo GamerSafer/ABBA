@@ -53,6 +53,7 @@ public final class Util {
         world.setThundering(false);
         world.setAutoSave(false);
         world.setGameRule(GameRule.ANNOUNCE_ADVANCEMENTS, Boolean.FALSE);
+        world.setGameRule(GameRule.DO_IMMEDIATE_RESPAWN, true);
 
         return world;
     }

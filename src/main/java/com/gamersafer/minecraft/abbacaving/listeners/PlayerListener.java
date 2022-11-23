@@ -5,13 +5,10 @@ import com.gamersafer.minecraft.abbacaving.game.Game;
 import com.gamersafer.minecraft.abbacaving.game.GamePlayer;
 import com.gamersafer.minecraft.abbacaving.game.GameState;
 import com.gamersafer.minecraft.abbacaving.util.Util;
+import java.util.Collection;
+import java.util.Map;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.minimessage.MiniMessage;
-import net.kyori.adventure.text.minimessage.tag.Tag;
-import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
 import org.bukkit.Material;
-import org.bukkit.attribute.Attribute;
-import org.bukkit.attribute.AttributeInstance;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Cancellable;
@@ -27,7 +24,6 @@ import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerItemConsumeEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.ItemStack;
-import org.jetbrains.annotations.Nullable;
 
 public class PlayerListener implements Listener {
 
@@ -52,21 +48,40 @@ public class PlayerListener implements Listener {
     public void onPlayerDeath(final PlayerDeathEvent event) {
         final Player player = event.getEntity();
         final GamePlayer gamePlayer = this.plugin.gameTracker().findPlayer(player);
+        final Game game = this.plugin.gameTracker().findGame(player);
 
-        event.deathMessage(MiniMessage.miniMessage().deserialize(this.plugin.configMessage("death-message"),
-                TagResolver.resolver("player", Tag.inserting(event.getPlayer().name())),
-                TagResolver.resolver("score", Tag.inserting(Component.text(gamePlayer.score())))));
-        event.getDrops().clear();
-        event.setDroppedExp(0);
-
-        final @Nullable AttributeInstance attribute = player.getAttribute(Attribute.GENERIC_MAX_HEALTH);
-        attribute.setBaseValue(attribute.getDefaultValue());
-        player.setHealth(attribute.getBaseValue());
-
-        if (this.plugin.gameTracker().findPlayer(player) != null) {
-            this.plugin.getServer().getScheduler().runTaskLater(
-                    this.plugin, () -> this.plugin.gameTracker().removePlayer(player, false), 1);
+        if (gamePlayer == null || game == null) {
+            return;
         }
+
+        if (!player.hasPermission("abbacaving.respawn") || gamePlayer.hasRespawned()) {
+            game.broadcast(this.plugin.configMessage("player-died"), Map.of("player", player.displayName()));
+
+            final Collection<GamePlayer> players = game.players();
+
+            if (players.size() > 1) {
+                game.broadcast(this.plugin.configMessage("remaining-players"), Map.of(
+                        "count", Component.text(players.size()),
+                        "optional-s", Component.text(players.size() != 1 ? "s" : "")
+                ));
+            }
+
+            gamePlayer.isDead(true);
+            game.removePlayer(player, false);
+            game.sendToLobby(player);
+
+            return;
+        }
+
+        gamePlayer.hasRespawned(true);
+        gamePlayer.score(0);
+        gamePlayer.bucketUses(0);
+        game.updateLeaderboard();
+        game.startingInventory(player);
+
+        // TODO: RTP player in world when respawning
+
+        game.broadcast(this.plugin.configMessage("player-respawned"), Map.of("player", player.displayName()));
     }
 
     @EventHandler

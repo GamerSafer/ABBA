@@ -1,7 +1,6 @@
 package com.gamersafer.minecraft.abbacaving.placeholders;
 
 import com.gamersafer.minecraft.abbacaving.AbbaCavingPlugin;
-import com.gamersafer.minecraft.abbacaving.game.Game;
 import com.gamersafer.minecraft.abbacaving.lobby.LobbyQueue;
 import me.clip.placeholderapi.expansion.PlaceholderExpansion;
 import org.bukkit.Bukkit;

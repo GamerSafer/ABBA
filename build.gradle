@@ -19,7 +19,7 @@ repositories {
 }
 
 dependencies {
-    checkstyle "ca.stellardrift:stylecheck:0.1"
+    checkstyle 'ca.stellardrift:stylecheck:0.2.0'
 
     implementation "org.mariadb.jdbc:mariadb-java-client:3.0.6"
     implementation "com.zaxxer:HikariCP:5.0.1"

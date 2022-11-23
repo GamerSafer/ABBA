@@ -1,5 +1,4 @@
 cannot-mine-near-spawn: "<red>You must move further away from the spawn to start mining!"
-death-message: "<red><player> died with a score of <gray><score>"
 gained-points: "<green>+<amount> <gray>point<optional-s>! (<green><reward><gray>)"
 game-end-draw: "<green>The game has ended in a draw!"
 game-end-lobby: "<green>Returning to lobby in <counter> seconds..."

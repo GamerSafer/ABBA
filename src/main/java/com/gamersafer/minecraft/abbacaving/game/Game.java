@@ -20,13 +20,10 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Objects;
-import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.Collectors;
 import net.coreprotect.CoreProtect;
 import net.coreprotect.CoreProtectAPI;
@@ -59,23 +56,18 @@ import org.intellij.lang.annotations.Subst;
 public class Game {
 
     private final AbbaCavingPlugin plugin;
-    private World world;
+    private final World world;
     private String gameId;
     private final String mapName;
-    private final Map<String, List<Location>> mapSpawns;
     private final Map<String, GamePlayer> players = new HashMap<>();
-    // List of all players in this round, including players that have died or left
-    private final List<String> allPlayers = new ArrayList<>();
-    private List<Location> spawns = new ArrayList<>();
     private Map<GamePlayer, Integer> leaderboard = new LinkedHashMap<>();
     private int counter;
     private boolean gracePeriod;
     private GameState state;
     private EditSession editSession = null;
 
-    public Game(final AbbaCavingPlugin plugin, final Map<String, List<Location>> mapSpawns, final String mapName) {
+    public Game(final AbbaCavingPlugin plugin, final String mapName) {
         this.plugin = plugin;
-        this.mapSpawns = mapSpawns;
         this.mapName = mapName;
         this.world = this.loadMap();
 
@@ -149,10 +141,6 @@ public class Game {
         this.state = state;
     }
 
-    public List<Location> spawnLocations() {
-        return this.spawns;
-    }
-
     public Collection<GamePlayer> players() {
         return this.players.values();
     }
@@ -166,8 +154,6 @@ public class Game {
     }
 
     public void addPlayer(final GamePlayer gp) {
-        this.allPlayers.add(gp.player().getName());
-
         if (this.players.put(gp.player().getName(), gp) == null) {
             this.broadcast(this.plugin.configMessage("player-joined"), Map.of("player", gp.player().displayName()));
 
@@ -179,56 +165,19 @@ public class Game {
         final int currentScore = this.leaderboard.computeIfAbsent(player, x -> 0);
 
         this.leaderboard.put(player, currentScore + amount);
+        this.updateLeaderboard();
     }
 
     public GamePlayer removePlayer(final Player player, final boolean quit) {
         final GamePlayer gp = this.players.get(player.getName());
         if (gp == null) return null;
 
-        if (!quit) {
-            if (player.hasPermission("abbacaving.respawn") && !gp.hasRespawned()) {
-                gp.hasRespawned(true);
-                gp.score(0);
-                gp.bucketUses(0);
-                this.updateLeaderboard();
-                this.startingInventory(player);
+        this.players.remove(player.getName());
+        this.leaderboard.remove(gp);
+        this.updateLeaderboard();
+        this.plugin.lobby().resetPlayer(player);
 
-                final Location loc;
-
-                if (this.spawns.isEmpty()) {
-                    loc = this.world.getSpawnLocation();
-                } else {
-                    loc = this.spawns.get(ThreadLocalRandom.current().nextInt(this.spawns.size()));
-                }
-
-                loc.setWorld(this.world);
-                gp.spawnLocation(loc);
-                player.teleport(loc);
-
-                this.broadcast(this.plugin.configMessage("player-respawned"), Map.of("player", player.displayName()));
-            } else {
-                this.players.remove(player.getName());
-                this.leaderboard.remove(gp);
-                this.updateLeaderboard();
-
-                this.broadcast(this.plugin.configMessage("player-died"), Map.of("player", player.displayName()));
-
-                if (this.players.size() > 1) {
-                    this.broadcast(this.plugin.configMessage("remaining-players"), Map.of(
-                            "count", Component.text(this.players.size()),
-                            "optional-s", Component.text(this.players.size() != 1 ? "s" : "")
-                    ));
-                }
-                gp.isDead(true);
-                this.plugin.lobby().resetPlayer(player);
-                this.sendToLobby(player);
-            }
-        } else {
-            this.players.remove(player.getName());
-            this.leaderboard.remove(gp);
-            this.updateLeaderboard();
-            this.plugin.lobby().resetPlayer(player);
-
+        if (quit) {
             this.broadcast(this.plugin.configMessage("player-left"), Map.of("player", player.displayName()));
         }
 
@@ -242,11 +191,6 @@ public class Game {
             }
         }
         return null;
-    }
-
-    public void updateScore(final GamePlayer gp) {
-        this.leaderboard.put(gp, gp.score());
-        this.updateLeaderboard();
     }
 
     private void counter(final int counter) {
@@ -318,31 +262,9 @@ public class Game {
         this.counter(gracePeriodSeconds);
         this.broadcast(this.plugin.configMessage("game-started"));
 
-        final List<Location> spawnsToUse = new ArrayList<>(this.spawns);
-
-        final Iterator<Location> itr = spawnsToUse.iterator();
-        Location spawn;
-
-        while (itr.hasNext()) {
-            spawn = itr.next();
-
-            if (spawn.getY() >= 50) {
-                this.plugin.getLogger().info(spawn + " spawn is too high");
-                itr.remove();
-            }
-        }
-        this.plugin.getLogger().info("Spawns to use: " + spawnsToUse.size());
-
         for (final GamePlayer gp : this.players.values()) {
-            final Location loc;
-
-            if (!spawnsToUse.isEmpty()) {
-                loc = spawnsToUse.remove(ThreadLocalRandom.current().nextInt(spawnsToUse.size()));
-            } else if (!this.spawns.isEmpty()) {
-                loc = this.spawns.remove(ThreadLocalRandom.current().nextInt(this.spawns.size()));
-            } else {
-                loc = this.world.getSpawnLocation();
-            }
+            // TODO: get random spawn location
+            final Location loc = this.world.getSpawnLocation();
 
             loc.setWorld(this.world);
 
@@ -549,9 +471,6 @@ public class Game {
     private World loadMap() {
         this.plugin.getLogger().info("Loading map '" + this.mapName + "'...");
 
-        this.spawns = Objects.requireNonNullElseGet(this.mapSpawns.get(this.mapName), List::of);
-        this.plugin.getLogger().info("Loaded " + this.spawns.size() + " spawns(s) for map " + this.mapName);
-
         return Util.loadMap(this.mapName);
     }
 
@@ -597,7 +516,7 @@ public class Game {
         this.plugin.getLogger().info("Removed " + removed + " entities (" + items + " were items)");
     }
 
-    private void startingInventory(final Player player) {
+    public void startingInventory(final Player player) {
         final Inventory inv = player.getInventory();
 
         final ItemStack pickaxe = new ItemStack(Material.DIAMOND_PICKAXE);
@@ -645,7 +564,7 @@ public class Game {
         player.getInventory().clear();
     }
 
-    private void updateLeaderboard() {
+    public void updateLeaderboard() {
         this.leaderboard = Util.sortByValue(this.leaderboard, true);
     }
 
@@ -664,7 +583,7 @@ public class Game {
                         spawn.getZ() + radius));
     }
 
-    private void sendToLobby(final Player player) {
+    public void sendToLobby(final Player player) {
         player.teleport(new Location(
                 Bukkit.getWorld(this.plugin.getConfig().getString("lobby-spawn-location.world")),
                 this.plugin.getConfig().getDouble("lobby-spawn-location.x"),

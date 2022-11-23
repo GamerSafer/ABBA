@@ -113,7 +113,7 @@ public class AbbaCavingPlugin extends JavaPlugin {
         this.getCommand("stats").setExecutor(new StatsCommand(this));
 
         for (final String mapName : this.configuredMapNames()) {
-            this.maps.put(mapName, new Game(this, this.mapSpawns, mapName));
+            this.maps.put(mapName, new Game(this, mapName));
         }
 
         this.gameTracker = new GameTracker(this);
@@ -301,37 +301,6 @@ public class AbbaCavingPlugin extends JavaPlugin {
         this.getLogger().info("Loaded " + this.loot.size() + " loot item(s)");
 
         this.mapSpawns = new HashMap<>();
-
-        final FileConfiguration spawnsConfig = new YamlConfiguration();
-
-        try {
-            final File spawnsFile = new File(this.getDataFolder(), "spawns.yml");
-
-            if (!spawnsFile.exists()) {
-                spawnsFile.getParentFile().mkdirs();
-                this.saveResource("spawns.yml", false);
-            }
-
-            spawnsConfig.load(spawnsFile);
-        } catch (final IOException | InvalidConfigurationException exception) {
-            this.getLogger().warning("Failed to load spawns.yml");
-            exception.printStackTrace();
-        }
-
-        for (final String entry : spawnsConfig.getKeys(false)) {
-            final List<Location> spawns = new ArrayList<>();
-            for (final String location : spawnsConfig.getStringList(entry)) {
-                final String[] split = location.split(",");
-                spawns.add(new Location(
-                        null,
-                        Double.parseDouble(split[0]),
-                        Double.parseDouble(split[1]),
-                        Double.parseDouble(split[2])
-                ));
-            }
-            this.mapSpawns.put(entry, spawns);
-        }
-        this.getLogger().info("Loaded spawns for " + this.mapSpawns.size() + " map(s)");
     }
 
     private HikariDataSource initDataSource() throws ClassNotFoundException, IllegalStateException, IllegalArgumentException {
