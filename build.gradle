@@ -10,12 +10,13 @@ version "0.1-ALPHA"
 
 repositories {
     mavenCentral()
-    maven { url = "https://repo.papermc.io/repository/maven-public/" }
     maven { url "https://oss.sonatype.org/content/repositories/snapshots" }
+    maven { url "https://repo.papermc.io/repository/maven-public/" }
     maven { url "https://maven.enginehub.org/repo" }
     maven { url "https://repo.extendedclip.com/content/repositories/placeholderapi/" }
-    maven { url "https://jitpack.io" }
     maven { url "https://maven.playpro.com/" }
+    maven { url "https://jitpack.io" }
+    mavenLocal()
 }
 
 dependencies {
@@ -31,6 +32,7 @@ dependencies {
     compileOnly "me.clip:placeholderapi:2.9.2"
     compileOnly "com.sk89q.worldedit:worldedit-bukkit:7.2.12"
     compileOnly "net.coreprotect:coreprotect:21.2"
+    compileOnly "me.darkeyedragon.randomtp:Spigot:3.1.0"
 
 //    compile fileTree(dir: "lib", include: ["*.jar"])
 }
