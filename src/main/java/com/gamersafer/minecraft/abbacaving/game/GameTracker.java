@@ -22,7 +22,7 @@ public class GameTracker {
 
     public void addPlayerToGame(final Game game, final Player player) {
         player.setGameMode(GameMode.ADVENTURE);
-        player.teleport(game.world().getSpawnLocation());
+        //player.teleport(game.world().getSpawnLocation());
 
         final GamePlayer gp = new GamePlayer(this.plugin, player);
         game.addPlayer(gp);

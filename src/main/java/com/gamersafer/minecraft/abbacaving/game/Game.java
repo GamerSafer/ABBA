@@ -14,6 +14,7 @@ import com.sk89q.worldedit.function.operation.Operation;
 import com.sk89q.worldedit.function.operation.Operations;
 import com.sk89q.worldedit.math.BlockVector3;
 import com.sk89q.worldedit.session.ClipboardHolder;
+import de.themoep.randomteleport.RandomTeleport;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -24,12 +25,8 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
-import me.darkeyedragon.randomtp.RandomTeleport;
-import me.darkeyedragon.randomtp.SpigotImpl;
-import me.darkeyedragon.randomtp.api.config.datatype.ConfigWorld;
-import me.darkeyedragon.randomtp.api.world.RandomWorld;
-import me.darkeyedragon.randomtp.util.WorldUtil;
 import net.coreprotect.CoreProtect;
 import net.coreprotect.CoreProtectAPI;
 import net.kyori.adventure.key.InvalidKeyException;
@@ -80,16 +77,6 @@ public class Game {
         this.counter(0);
 
         plugin.getServer().getScheduler().runTaskTimer(plugin, this::nextTick, 0, 20);
-
-        final Plugin randomTPPlugin = Bukkit.getPluginManager().getPlugin("RandomTeleport");
-
-        if (randomTPPlugin instanceof SpigotImpl spigotImpl) {
-            final RandomTeleport randomTeleport = spigotImpl.getInstance();
-            final RandomWorld randomWorld = WorldUtil.toRandomWorld(this.world());
-            // TODO: generate random locations on startup
-            // TODO: regenerate random locations during match, so the map has the spawn locations for the next game already
-            // TODO: rtp players into the map when the round starts
-        }
     }
 
     private <T> T mapSetting(final String key) {
@@ -136,6 +123,16 @@ public class Game {
         }
     }
 
+    public CompletableFuture<Location> randomLocation(final Player player) {
+        final Plugin randomTPPlugin = Bukkit.getPluginManager().getPlugin("RandomTeleport");
+
+        if (randomTPPlugin instanceof RandomTeleport randomTeleport) {
+            return randomTeleport.getRandomLocation(player, this.world().getSpawnLocation(), 100, 2000);
+        }
+
+        return CompletableFuture.completedFuture(this.world().getSpawnLocation());
+    }
+
     public World world() {
         return this.world;
     }
@@ -173,6 +170,11 @@ public class Game {
             this.broadcast(this.plugin.configMessage("player-joined"), Map.of("player", gp.player().displayName()));
 
             this.preparePlayer(gp.player());
+            this.randomLocation(gp.player()).thenAccept(location -> {
+                if (location != null) {
+                    gp.player().teleportAsync(location); // This does not make teleports thread safe, always ensure API's invoked on MT
+                }
+            });
         }
     }
 
