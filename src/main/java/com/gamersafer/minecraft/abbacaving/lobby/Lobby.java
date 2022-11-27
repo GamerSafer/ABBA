@@ -164,6 +164,16 @@ public class Lobby implements Listener {
     public void preStart(final LobbyQueue queue) {
         queue.counter(this.plugin.mapSettings("default-settings").getInt("start-countdown-seconds"));
         queue.state(QueueState.STARTING);
+
+        for (final UUID uuid : queue.playerQueue()) {
+            final Player player = Bukkit.getPlayer(uuid);
+
+            if (player == null) {
+                continue;
+            }
+
+            this.plugin.game(queue.mapName()).preparePlayerSpawn(player);
+        }
     }
 
     public void cancelPreStart(final LobbyQueue queue) {
