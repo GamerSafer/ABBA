@@ -5,9 +5,10 @@ default-settings:
   start-countdown-seconds: 10
   grace-period-duration-seconds: 60
   game-end-grace-period-seconds: 60
-  # Set protected-spawn-radius to 0 to disable.
-  protected-spawn-radius: 20
   player-health: 40
+  random-teleport:
+    min-radius: 100
+    max-radius: 1000
   end-of-round:
     title: "<green>Round has ended!"
     subtitle: "<aqua>Example subtitle."

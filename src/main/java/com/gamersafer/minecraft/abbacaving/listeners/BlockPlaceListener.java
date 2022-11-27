@@ -37,15 +37,6 @@ public class BlockPlaceListener implements Listener {
             return;
         }
 
-        final Location loc = event.getBlock().getLocation();
-        for (final Location spawn : game.spawnLocations()) {
-            if (!game.canAccess(loc, spawn)) {
-                event.setCancelled(true);
-                this.plugin.message(event.getPlayer(), this.plugin.configMessage("cannot-mine-near-spawn"));
-                return;
-            }
-        }
-
         final ItemStack item = event.getItemInHand();
         if (item.getType() == Material.TORCH || item.getType() == Material.COBBLESTONE) {
             item.setAmount(1);

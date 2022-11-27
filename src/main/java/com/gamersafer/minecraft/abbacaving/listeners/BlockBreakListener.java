@@ -7,7 +7,6 @@ import com.gamersafer.minecraft.abbacaving.game.GamePlayer;
 import com.gamersafer.minecraft.abbacaving.game.GameState;
 import net.kyori.adventure.text.minimessage.tag.Tag;
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
-import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -33,16 +32,6 @@ public class BlockBreakListener implements Listener {
         if (game == null || game.gameState() != GameState.RUNNING) {
             event.setCancelled(true);
             return;
-        }
-
-        final Location loc = event.getBlock().getLocation();
-
-        for (final Location spawn : game.spawnLocations()) {
-            if (!game.canAccess(loc, spawn)) {
-                event.setCancelled(true);
-                this.plugin.message(event.getPlayer(), this.plugin.configMessage("cannot-mine-near-spawn"));
-                return;
-            }
         }
 
         final CaveOre ore = this.plugin.caveOreFromBlock(event.getBlock().getType());

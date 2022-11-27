@@ -14,6 +14,7 @@ import com.sk89q.worldedit.function.operation.Operation;
 import com.sk89q.worldedit.function.operation.Operations;
 import com.sk89q.worldedit.math.BlockVector3;
 import com.sk89q.worldedit.session.ClipboardHolder;
+import de.themoep.randomteleport.RandomTeleport;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -24,6 +25,9 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Objects;
+import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 import net.coreprotect.CoreProtect;
 import net.coreprotect.CoreProtectAPI;
@@ -61,6 +65,7 @@ public class Game {
     private final String mapName;
     private final Map<String, GamePlayer> players = new HashMap<>();
     private Map<GamePlayer, Integer> leaderboard = new LinkedHashMap<>();
+    private Map<UUID, Location> randomSpawns = new HashMap<>();
     private int counter;
     private boolean gracePeriod;
     private GameState state;
@@ -121,6 +126,19 @@ public class Game {
         }
     }
 
+    public CompletableFuture<Location> randomLocation(final Player player) {
+        final Plugin randomTPPlugin = Bukkit.getPluginManager().getPlugin("RandomTeleport");
+
+        if (randomTPPlugin instanceof RandomTeleport randomTeleport) {
+            final int min = this.mapSetting("random-teleport.min-radius");
+            final int max = this.mapSetting("random-teleport.max-radius");
+
+            return randomTeleport.getRandomLocation(player, this.world().getSpawnLocation(), min, max);
+        }
+
+        return CompletableFuture.completedFuture(this.world().getSpawnLocation());
+    }
+
     public World world() {
         return this.world;
     }
@@ -153,18 +171,39 @@ public class Game {
         return this.mapName;
     }
 
-    public void addPlayer(final GamePlayer gp) {
-        if (this.players.put(gp.player().getName(), gp) == null) {
-            this.broadcast(this.plugin.configMessage("player-joined"), Map.of("player", gp.player().displayName()));
+    public void preparePlayerSpawn(final Player player) {
+        // If the countdown cancels and restarts, don't find locations for players a second time
+        if (this.randomSpawns.containsKey(player.getUniqueId())) {
+            return;
+        }
 
-            this.preparePlayer(gp.player());
+        this.randomLocation(player).thenAccept(location -> {
+            if (location != null) {
+                this.randomSpawns.put(player.getUniqueId(), location);
+            }
+        });
+    }
+
+    public void addPlayer(final GamePlayer gamePlayer) {
+        if (this.players.put(gamePlayer.player().getName(), gamePlayer) == null) {
+            this.broadcast(this.plugin.configMessage("player-joined"), Map.of("player", gamePlayer.player().displayName()));
+
+            this.preparePlayer(gamePlayer.player());
+
+            final Location randomSpawn = this.randomSpawns.get(gamePlayer.player().getUniqueId());
+
+            // Default to the world spawn if we couldn't find a random spawn for the player
+            gamePlayer.player().teleport(Objects.requireNonNullElseGet(randomSpawn, () -> this.world().getSpawnLocation()));
+
+            // Remove random spawns when used, players should have a unique experience each round
+            this.randomSpawns.remove(gamePlayer.player().getUniqueId());
         }
     }
 
-    public void increasePlayerScore(final GamePlayer player, final int amount) {
-        final int currentScore = this.leaderboard.computeIfAbsent(player, x -> 0);
+    public void increasePlayerScore(final GamePlayer gamePlayer, final int amount) {
+        final int currentScore = this.leaderboard.computeIfAbsent(gamePlayer, x -> 0);
 
-        this.leaderboard.put(player, currentScore + amount);
+        this.leaderboard.put(gamePlayer, currentScore + amount);
         this.updateLeaderboard();
     }
 
@@ -270,7 +309,7 @@ public class Game {
 
             this.plugin.getLogger().info("Teleporting " + gp.player().getName() + " to " + loc);
             gp.spawnLocation(loc);
-            gp.player().teleport(loc);
+            //gp.player().teleport(loc);
 
             this.leaderboard.put(gp, 0);
             this.preparePlayer(gp.player());
