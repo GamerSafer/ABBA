@@ -130,7 +130,10 @@ public class Game {
         final Plugin randomTPPlugin = Bukkit.getPluginManager().getPlugin("RandomTeleport");
 
         if (randomTPPlugin instanceof RandomTeleport randomTeleport) {
-            return randomTeleport.getRandomLocation(player, this.world().getSpawnLocation(), 100, 2000);
+            final int min = this.mapSetting("random-teleport.min-radius");
+            final int max = this.mapSetting("random-teleport.max-radius");
+
+            return randomTeleport.getRandomLocation(player, this.world().getSpawnLocation(), min, max);
         }
 
         return CompletableFuture.completedFuture(this.world().getSpawnLocation());

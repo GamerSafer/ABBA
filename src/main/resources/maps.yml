@@ -6,6 +6,9 @@ default-settings:
   grace-period-duration-seconds: 60
   game-end-grace-period-seconds: 60
   player-health: 40
+  random-teleport:
+    min-radius: 100
+    max-radius: 1000
   end-of-round:
     title: "<green>Round has ended!"
     subtitle: "<aqua>Example subtitle."
