@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -39,11 +40,14 @@ import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.kyori.adventure.text.minimessage.tag.Tag;
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
 import net.kyori.adventure.title.Title;
+import net.kyori.adventure.util.TriState;
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
+import org.bukkit.GameRule;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
+import org.bukkit.WorldCreator;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.enchantments.Enchantment;
@@ -510,7 +514,18 @@ public class Game {
     private World loadMap() {
         this.plugin.getLogger().info("Loading map '" + this.mapName + "'...");
 
-        return Util.loadMap(this.mapName);
+        final WorldCreator worldCreator = new WorldCreator(this.mapName).keepSpawnLoaded(TriState.FALSE);
+
+        final World world = Bukkit.createWorld(worldCreator);
+        world.setKeepSpawnInMemory(false);
+        world.setTime(0);
+        world.setStorm(false);
+        world.setThundering(false);
+        world.setAutoSave(false);
+        world.setGameRule(GameRule.ANNOUNCE_ADVANCEMENTS, Boolean.FALSE);
+        world.setGameRule(GameRule.DO_IMMEDIATE_RESPAWN, true);
+
+        return world;
     }
 
     private void resetMap() {
@@ -604,14 +619,35 @@ public class Game {
     }
 
     public void updateLeaderboard() {
-        this.leaderboard = Util.sortByValue(this.leaderboard, true);
+        this.leaderboard = this.sortByValue(this.leaderboard, true);
+    }
+
+    private <K, V extends Comparable<? super V>> Map<K, V> sortByValue(
+            final Map<K, V> map, final boolean desc) {
+        final List<Entry<K, V>> entries = new LinkedList<>(map.entrySet());
+
+        entries.sort((o1, o2) -> {
+            if (desc) {
+                return o2.getValue().compareTo(o1.getValue());
+            } else {
+                return o1.getValue().compareTo(o2.getValue());
+            }
+        });
+
+        final Map<K, V> result = new LinkedHashMap<>(entries.size());
+
+        for (final Entry<K, V> entry : entries) {
+            result.put(entry.getKey(), entry.getValue());
+        }
+
+        return result;
     }
 
     public boolean canAccess(final Location loc, final Location spawn) {
         final int radius = this.mapSetting("protected-spawn-radius");
         if (radius < 1) return true;
 
-        return !Util.inBounds(loc,
+        return !this.inBounds(loc,
                 new Location(spawn.getWorld(),
                         spawn.getX() - radius,
                         spawn.getY() - radius,
@@ -620,6 +656,12 @@ public class Game {
                         spawn.getX() + radius,
                         spawn.getY() + radius,
                         spawn.getZ() + radius));
+    }
+
+    private boolean inBounds(final Location location, final Location bound1, final Location bound2) {
+        return Math.min(bound1.getX(), bound2.getX()) <= location.getX() && location.getX() <= Math.max(bound1.getX(), bound2.getX()) &&
+                Math.min(bound1.getY(), bound2.getY()) <= location.getY() && location.getY() <= Math.max(bound1.getY(), bound2.getY()) &&
+                Math.min(bound1.getZ(), bound2.getZ()) <= location.getZ() && location.getZ() <= Math.max(bound1.getZ(), bound2.getZ());
     }
 
     public void sendToLobby(final Player player) {

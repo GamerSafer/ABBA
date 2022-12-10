@@ -3,6 +3,7 @@ package com.gamersafer.minecraft.abbacaving.lobby;
 import com.gamersafer.minecraft.abbacaving.AbbaCavingPlugin;
 import com.gamersafer.minecraft.abbacaving.game.Game;
 import com.gamersafer.minecraft.abbacaving.util.Util;
+import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -223,9 +224,20 @@ public class Lobby implements Listener {
 
         queue.playerQueue().removeAll(uuidsToRemove);
         queue.state(QueueState.WAITING);
-        game.start(Util.randomString(6));
+        game.start(this.randomString(6));
 
         return game;
+    }
+
+    private static final String AB = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    private static final SecureRandom rnd = new SecureRandom();
+
+    private String randomString(final int len) {
+        final StringBuilder sb = new StringBuilder(len);
+
+        for (int i = 0; i < len; i++)
+            sb.append(AB.charAt(rnd.nextInt(AB.length())));
+        return sb.toString();
     }
 
     public int playersRequiredToStart(final String mapName) {
