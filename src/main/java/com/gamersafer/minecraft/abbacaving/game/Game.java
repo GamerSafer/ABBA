@@ -212,13 +212,16 @@ public class Game {
     }
 
     public GamePlayer removePlayer(final Player player, final boolean quit) {
-        final GamePlayer gp = this.players.get(player.getName());
-        if (gp == null) return null;
+        final GamePlayer gamePlayer = this.players.get(player.getName());
 
-        this.saveHotbar(player);
+        if (gamePlayer == null) {
+            return null;
+        }
+
+        this.saveInventoryLayout(gamePlayer);
 
         this.players.remove(player.getName());
-        this.leaderboard.remove(gp);
+        this.leaderboard.remove(gamePlayer);
         this.updateLeaderboard();
         this.plugin.lobby().resetPlayer(player);
 
@@ -226,23 +229,24 @@ public class Game {
             this.broadcast(this.plugin.configMessage("player-left"), Map.of("player", player.displayName()));
         }
 
-        return gp;
+        return gamePlayer;
     }
 
-    private void saveHotbar(final Player player) {
-        final Map<Integer, String> hotbarSlots = new HashMap<>();
+    private void saveInventoryLayout(final GamePlayer player) {
+        final Map<Integer, String> inventoryLayout = new HashMap<>();
 
-        for (int i = 36; i <= 44; i++) {
-            final ItemStack slotItem = player.getInventory().getItem(i);
+        // Iterate through player's inventory, including off-hand and ignoring armor and crafting grid
+        for (int i = 9; i <= 45; i++) {
+            final ItemStack slotItem = player.player().getInventory().getItem(i);
 
             if (slotItem == null || slotItem.getType() == Material.AIR) {
                 continue;
             }
 
-            hotbarSlots.put(i, slotItem.getType().toString());
+            inventoryLayout.put(i, slotItem.getType().toString());
         }
 
-        // TODO: save hotbar
+        this.plugin.playerDataSource().saveInventoryLayout(player);
     }
 
     public GamePlayer player(final Player player) {

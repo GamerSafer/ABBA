@@ -2,9 +2,11 @@ package com.gamersafer.minecraft.abbacaving.game;
 
 import com.gamersafer.minecraft.abbacaving.AbbaCavingPlugin;
 import com.gamersafer.minecraft.abbacaving.util.Util;
+import java.util.HashMap;
 import java.util.Map;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 
@@ -13,6 +15,7 @@ public class GamePlayer {
     private final AbbaCavingPlugin plugin;
     private final Player player;
 
+    private Map<Integer, Material> savedSlots = new HashMap<>();
     private int wins;
     private int score;
     private int highestScore;
@@ -103,6 +106,14 @@ public class GamePlayer {
 
     public void hasRespawned(final boolean hasRespawned) {
         this.hasRespawned = hasRespawned;
+    }
+
+    public Map<Integer, Material> savedSlots() {
+        return this.savedSlots;
+    }
+
+    public void savedSlots(final Map<Integer, Material> savedSlots) {
+        this.savedSlots = savedSlots;
     }
 
     public void addScore(final int amount, final String rewardName) {
