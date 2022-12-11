@@ -215,6 +215,8 @@ public class Game {
         final GamePlayer gp = this.players.get(player.getName());
         if (gp == null) return null;
 
+        this.saveHotbar(player);
+
         this.players.remove(player.getName());
         this.leaderboard.remove(gp);
         this.updateLeaderboard();
@@ -225,6 +227,22 @@ public class Game {
         }
 
         return gp;
+    }
+
+    private void saveHotbar(final Player player) {
+        final Map<Integer, String> hotbarSlots = new HashMap<>();
+
+        for (int i = 36; i <= 44; i++) {
+            final ItemStack slotItem = player.getInventory().getItem(i);
+
+            if (slotItem == null || slotItem.getType() == Material.AIR) {
+                continue;
+            }
+
+            hotbarSlots.put(i, slotItem.getType().toString());
+        }
+
+        // TODO: save hotbar
     }
 
     public GamePlayer player(final Player player) {

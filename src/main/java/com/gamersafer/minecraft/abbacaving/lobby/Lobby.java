@@ -2,7 +2,6 @@ package com.gamersafer.minecraft.abbacaving.lobby;
 
 import com.gamersafer.minecraft.abbacaving.AbbaCavingPlugin;
 import com.gamersafer.minecraft.abbacaving.game.Game;
-import com.gamersafer.minecraft.abbacaving.util.Util;
 import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.HashMap;

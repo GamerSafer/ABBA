@@ -27,7 +27,7 @@ public class GameTracker {
         final GamePlayer gp = new GamePlayer(this.plugin, player);
         game.addPlayer(gp);
 
-        this.plugin.getServer().getScheduler().runTaskAsynchronously(this.plugin, () -> this.plugin.loadPlayerStats(gp));
+        this.plugin.getServer().getScheduler().runTaskAsynchronously(this.plugin, () -> this.plugin.playerDataSource().loadPlayerStats(gp));
     }
 
     public Game gameById(final String gameId) {

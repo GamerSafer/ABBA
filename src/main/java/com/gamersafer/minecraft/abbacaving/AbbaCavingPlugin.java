@@ -9,10 +9,11 @@ import com.gamersafer.minecraft.abbacaving.commands.LeaveCommand;
 import com.gamersafer.minecraft.abbacaving.commands.NightVisionCommand;
 import com.gamersafer.minecraft.abbacaving.commands.PointsCommand;
 import com.gamersafer.minecraft.abbacaving.commands.StatsCommand;
+import com.gamersafer.minecraft.abbacaving.datasource.PlayerDataSource;
+import com.gamersafer.minecraft.abbacaving.datasource.SQLDataSource;
 import com.gamersafer.minecraft.abbacaving.game.CaveLoot;
 import com.gamersafer.minecraft.abbacaving.game.CaveOre;
 import com.gamersafer.minecraft.abbacaving.game.Game;
-import com.gamersafer.minecraft.abbacaving.game.GamePlayer;
 import com.gamersafer.minecraft.abbacaving.game.GameTracker;
 import com.gamersafer.minecraft.abbacaving.listeners.BlockBreakListener;
 import com.gamersafer.minecraft.abbacaving.listeners.BlockPlaceListener;
@@ -22,15 +23,8 @@ import com.gamersafer.minecraft.abbacaving.listeners.PlayerListener;
 import com.gamersafer.minecraft.abbacaving.lobby.Lobby;
 import com.gamersafer.minecraft.abbacaving.placeholders.GamePlaceholders;
 import com.gamersafer.minecraft.abbacaving.placeholders.LobbyPlaceholders;
-import com.zaxxer.hikari.HikariConfig;
-import com.zaxxer.hikari.HikariDataSource;
 import java.io.File;
 import java.io.IOException;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -61,7 +55,7 @@ public class AbbaCavingPlugin extends JavaPlugin {
     private GameTracker gameTracker;
     private Lobby lobby;
     private Map<String, List<Location>> mapSpawns;
-    private HikariDataSource dataSource;
+    private PlayerDataSource dataSource;
     private FileConfiguration mapsConfig = new YamlConfiguration();
     private FileConfiguration messagesConfig = new YamlConfiguration();
     private FileConfiguration pointsConfig = new YamlConfiguration();
@@ -79,8 +73,6 @@ public class AbbaCavingPlugin extends JavaPlugin {
             schematicDirectory.mkdirs();
         }
 
-        this.getServer().getMessenger().registerOutgoingPluginChannel(this, "BungeeCord");
-
         this.loadData();
 
         this.getServer().getPluginManager().registerEvents(new BlockBreakListener(this), this);
@@ -89,18 +81,13 @@ public class AbbaCavingPlugin extends JavaPlugin {
         this.getServer().getPluginManager().registerEvents(new PlayerListener(this), this);
         this.getServer().getPluginManager().registerEvents(new InventoryListener(this), this);
 
-        this.getServer().getScheduler().runTaskAsynchronously(this, this::createTable);
-
         if (Bukkit.getPluginManager().isPluginEnabled("PlaceholdersAPI")) {
             new GamePlaceholders(this);
             new LobbyPlaceholders(this);
         }
 
-        try {
-            this.dataSource = this.initDataSource();
-        } catch (final ClassNotFoundException | IllegalArgumentException | IllegalStateException exception) {
-            throw new RuntimeException(exception);
-        }
+        this.dataSource = new SQLDataSource(this);
+        this.dataSource.init();
 
         this.getCommand("aclookup").setExecutor(new ACLookupCommand(this));
         this.getCommand("acreload").setExecutor(new ACReloadCommand(this));
@@ -131,6 +118,10 @@ public class AbbaCavingPlugin extends JavaPlugin {
 
     public Game game(final String mapName) {
         return this.maps.get(mapName);
+    }
+
+    public PlayerDataSource playerDataSource() {
+        return this.dataSource;
     }
 
     private FileConfiguration fileConfiguration(final String fileName) {
@@ -301,71 +292,6 @@ public class AbbaCavingPlugin extends JavaPlugin {
         this.getLogger().info("Loaded " + this.loot.size() + " loot item(s)");
 
         this.mapSpawns = new HashMap<>();
-    }
-
-    private HikariDataSource initDataSource() throws ClassNotFoundException, IllegalStateException, IllegalArgumentException {
-        Class.forName("org.mariadb.jdbc.Driver");
-
-        final String host = this.getConfig().getString("mysql.host");
-        final String name = this.getConfig().getString("mysql.database-name");
-
-        final HikariConfig config = new HikariConfig();
-        config.setMinimumIdle(1);
-        config.setMaximumPoolSize(4);
-        config.setJdbcUrl("jdbc:mariadb://" + host + "/" + name);
-        config.setUsername(this.getConfig().getString("mysql.username"));
-        config.setPassword(this.getConfig().getString("mysql.password"));
-        return new HikariDataSource(config);
-    }
-
-    private void createTable() {
-        try (final Connection conn = this.dataSource.getConnection()) {
-            try (final Statement stmt = conn.createStatement()) {
-                stmt.execute("CREATE TABLE IF NOT EXISTS abba_caving_stats (uuid VARCHAR(50) PRIMARY KEY, wins INT, highest_score INT, ores_mined INT);");
-            }
-        } catch (final SQLException ex) {
-            ex.printStackTrace();
-        }
-    }
-
-    public void loadPlayerStats(final GamePlayer gp) {
-        try (final Connection conn = this.dataSource.getConnection()) {
-            try (final PreparedStatement stmt = conn.prepareStatement("SELECT wins, highest_score, ores_mined FROM abba_caving_stats WHERE uuid = ?;")) {
-                stmt.setString(1, gp.player().getUniqueId().toString());
-
-                try (final ResultSet rs = stmt.executeQuery()) {
-                    if (rs.next()) {
-                        gp.wins(rs.getInt("wins"));
-                        gp.highestScore(rs.getInt("highest_score"));
-                        gp.totalOresMined(rs.getInt("ores_mined"));
-                        this.getLogger().info("Loaded " + gp.player().getName() + "'s stats");
-                    } else {
-                        this.getLogger().info("No stats found for player " + gp.player().getName());
-                    }
-                }
-            }
-        } catch (final SQLException ex) {
-            ex.printStackTrace();
-        }
-    }
-
-    public void savePlayerStats(final GamePlayer gp) {
-        try (final Connection conn = this.dataSource.getConnection()) {
-            try (final PreparedStatement stmt = conn.prepareStatement(
-                    "INSERT INTO abba_caving_stats (uuid, wins, highest_score, ores_mined) VALUES (?, ?, ?, ?) ON DUPLICATE KEY UPDATE wins = ?, highest_score = ?, ores_mined = ?;")) {
-                stmt.setString(1, gp.player().getUniqueId().toString());
-                stmt.setInt(2, gp.wins());
-                stmt.setInt(3, gp.highestScore());
-                stmt.setInt(4, gp.totalOresMined());
-                stmt.setInt(5, gp.wins());
-                stmt.setInt(6, gp.highestScore());
-                stmt.setInt(7, gp.totalOresMined());
-                stmt.executeUpdate();
-                this.getLogger().info("Saved " + gp.player().getName() + "'s stats");
-            }
-        } catch (final SQLException ex) {
-            ex.printStackTrace();
-        }
     }
 
 }

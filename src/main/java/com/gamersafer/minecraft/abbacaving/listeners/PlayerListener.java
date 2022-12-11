@@ -40,7 +40,7 @@ public class PlayerListener implements Listener {
         final GamePlayer gp = this.plugin.gameTracker().removePlayer(event.getPlayer(), true);
 
         if (gp != null) {
-            this.plugin.getServer().getScheduler().runTaskAsynchronously(this.plugin, () -> this.plugin.savePlayerStats(gp));
+            this.plugin.getServer().getScheduler().runTaskAsynchronously(this.plugin, () -> this.plugin.playerDataSource().savePlayerStats(gp));
         }
     }
 
