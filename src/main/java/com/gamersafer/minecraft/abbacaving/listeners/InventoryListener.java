@@ -30,17 +30,6 @@ public class InventoryListener implements Listener {
             return;
         }
 
-        if (inv.getType() == InventoryType.PLAYER) {
-            // Slots 36-44 are the player's hotbar (left-to-right)
-            // Prevent the player from moving items out of their hotbar
-            for (final int slot : event.getInventorySlots()) {
-                if (slot < 36) {
-                    event.setCancelled(true);
-                    break;
-                }
-            }
-        }
-
         event.setCancelled(true);
         event.setCursor(null);
 
@@ -78,14 +67,7 @@ public class InventoryListener implements Listener {
             return;
         }
 
-        if (inv.getType() == InventoryType.PLAYER) {
-            // Slots 36-44 are the player's hotbar (left-to-right)
-            // Prevent the player from moving items out of their hotbar
-            if (event.isShiftClick() || event.getSlot() < 36) {
-                event.setCancelled(true);
-            }
-        }
-
+        event.setCancelled(true);
         event.setCurrentItem(null);
 
         final CaveLoot lootItem = this.plugin.lootFromItem(currentItem.getType());
