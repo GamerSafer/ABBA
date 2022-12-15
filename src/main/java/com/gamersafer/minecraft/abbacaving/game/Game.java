@@ -617,7 +617,7 @@ public class Game {
         inv.addItem(Util.displayName(new ItemStack(Material.COBBLESTONE), "<green><bold>Infinite Cobble"));
         inv.addItem(new ItemStack(Material.WATER_BUCKET));
         inv.addItem(Util.displayName(new ItemStack(Material.TORCH), "<green><bold>Infinite Torch"));
-        inv.setItem(35, new ItemStack(Material.ARROW, 1));
+        inv.addItem(new ItemStack(Material.ARROW, 1));
 
         player.getInventory().setHelmet(new ItemStack(Material.IRON_HELMET));
         player.getInventory().setChestplate(new ItemStack(Material.IRON_CHESTPLATE));
