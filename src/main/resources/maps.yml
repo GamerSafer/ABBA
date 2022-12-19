@@ -9,6 +9,8 @@ default-settings:
   random-teleport:
     min-radius: 100
     max-radius: 1000
+    min-y: 0
+    max-y: 100
   end-of-round:
     title: "<green>Round has ended!"
     subtitle: "<aqua>Example subtitle."

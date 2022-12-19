@@ -74,11 +74,13 @@ public class Game {
     private boolean gracePeriod;
     private GameState state;
     private EditSession editSession = null;
+    private final YLevelLocationValidator locationValidator;
 
     public Game(final AbbaCavingPlugin plugin, final String mapName) {
         this.plugin = plugin;
         this.mapName = mapName;
         this.world = this.loadMap();
+        this.locationValidator = new YLevelLocationValidator(this);
 
         this.gameState(GameState.READY);
         this.counter(0);
@@ -86,7 +88,7 @@ public class Game {
         plugin.getServer().getScheduler().runTaskTimer(plugin, this::nextTick, 0, 20);
     }
 
-    private <T> T mapSetting(final String key) {
+    public <T> T mapSetting(final String key) {
         final Object value = this.plugin.mapSettings(this.mapName).get(key);
 
         if (value != null) {
@@ -137,7 +139,7 @@ public class Game {
             final int min = this.mapSetting("random-teleport.min-radius");
             final int max = this.mapSetting("random-teleport.max-radius");
 
-            return randomTeleport.getRandomLocation(player, this.world().getSpawnLocation(), min, max);
+            return randomTeleport.getRandomLocation(player, this.world().getSpawnLocation(), min, max, this.locationValidator);
         }
 
         return CompletableFuture.completedFuture(this.world().getSpawnLocation());
