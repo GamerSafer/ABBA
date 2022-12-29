@@ -44,7 +44,7 @@ public class Lobby implements Listener {
         final List<LobbyQueue> queues = new ArrayList<>();
 
         for (final LobbyQueue queue : this.lobbyQueues.values()) {
-            if (queue.state() == QueueState.WAITING) {
+            if (queue.state() == QueueState.WAITING || queue.state() == QueueState.STARTING) {
                 queues.add(queue);
             }
         }
