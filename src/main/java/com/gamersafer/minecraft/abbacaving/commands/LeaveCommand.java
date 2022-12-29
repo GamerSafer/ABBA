@@ -40,7 +40,7 @@ public class LeaveCommand implements CommandExecutor {
         final LobbyQueue queue = this.plugin.lobby().lobbyQueue(player);
 
         if (queue == null) {
-            this.plugin.message(sender, this.plugin.configMessage("not-in-lobby"));
+            this.plugin.message(sender, this.plugin.configMessage("not-in-queue"));
             return true;
         }
 
