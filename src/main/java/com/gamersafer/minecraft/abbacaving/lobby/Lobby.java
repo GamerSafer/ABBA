@@ -53,7 +53,13 @@ public class Lobby implements Listener {
     }
 
     public LobbyQueue lobbyQueue(final String mapName) {
-        return this.lobbyQueues.get(mapName);
+        for (final LobbyQueue queue : this.lobbyQueues.values()) {
+            if (queue.mapName().equalsIgnoreCase(mapName)) {
+                return queue;
+            }
+        }
+
+        return null;
     }
 
     public @Nullable LobbyQueue lobbyQueue(final Player player) {

@@ -61,6 +61,11 @@ public class JoinCommand implements CommandExecutor {
             }
         }
 
+        if (queue == null) {
+            this.plugin.message(sender, this.plugin.configMessage("join-invalid-map"));
+            return false;
+        }
+
         if (!queue.acceptingNewPlayers() && !player.hasPermission("abbacaving.join.full")) {
             this.plugin.message(sender, this.plugin.configMessage("join-full"));
             return false;
