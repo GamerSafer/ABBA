@@ -35,8 +35,9 @@ public class ForceStartCommand implements CommandExecutor {
         }
 
         final LobbyQueue queue = this.plugin.lobby().lobbyQueue(mapName);
+        queue.forceStart(true);
 
-        this.plugin.lobby().start(queue);
+        this.plugin.lobby().preStart(queue);
 
         return true;
     }

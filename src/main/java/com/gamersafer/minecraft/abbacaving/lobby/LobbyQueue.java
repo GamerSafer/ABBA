@@ -11,6 +11,7 @@ public class LobbyQueue {
 
     private int counter = 0;
     private QueueState state;
+    private boolean forceStart = false;
 
     public LobbyQueue(final String mapName, final int maxPlayers, final List<UUID> playerQueue) {
         this.mapName = mapName;
@@ -65,6 +66,14 @@ public class LobbyQueue {
 
     public int decrementCounter() {
         return --this.counter;
+    }
+
+    public boolean forceStart() {
+        return this.forceStart;
+    }
+
+    public void forceStart(final boolean forceStart) {
+        this.forceStart = forceStart;
     }
 
 }

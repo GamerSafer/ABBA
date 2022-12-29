@@ -185,7 +185,11 @@ public class Game {
 
         this.randomLocation(player).thenAccept(location -> {
             if (location != null) {
-                this.randomSpawns.put(player.getUniqueId(), location);
+                if (this.state == GameState.RUNNING) {
+                    player.teleport(location);
+                } else {
+                    this.randomSpawns.put(player.getUniqueId(), location);
+                }
             }
         });
     }

@@ -132,7 +132,7 @@ public class Lobby implements Listener {
     }
     
     private void handleQueueStarting(final LobbyQueue queue) {
-        if (queue.playerQueue().size() < this.playersRequiredToStart(queue.mapName())) {
+        if (!queue.forceStart() && queue.playerQueue().size() < this.playersRequiredToStart(queue.mapName())) {
             this.cancelPreStart(queue);
             return;
         }
