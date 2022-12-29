@@ -319,8 +319,9 @@ public class Game {
 
     public void start(final String gameId) {
         this.gameId = gameId;
-
         this.gracePeriod = true;
+        this.leaderboard.clear();
+
         final int gracePeriodSeconds = this.mapSetting("duration-seconds");
         this.counter(gracePeriodSeconds);
         this.broadcast(this.plugin.configMessage("game-started"));
@@ -502,10 +503,12 @@ public class Game {
 
         this.plugin.getServer().getScheduler().runTaskLater(this.plugin, () -> {
             for (final GamePlayer gp : this.players.values()) {
+                gp.score(0);
                 this.sendToLobby(gp.player());
             }
 
             this.resetMap();
+            this.leaderboard.clear();
             this.gameState(GameState.READY);
         }, 20L * postGameGracePeriod);
     }
