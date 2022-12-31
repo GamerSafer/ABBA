@@ -68,7 +68,6 @@ public class InventoryListener implements Listener {
         }
 
         event.setCancelled(true);
-        event.setCurrentItem(null);
 
         final CaveLoot lootItem = this.plugin.lootFromItem(currentItem.getType());
 
@@ -87,6 +86,8 @@ public class InventoryListener implements Listener {
 
         gp.addScore(lootItem.value(), lootItem.name());
         game.increasePlayerScore(gp, lootItem.value());
+
+        event.setCurrentItem(null);
 
         // TODO: Don't broadcast message for all items, if a chest has 7 items, that will be 7 messages in chat.
         // game.broadcast(this.plugin.configMessage("player-found-item"), Map.of(
