@@ -13,6 +13,7 @@ public class GamePlayer {
     private final AbbaCavingPlugin plugin;
     private final Player player;
 
+    private int totalGames;
     private int wins;
     private int score;
     private int highestScore;
@@ -31,6 +32,14 @@ public class GamePlayer {
 
     public Player player() {
         return this.player;
+    }
+
+    public int totalGames() {
+        return this.totalGames;
+    }
+
+    public void totalGames(final int totalGames) {
+        this.totalGames = totalGames;
     }
 
     public int wins() {

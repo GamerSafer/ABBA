@@ -46,8 +46,16 @@ public class SQLDataSource implements PlayerDataSource {
             try (final Statement statement = conn.createStatement()) {
                 statement.execute("CREATE TABLE IF NOT EXISTS abba_caving_stats (uuid VARCHAR(50) PRIMARY KEY, wins INT, highest_score INT, ores_mined INT);");
             }
-        } catch (final SQLException ex) {
-            ex.printStackTrace();
+        } catch (final SQLException exception) {
+            exception.printStackTrace();
+        }
+
+        try(final Connection conn = this.dataSource.getConnection()) {
+            try (final Statement statement = conn.createStatement()) {
+                statement.execute("ALTER TABLE abba_caving_stats ADD COLUMN total_games INT AFTER ores_mined;");
+            }
+        } catch (final SQLException ignored) {
+            // An exception is thrown if the column already exists, we don't want to log that
         }
     }
 
@@ -61,6 +69,7 @@ public class SQLDataSource implements PlayerDataSource {
                         gp.wins(rs.getInt("wins"));
                         gp.highestScore(rs.getInt("highest_score"));
                         gp.totalOresMined(rs.getInt("ores_mined"));
+                        gp.totalGames(rs.getInt("total_games"));
                         this.plugin.getLogger().info("Loaded " + gp.player().getName() + "'s stats");
                     } else {
                         this.plugin.getLogger().info("No stats found for player " + gp.player().getName());
@@ -75,14 +84,19 @@ public class SQLDataSource implements PlayerDataSource {
     public void savePlayerStats(final GamePlayer gp) {
         try (final Connection conn = this.dataSource.getConnection()) {
             try (final PreparedStatement stmt = conn.prepareStatement(
-                    "INSERT INTO abba_caving_stats (uuid, wins, highest_score, ores_mined) VALUES (?, ?, ?, ?) ON DUPLICATE KEY UPDATE wins = ?, highest_score = ?, ores_mined = ?;")) {
+                    "INSERT INTO abba_caving_stats (uuid, wins, highest_score, ores_mined, total_games) VALUES (?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE wins = ?, highest_score = ?, ores_mined = ?, total_games = ?;")) {
                 stmt.setString(1, gp.player().getUniqueId().toString());
+
                 stmt.setInt(2, gp.wins());
                 stmt.setInt(3, gp.highestScore());
                 stmt.setInt(4, gp.totalOresMined());
-                stmt.setInt(5, gp.wins());
-                stmt.setInt(6, gp.highestScore());
-                stmt.setInt(7, gp.totalOresMined());
+                stmt.setInt(5, gp.totalGames());
+
+                stmt.setInt(6, gp.wins());
+                stmt.setInt(7, gp.highestScore());
+                stmt.setInt(8, gp.totalOresMined());
+                stmt.setInt(9, gp.totalGames());
+
                 stmt.executeUpdate();
                 this.plugin.getLogger().info("Saved " + gp.player().getName() + "'s stats");
             }

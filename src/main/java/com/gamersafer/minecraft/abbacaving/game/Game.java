@@ -440,6 +440,7 @@ public class Game {
         for (final GamePlayer gp : this.players.values()) {
             this.preparePlayer(gp.player());
             gp.player().showTitle(mainTitle);
+            gp.totalGames(gp.totalGames() + 1);
         }
 
         for (final Entity entity : this.world().getEntities()) {

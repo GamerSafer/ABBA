@@ -1,6 +1,7 @@
 package com.gamersafer.minecraft.abbacaving.placeholders;
 
 import com.gamersafer.minecraft.abbacaving.AbbaCavingPlugin;
+import com.gamersafer.minecraft.abbacaving.game.GamePlayer;
 import com.gamersafer.minecraft.abbacaving.lobby.LobbyQueue;
 import me.clip.placeholderapi.expansion.PlaceholderExpansion;
 import org.bukkit.Bukkit;
@@ -36,7 +37,9 @@ public class LobbyPlaceholders extends PlaceholderExpansion {
 
     @Override
     public String onPlaceholderRequest(final Player player, final String identifier) {
-        this.plugin.getLogger().info("PlaceholderAPI request: " + player.getName() + ", " + identifier);
+        if ("total_games".equals(identifier)) {
+            final GamePlayer gamePlayer = this.plugin.gameTracker().findPlayer(player);
+        }
 
         if ("online".equals(identifier)) {
             return Integer.toString(Bukkit.getServer().getOnlinePlayers().size());

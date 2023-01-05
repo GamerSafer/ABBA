@@ -14,6 +14,7 @@ import com.gamersafer.minecraft.abbacaving.datasource.SQLDataSource;
 import com.gamersafer.minecraft.abbacaving.game.CaveLoot;
 import com.gamersafer.minecraft.abbacaving.game.CaveOre;
 import com.gamersafer.minecraft.abbacaving.game.Game;
+import com.gamersafer.minecraft.abbacaving.game.GamePlayer;
 import com.gamersafer.minecraft.abbacaving.game.GameTracker;
 import com.gamersafer.minecraft.abbacaving.listeners.BlockBreakListener;
 import com.gamersafer.minecraft.abbacaving.listeners.BlockPlaceListener;
@@ -32,6 +33,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Collectors;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
@@ -60,6 +62,7 @@ public class AbbaCavingPlugin extends JavaPlugin {
     private FileConfiguration messagesConfig = new YamlConfiguration();
     private FileConfiguration pointsConfig = new YamlConfiguration();
     private final Map<String, Game> maps = new HashMap<>();
+    private final Map<UUID, GamePlayer> playerCache = new HashMap<>();
 
     @Override
     public void onEnable() {
