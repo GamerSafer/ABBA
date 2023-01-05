@@ -19,6 +19,7 @@ default-settings:
       x: 0
       y: 100
       z: 0
+    commands: []
     teleport:
       x: 0
       y: 105
