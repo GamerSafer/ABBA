@@ -40,6 +40,18 @@ public class Lobby implements Listener {
         }
     }
 
+    public boolean playerInLobby(final Player player) {
+        if (this.lobbyQueue(player) == null) {
+            return false;
+        }
+
+        if (this.plugin.gameTracker().findPlayerInGame(player) == null) {
+            return false;
+        }
+
+        return true;
+    }
+
     public List<LobbyQueue> activeQueues() {
         final List<LobbyQueue> queues = new ArrayList<>();
 

@@ -40,7 +40,7 @@ public class InventoryListener implements Listener {
         }
 
         final Player player = (Player) event.getView().getPlayer();
-        final GamePlayer gp = this.plugin.gameTracker().findPlayer(player);
+        final GamePlayer gp = this.plugin.gameTracker().findPlayerInGame(player);
 
         if (gp == null) {
             return;
@@ -76,7 +76,7 @@ public class InventoryListener implements Listener {
         }
 
         final Player player = (Player) event.getView().getPlayer();
-        final GamePlayer gp = this.plugin.gameTracker().findPlayer(player);
+        final GamePlayer gp = this.plugin.gameTracker().findPlayerInGame(player);
 
         if (gp == null) {
             return;

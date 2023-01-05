@@ -70,7 +70,7 @@ public class GameTracker {
         return null;
     }
 
-    public GamePlayer findPlayer(final Player player) {
+    public GamePlayer findPlayerInGame(final Player player) {
         for (final Game game : this.currentGames()) {
             final GamePlayer gamePlayer = game.player(player);
 

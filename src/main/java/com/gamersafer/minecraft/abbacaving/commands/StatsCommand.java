@@ -32,7 +32,7 @@ public class StatsCommand implements CommandExecutor {
                 return false;
             }
 
-            gp = this.plugin.gameTracker().findPlayer(target);
+            gp = this.plugin.gameTracker().findPlayerInGame(target);
             if (gp == null) {
                 this.plugin.message(player, this.plugin.configMessage("not-ingame"), Map.of("player", args[0]));
                 return true;
@@ -40,7 +40,7 @@ public class StatsCommand implements CommandExecutor {
 
             this.plugin.message(player, this.plugin.configMessage("stats-other"), Map.of("player", target.getName().toUpperCase()));
         } else {
-            gp = this.plugin.gameTracker().findPlayer(player);
+            gp = this.plugin.gameTracker().findPlayerInGame(player);
             if (gp == null) {
                 this.plugin.message(player, this.plugin.configMessage("sender-not-ingame"));
                 return true;

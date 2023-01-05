@@ -43,7 +43,7 @@ public class GamePlaceholders extends PlaceholderExpansion {
     public String onPlaceholderRequest(final Player player, final String identifier) {
         this.plugin.getLogger().info("PlaceholderAPI request: " + player.getName() + ", " + identifier);
 
-        final GamePlayer gp = this.plugin.gameTracker().findPlayer(player);
+        final GamePlayer gp = this.plugin.gameTracker().findPlayerInGame(player);
         final Game game = this.plugin.gameTracker().findGame(player);
 
         if (identifier.startsWith("leaderboard_score_")) {

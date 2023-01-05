@@ -5,6 +5,7 @@ import com.gamersafer.minecraft.abbacaving.game.Game;
 import com.gamersafer.minecraft.abbacaving.game.GamePlayer;
 import com.gamersafer.minecraft.abbacaving.game.GameState;
 import com.gamersafer.minecraft.abbacaving.util.Util;
+import io.papermc.paper.event.player.AsyncChatEvent;
 import java.util.Collection;
 import java.util.Map;
 import net.kyori.adventure.text.Component;
@@ -34,6 +35,34 @@ public class PlayerListener implements Listener {
     }
 
     @EventHandler
+    public void onPlayerChat(final AsyncChatEvent event) {
+        final GamePlayer gamePlayer = this.plugin.gameTracker().findPlayerInGame(event.getPlayer());
+
+        // Lobby players should only speak to other lobby players
+        if (gamePlayer == null || this.plugin.lobby().playerInLobby(event.getPlayer())) {
+            event.viewers().removeIf(viewer -> {
+                if (viewer instanceof Player recipient) {
+                    return !this.plugin.lobby().playerInLobby(recipient);
+                }
+
+                return false;
+            });
+        } else {
+            // Players in games should only talk to other players in the same game
+            event.viewers().removeIf(viewer -> {
+                if (viewer instanceof Player recipient) {
+                    final Game recipientGame = this.plugin.gameTracker().findGame(recipient);
+                    final Game senderGame = this.plugin.gameTracker().findGame(event.getPlayer());
+
+                    return !(recipientGame != null && recipientGame.equals(senderGame));
+                }
+
+                return false;
+            });
+        }
+    }
+
+    @EventHandler
     public void onPlayerQuit(final PlayerQuitEvent event) {
         event.quitMessage(null);
 
@@ -47,7 +76,7 @@ public class PlayerListener implements Listener {
     @EventHandler
     public void onPlayerDeath(final PlayerDeathEvent event) {
         final Player player = event.getEntity();
-        final GamePlayer gamePlayer = this.plugin.gameTracker().findPlayer(player);
+        final GamePlayer gamePlayer = this.plugin.gameTracker().findPlayerInGame(player);
         final Game game = this.plugin.gameTracker().findGame(player);
 
         if (gamePlayer == null || game == null) {
@@ -96,7 +125,7 @@ public class PlayerListener implements Listener {
 
     private void handleEntityEvent(final Entity target, final Cancellable cancellable) {
         if (target instanceof Player player) {
-            final GamePlayer gp = this.plugin.gameTracker().findPlayer(player);
+            final GamePlayer gp = this.plugin.gameTracker().findPlayerInGame(player);
 
             if (gp != null && gp.isDead()) {
                 cancellable.setCancelled(true);

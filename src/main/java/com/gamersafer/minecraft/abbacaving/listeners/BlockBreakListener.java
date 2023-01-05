@@ -37,7 +37,7 @@ public class BlockBreakListener implements Listener {
         final CaveOre ore = this.plugin.caveOreFromBlock(event.getBlock().getType());
         if (ore != null) {
             final Player player = event.getPlayer();
-            final GamePlayer gp = this.plugin.gameTracker().findPlayer(player);
+            final GamePlayer gp = this.plugin.gameTracker().findPlayerInGame(player);
 
             if (gp == null) {
                 return;
