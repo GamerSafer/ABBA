@@ -1,6 +1,8 @@
 package com.gamersafer.minecraft.abbacaving.game;
 
 import com.gamersafer.minecraft.abbacaving.AbbaCavingPlugin;
+import com.gamersafer.minecraft.abbacaving.game.validators.BlockValidator;
+import com.gamersafer.minecraft.abbacaving.game.validators.YLevelValidator;
 import com.gamersafer.minecraft.abbacaving.util.Util;
 import com.sk89q.worldedit.EditSession;
 import com.sk89q.worldedit.WorldEdit;
@@ -74,13 +76,16 @@ public class Game {
     private boolean gracePeriod;
     private GameState state;
     private EditSession editSession = null;
-    private final YLevelLocationValidator locationValidator;
+    private final YLevelValidator yLevelValidator;
+    private final BlockValidator blockValidator;
 
     public Game(final AbbaCavingPlugin plugin, final String mapName) {
         this.plugin = plugin;
         this.mapName = mapName;
         this.world = this.loadMap();
-        this.locationValidator = new YLevelLocationValidator(this);
+
+        this.yLevelValidator = new YLevelValidator(this);
+        this.blockValidator = new BlockValidator(this);
 
         this.gameState(GameState.READY);
         this.counter(0);
@@ -139,7 +144,7 @@ public class Game {
             final int min = this.mapSetting("random-teleport.min-radius");
             final int max = this.mapSetting("random-teleport.max-radius");
 
-            return randomTeleport.getRandomLocation(player, this.world().getSpawnLocation(), min, max, this.locationValidator);
+            return randomTeleport.getRandomLocation(player, this.world().getSpawnLocation(), min, max, this.yLevelValidator, this.blockValidator);
         }
 
         return CompletableFuture.completedFuture(this.world().getSpawnLocation());

@@ -11,6 +11,10 @@ default-settings:
     max-radius: 1000
     min-y: 0
     max-y: 100
+    invalid-blocks:
+      - WATER
+      - LAVA
+      - FIRE
   end-of-round:
     title: "<green>Round has ended!"
     subtitle: "<aqua>Example subtitle."

@@ -1,15 +1,16 @@
-package com.gamersafer.minecraft.abbacaving.game;
+package com.gamersafer.minecraft.abbacaving.game.validators;
 
+import com.gamersafer.minecraft.abbacaving.game.Game;
 import de.themoep.randomteleport.searcher.RandomSearcher;
 import de.themoep.randomteleport.searcher.validators.LocationValidator;
 import org.bukkit.Location;
 
-public class YLevelLocationValidator extends LocationValidator {
+public class YLevelValidator extends LocationValidator {
 
     private final int minY;
     private final int maxY;
 
-    public YLevelLocationValidator(final Game game) {
+    public YLevelValidator(final Game game) {
         super("height");
 
         this.minY = game.mapSetting("random-teleport.min-y");
