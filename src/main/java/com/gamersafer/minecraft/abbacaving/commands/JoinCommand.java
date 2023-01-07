@@ -2,6 +2,7 @@ package com.gamersafer.minecraft.abbacaving.commands;
 
 import com.gamersafer.minecraft.abbacaving.AbbaCavingPlugin;
 import com.gamersafer.minecraft.abbacaving.lobby.LobbyQueue;
+import com.gamersafer.minecraft.abbacaving.lobby.QueueState;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ThreadLocalRandom;
@@ -63,6 +64,11 @@ public class JoinCommand implements CommandExecutor {
 
         if (queue == null) {
             this.plugin.message(sender, this.plugin.configMessage("join-invalid-map"));
+            return false;
+        }
+
+        if (queue.state() == QueueState.LOCKED) {
+            this.plugin.message(sender, this.plugin.configMessage("join-running-map"));
             return false;
         }
 
