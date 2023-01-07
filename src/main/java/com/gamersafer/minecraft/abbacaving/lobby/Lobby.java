@@ -2,6 +2,7 @@ package com.gamersafer.minecraft.abbacaving.lobby;
 
 import com.gamersafer.minecraft.abbacaving.AbbaCavingPlugin;
 import com.gamersafer.minecraft.abbacaving.game.Game;
+import com.gamersafer.minecraft.abbacaving.game.GameState;
 import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -222,6 +223,8 @@ public class Lobby implements Listener {
         }
 
         final Game game = this.plugin.game(queue.mapName());
+
+        game.gameState(GameState.STARTING);
 
         this.plugin.gameTracker().currentGames().add(game);
         final List<UUID> uuidsToRemove = new ArrayList<>();

@@ -179,7 +179,7 @@ public class Game {
         return this.state;
     }
 
-    private void gameState(final GameState state) {
+    public void gameState(final GameState state) {
         this.state = state;
     }
 
@@ -216,7 +216,7 @@ public class Game {
             if (location != null) {
                 this.plugin.getLogger().info("Player RTP location: " + location);
 
-                if (this.state == GameState.RUNNING) {
+                if (this.state == GameState.STARTING || this.state == GameState.RUNNING) {
                     player.teleport(location);
                 } else {
                     this.randomSpawns.put(player.getUniqueId(), location);
