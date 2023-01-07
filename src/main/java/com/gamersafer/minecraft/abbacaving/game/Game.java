@@ -201,6 +201,12 @@ public class Game {
             }
 
             if (location != null) {
+                final int highestBlock = location.getWorld().getHighestBlockAt(location).getY();
+                if (location.getY() >= highestBlock) {
+                    this.plugin.getLogger().info("Player RTP location [ " + location.getY() +
+                            "] is above highest block [" + highestBlock + "]!");
+                }
+
                 if (this.state == GameState.RUNNING) {
                     player.teleport(location);
                 } else {
