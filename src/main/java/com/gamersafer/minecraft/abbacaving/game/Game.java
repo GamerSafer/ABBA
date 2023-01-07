@@ -368,12 +368,9 @@ public class Game {
         this.broadcast(this.plugin.configMessage("game-started"));
 
         for (final GamePlayer gp : this.players.values()) {
-            // TODO: get random spawn location
             final Location loc = this.world.getSpawnLocation();
 
-            loc.setWorld(this.world);
             gp.spawnLocation(loc);
-
             this.leaderboard.put(gp, 0);
             this.preparePlayer(gp.player());
             gp.score(0);
