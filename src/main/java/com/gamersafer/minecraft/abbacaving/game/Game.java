@@ -3,6 +3,8 @@ package com.gamersafer.minecraft.abbacaving.game;
 import com.gamersafer.minecraft.abbacaving.AbbaCavingPlugin;
 import com.gamersafer.minecraft.abbacaving.game.validators.BlockValidator;
 import com.gamersafer.minecraft.abbacaving.game.validators.YLevelValidator;
+import com.gamersafer.minecraft.abbacaving.lobby.LobbyQueue;
+import com.gamersafer.minecraft.abbacaving.lobby.QueueState;
 import com.gamersafer.minecraft.abbacaving.util.Util;
 import com.sk89q.worldedit.EditSession;
 import com.sk89q.worldedit.WorldEdit;
@@ -554,6 +556,12 @@ public class Game {
             this.resetMap();
             this.leaderboard.clear();
             this.gameState(GameState.READY);
+
+            final LobbyQueue queue = this.plugin.lobby().lobbyQueue(this.mapName);
+
+            if (queue != null) {
+                queue.state(QueueState.WAITING);
+            }
         }, 20L * postGameGracePeriod);
     }
 

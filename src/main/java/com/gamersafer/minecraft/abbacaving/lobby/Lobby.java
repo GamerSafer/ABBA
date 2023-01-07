@@ -243,7 +243,6 @@ public class Lobby implements Listener {
         }
 
         queue.playerQueue().removeAll(uuidsToRemove);
-        queue.state(QueueState.WAITING);
         game.start(this.randomString(6));
 
         return game;
