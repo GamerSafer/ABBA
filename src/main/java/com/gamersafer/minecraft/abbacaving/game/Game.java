@@ -151,7 +151,7 @@ public class Game {
                     minRadius, maxRadius, this.blockValidator);
 
             this.plugin.getLogger().info("Random searcher old max tries: [" + randomSearcher.getMaxTries() +
-                    "]. New: [" + randomSearcher.getMaxTries() * 2);
+                    "]. New: [" + randomSearcher.getMaxTries() * 2 + "]");
 
             randomSearcher.setMaxTries(randomSearcher.getMaxTries() * 2);
             randomSearcher.setMinY(minY);
