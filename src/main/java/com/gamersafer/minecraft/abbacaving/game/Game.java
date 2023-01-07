@@ -244,6 +244,8 @@ public class Game {
 
             // Remove random spawns when used, players should have a unique experience each round
             this.randomSpawns.remove(gamePlayer.player().getUniqueId());
+        } else {
+            this.plugin.getLogger().info("Player [" + gamePlayer.player().getName() + "] already in game [" + this.mapName + "]");
         }
     }
 
@@ -552,6 +554,7 @@ public class Game {
 
             this.resetMap();
             this.leaderboard.clear();
+            this.players.clear();
             this.gameState(GameState.READY);
 
             final LobbyQueue queue = this.plugin.lobby().lobbyQueue(this.mapName);
