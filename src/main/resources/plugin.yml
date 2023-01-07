@@ -3,8 +3,8 @@ main: com.gamersafer.minecraft.abbacaving.AbbaCavingPlugin
 version: '${version}'
 author: GamerSafer
 api-version: 1.16
-depend: [ WorldEdit, CoreProtect, RandomTeleport ]
-softdepend: [ PlaceholderAPI ]
+depend: [ WorldEdit, CoreProtect ]
+softdepend: [ PlaceholderAPI, RandomTeleport ]
 commands:
   acreload:
     description: Reloads the configuration.
