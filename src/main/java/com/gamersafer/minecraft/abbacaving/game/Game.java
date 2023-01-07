@@ -15,6 +15,7 @@ import com.sk89q.worldedit.function.operation.Operations;
 import com.sk89q.worldedit.math.BlockVector3;
 import com.sk89q.worldedit.session.ClipboardHolder;
 import de.themoep.randomteleport.RandomTeleport;
+import de.themoep.randomteleport.searcher.options.NotFoundException;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -26,7 +27,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
@@ -183,7 +183,18 @@ public class Game {
             return;
         }
 
-        this.randomLocation(player).thenAccept(location -> {
+        this.randomLocation(player).whenComplete((location, exception) -> {
+            if (exception != null) {
+                if (exception instanceof NotFoundException notFoundException) {
+                    this.plugin.getLogger().info("Could not find random spawn for player [" + player.getName() + "]");
+                    this.plugin.getLogger().info("Reason: [" + notFoundException.getWhat() + "]. Teleporting player to map spawn.");
+                } else {
+                    exception.printStackTrace();
+                }
+
+                location = this.world.getSpawnLocation();
+            }
+
             if (location != null) {
                 if (this.state == GameState.RUNNING) {
                     player.teleport(location);
@@ -202,8 +213,12 @@ public class Game {
 
             final Location randomSpawn = this.randomSpawns.get(gamePlayer.player().getUniqueId());
 
-            // Default to the world spawn if we couldn't find a random spawn for the player
-            gamePlayer.player().teleport(Objects.requireNonNullElseGet(randomSpawn, () -> this.world().getSpawnLocation()));
+            if (randomSpawn == null) {
+                this.plugin.getLogger().info("Could not find random spawn for player [" + gamePlayer.player().getName() + "]");
+                //gamePlayer.player().teleport(this.world().getSpawnLocation());
+            } else {
+                gamePlayer.player().teleport(randomSpawn);
+            }
 
             // Remove random spawns when used, players should have a unique experience each round
             this.randomSpawns.remove(gamePlayer.player().getUniqueId());
