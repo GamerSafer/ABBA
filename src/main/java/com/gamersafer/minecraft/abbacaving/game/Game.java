@@ -17,6 +17,7 @@ import com.sk89q.worldedit.function.operation.Operations;
 import com.sk89q.worldedit.math.BlockVector3;
 import com.sk89q.worldedit.session.ClipboardHolder;
 import de.themoep.randomteleport.RandomTeleport;
+import de.themoep.randomteleport.searcher.RandomSearcher;
 import de.themoep.randomteleport.searcher.options.NotFoundException;
 import java.io.File;
 import java.io.FileInputStream;
@@ -141,10 +142,22 @@ public class Game {
         final Plugin randomTPPlugin = Bukkit.getPluginManager().getPlugin("RandomTeleport");
 
         if (randomTPPlugin instanceof RandomTeleport randomTeleport) {
-            final int min = this.mapSetting("random-teleport.min-radius");
-            final int max = this.mapSetting("random-teleport.max-radius");
+            final int minRadius = this.mapSetting("random-teleport.min-radius");
+            final int maxRadius = this.mapSetting("random-teleport.max-radius");
+            final int minY = this.mapSetting("random-teleport.min-y");
+            final int maxY = this.mapSetting("random-teleport.max-y");
 
-            return randomTeleport.getRandomLocation(player, this.world().getSpawnLocation(), min, max, this.yLevelValidator, this.blockValidator);
+            final RandomSearcher randomSearcher = randomTeleport.getRandomSearcher(player, this.world().getSpawnLocation(),
+                    minRadius, maxRadius, this.blockValidator);
+
+            this.plugin.getLogger().info("Random searcher old max tries: [" + randomSearcher.getMaxTries() +
+                    "]. New: [" + randomSearcher.getMaxTries() * 2);
+
+            randomSearcher.setMaxTries(randomSearcher.getMaxTries() * 2);
+            randomSearcher.setMinY(minY);
+            randomSearcher.setMaxY(maxY);
+
+            return randomSearcher.search();
         }
 
         return CompletableFuture.completedFuture(this.world().getSpawnLocation());
