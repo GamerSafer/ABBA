@@ -483,8 +483,10 @@ public class Game {
 
         final List<String> endOfRoundCommands = this.mapSetting("end-of-round.commands");
 
-        for (final String command : endOfRoundCommands) {
-            Bukkit.dispatchCommand(Bukkit.getConsoleSender(), command);
+        if (endOfRoundCommands != null) {
+            for (final String command : endOfRoundCommands) {
+                Bukkit.dispatchCommand(Bukkit.getConsoleSender(), command);
+            }
         }
 
         for (final Entity entity : this.world().getEntities()) {
