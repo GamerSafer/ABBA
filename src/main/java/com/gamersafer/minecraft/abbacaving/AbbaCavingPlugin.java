@@ -95,7 +95,10 @@ public class AbbaCavingPlugin extends JavaPlugin {
 
         this.getCommand("acreload").setExecutor(new ACReloadCommand(this));
         this.getCommand("bcastnp").setExecutor(new BroadcastNPCommand(this));
-        this.getCommand("forcestart").setExecutor(new ForceStartCommand(this));
+
+        final ForceStartCommand forceStartCommand = new ForceStartCommand(this);
+        this.getCommand("forcestart").setExecutor(forceStartCommand);
+        this.getCommand("forcestart").setTabCompleter(forceStartCommand);
 
         final JoinCommand joinCommand = new JoinCommand(this);
         this.getCommand("join").setExecutor(joinCommand);
