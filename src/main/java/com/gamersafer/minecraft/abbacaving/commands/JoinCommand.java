@@ -3,6 +3,8 @@ package com.gamersafer.minecraft.abbacaving.commands;
 import com.gamersafer.minecraft.abbacaving.AbbaCavingPlugin;
 import com.gamersafer.minecraft.abbacaving.lobby.LobbyQueue;
 import com.gamersafer.minecraft.abbacaving.lobby.QueueState;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ThreadLocalRandom;
@@ -10,10 +12,12 @@ import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
+import org.bukkit.command.TabCompleter;
 import org.bukkit.entity.Player;
+import org.bukkit.util.StringUtil;
 import org.jetbrains.annotations.NotNull;
 
-public class JoinCommand implements CommandExecutor {
+public class JoinCommand implements CommandExecutor, TabCompleter {
 
     private final AbbaCavingPlugin plugin;
 
@@ -88,6 +92,26 @@ public class JoinCommand implements CommandExecutor {
         this.plugin.message(sender, this.plugin.configMessage("join-lobby"), Map.of("map", queue.mapName()));
 
         return true;
+    }
+
+    private List<String> mapNames() {
+        final List<String> names = new ArrayList<>();
+
+        for (final LobbyQueue queue : this.plugin.lobby().activeQueues()) {
+            if (queue.acceptingNewPlayers()) {
+                names.add(queue.mapName());
+            }
+        }
+
+        return names;
+    }
+
+    @Override
+    public List<String> onTabComplete(final CommandSender sender, final Command command, final String alias, final String[] args) {
+        if (args.length == 1)
+            return StringUtil.copyPartialMatches(args[0], this.mapNames(), new ArrayList<>());
+        else
+            return Collections.emptyList();
     }
 
 }
