@@ -1,6 +1,7 @@
 package com.gamersafer.minecraft.abbacaving.commands;
 
 import com.gamersafer.minecraft.abbacaving.AbbaCavingPlugin;
+import com.gamersafer.minecraft.abbacaving.game.Game;
 import com.gamersafer.minecraft.abbacaving.lobby.LobbyQueue;
 import java.util.Map;
 import org.bukkit.Bukkit;
@@ -37,15 +38,23 @@ public class LeaveCommand implements CommandExecutor {
             }
         }
 
-        final LobbyQueue queue = this.plugin.lobby().lobbyQueue(player);
+        if (this.plugin.lobby().playerInLobby(player)) {
+            final LobbyQueue queue = this.plugin.lobby().lobbyQueue(player);
 
-        if (queue == null) {
-            this.plugin.message(sender, this.plugin.configMessage("not-in-queue"));
-            return true;
+            if (queue != null) {
+                queue.removePlayer(player.getUniqueId());
+                this.plugin.message(player, this.plugin.configMessage("leave-lobby"), Map.of("map", queue.mapName()));
+            } else {
+                this.plugin.message(sender, this.plugin.configMessage("not-in-queue"));
+            }
+        } else {
+            final Game game = this.plugin.gameTracker().findGame(player);
+
+            if (game != null) {
+                game.removePlayer(player, true);
+                this.plugin.message(player, this.plugin.configMessage("leave-game"), Map.of("map", game.mapName()));
+            }
         }
-
-        queue.removePlayer(player.getUniqueId());
-        this.plugin.message(player, this.plugin.configMessage("leave-lobby"), Map.of("map", queue.mapName()));
 
         return true;
     }
