@@ -89,7 +89,10 @@ public class AbbaCavingPlugin extends JavaPlugin {
         this.dataSource = new SQLDataSource(this);
         this.dataSource.init();
 
-        this.getCommand("aclookup").setExecutor(new ACLookupCommand(this));
+        final ACLookupCommand acLookupCommand = new ACLookupCommand(this);
+        this.getCommand("aclookup").setExecutor(acLookupCommand);
+        this.getCommand("aclookup").setTabCompleter(acLookupCommand);
+
         this.getCommand("acreload").setExecutor(new ACReloadCommand(this));
         this.getCommand("bcastnp").setExecutor(new BroadcastNPCommand(this));
         this.getCommand("forcestart").setExecutor(new ForceStartCommand(this));

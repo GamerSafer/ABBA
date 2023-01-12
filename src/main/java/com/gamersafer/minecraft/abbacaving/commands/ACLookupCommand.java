@@ -5,6 +5,7 @@ import com.gamersafer.minecraft.abbacaving.game.Game;
 import com.gamersafer.minecraft.abbacaving.game.GamePlayer;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.feature.pagination.Pagination;
@@ -12,10 +13,12 @@ import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
+import org.bukkit.command.TabCompleter;
+import org.bukkit.util.StringUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class ACLookupCommand implements CommandExecutor, Pagination.Renderer.RowRenderer<GamePlayer> {
+public class ACLookupCommand implements CommandExecutor, TabCompleter, Pagination.Renderer.RowRenderer<GamePlayer> {
 
     private final Pagination.Builder pagination = Pagination.builder()
             .width(45)
@@ -80,6 +83,24 @@ public class ACLookupCommand implements CommandExecutor, Pagination.Renderer.Row
     public @NotNull Collection<Component> renderRow(final @Nullable GamePlayer value, final int index) {
         return List.of(Component.text().append(value.player().displayName()).append(Component.text(" - ", NamedTextColor.WHITE))
                 .append(Component.text(value.score())).build());
+    }
+
+    private List<String> mapNames() {
+        final List<String> names = new ArrayList<>();
+
+        for (final Game game : this.plugin.gameTracker().currentGames()) {
+            names.add(game.mapName());
+        }
+
+        return names;
+    }
+
+    @Override
+    public List<String> onTabComplete(final CommandSender sender, final Command command, final String alias, final String[] args) {
+        if (args.length == 1)
+            return StringUtil.copyPartialMatches(args[0], this.mapNames(), new ArrayList<>());
+        else
+            return Collections.emptyList();
     }
 
 }
