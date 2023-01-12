@@ -115,7 +115,9 @@ public class PlayerListener implements Listener {
 
     @EventHandler
     public void onPlayerDropItem(final PlayerDropItemEvent event) {
-        event.setCancelled(true);
+        if (!event.getPlayer().hasPermission("abbacaving.inventory")) {
+            event.setCancelled(true);
+        }
     }
 
     @EventHandler

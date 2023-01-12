@@ -67,6 +67,12 @@ public class InventoryListener implements Listener {
             return;
         }
 
+        final boolean canEditInventory = event.getWhoClicked().hasPermission("abbacaving.inventory");
+
+        if (!canEditInventory) {
+            return;
+        }
+
         event.setCancelled(true);
 
         final CaveLoot lootItem = this.plugin.lootFromItem(currentItem.getType());
