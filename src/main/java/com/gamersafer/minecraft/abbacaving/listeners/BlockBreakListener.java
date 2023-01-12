@@ -22,15 +22,21 @@ public class BlockBreakListener implements Listener {
 
     @EventHandler
     public void onBlockBreak(final BlockBreakEvent event) {
+        final boolean canBuild = event.getPlayer().hasPermission("abbacaving.build");
+
         if (event.getPlayer().getWorld().getName().equals("world")) {
-            event.setCancelled(true);
+            if (!canBuild) {
+                event.setCancelled(true);
+            }
             return;
         }
 
         final Game game = this.plugin.gameTracker().findGame(event.getBlock().getWorld());
 
         if (game == null || game.gameState() != GameState.RUNNING) {
-            event.setCancelled(true);
+            if (!canBuild) {
+                event.setCancelled(true);
+            }
             return;
         }
 

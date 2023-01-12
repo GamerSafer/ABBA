@@ -19,20 +19,28 @@ public class BlockPlaceListener implements Listener {
 
     @EventHandler
     public void onBlockPlace(final BlockPlaceEvent event) {
+        final boolean canBuild = event.getPlayer().hasPermission("abbacaving.build");
+
         if (event.getPlayer().getWorld().getName().equals("world")) {
-            event.setCancelled(true);
+            if (!canBuild) {
+                event.setCancelled(true);
+            }
             return;
         }
 
         final Game game = this.plugin.gameTracker().findGame(event.getBlock().getWorld());
 
         if (game == null) {
-            event.setCancelled(true);
+            if (!canBuild) {
+                event.setCancelled(true);
+            }
             return;
         }
 
         if (game.gameState() != GameState.RUNNING) {
-            event.setCancelled(true);
+            if (!canBuild) {
+                event.setCancelled(true);
+            }
             return;
         }
 
