@@ -84,7 +84,8 @@ public class PlayerListener implements Listener {
         }
 
         if (!player.hasPermission("abbacaving.respawn") || gamePlayer.hasRespawned()) {
-            game.broadcast(this.plugin.configMessage("player-died"), Map.of("player", player.displayName()));
+            game.broadcast(this.plugin.configMessage("player-died"), Map.of("player", player.displayName(),
+                    "score", Component.text(gamePlayer.score())));
 
             final Collection<GamePlayer> players = game.players();
 
