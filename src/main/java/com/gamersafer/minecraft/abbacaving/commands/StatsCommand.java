@@ -3,15 +3,20 @@ package com.gamersafer.minecraft.abbacaving.commands;
 import com.gamersafer.minecraft.abbacaving.AbbaCavingPlugin;
 import com.gamersafer.minecraft.abbacaving.game.GamePlayer;
 import com.gamersafer.minecraft.abbacaving.util.Util;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
+import org.bukkit.command.TabCompleter;
 import org.bukkit.entity.Player;
+import org.bukkit.util.StringUtil;
 import org.jetbrains.annotations.NotNull;
 
-public class StatsCommand implements CommandExecutor {
+public class StatsCommand implements CommandExecutor, TabCompleter {
 
     private final AbbaCavingPlugin plugin;
 
@@ -53,6 +58,24 @@ public class StatsCommand implements CommandExecutor {
         this.plugin.message(player, this.plugin.configMessage("stats-score"), Map.of("score", Util.addCommas(gp.highestScore())));
         this.plugin.message(player, this.plugin.configMessage("stats-ores"), Map.of("ores", Util.addCommas(gp.totalOresMined())));
         return true;
+    }
+
+    private List<String> playerNames() {
+        final ArrayList<String> names = new ArrayList<>();
+
+        for (final Player player : Bukkit.getOnlinePlayers()) {
+            names.add(player.getName());
+        }
+
+        return names;
+    }
+
+    @Override
+    public List<String> onTabComplete(final CommandSender sender, final Command command, final String alias, final String[] args) {
+        if (args.length == 1)
+            return StringUtil.copyPartialMatches(args[0], this.playerNames(), new ArrayList<>());
+        else
+            return Collections.emptyList();
     }
 
 }
