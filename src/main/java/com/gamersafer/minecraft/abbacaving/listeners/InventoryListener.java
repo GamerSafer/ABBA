@@ -69,7 +69,7 @@ public class InventoryListener implements Listener {
 
         final boolean canEditInventory = event.getWhoClicked().hasPermission("abbacaving.inventory");
 
-        if (!canEditInventory) {
+        if (canEditInventory) {
             return;
         }
 
