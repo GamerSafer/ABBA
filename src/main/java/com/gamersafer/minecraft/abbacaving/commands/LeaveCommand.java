@@ -52,6 +52,7 @@ public class LeaveCommand implements CommandExecutor {
 
             if (game != null) {
                 game.removePlayer(player, true);
+                game.sendToLobby(player);
             }
         }
 

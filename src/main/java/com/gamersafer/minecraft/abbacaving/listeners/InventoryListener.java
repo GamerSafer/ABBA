@@ -116,7 +116,7 @@ public class InventoryListener implements Listener {
         final Player player = (Player) event.getView().getPlayer();
 
         // 19 21 23 25
-        switch (event.getRawSlot()) {
+        switch (event.getSlot()) {
             case 19 -> this.saveLayoutButton(player);
             case 21 -> this.openCosmeticsMenu(player);
             case 23 -> this.showStats(player);
@@ -146,7 +146,12 @@ public class InventoryListener implements Listener {
     }
 
     private void returnToLobby(final Player player) {
-        this.plugin.gameTracker().removePlayer(player, true);
+        final Game game = this.plugin.gameTracker().findGame(player);
+
+        if (game != null) {
+            game.removePlayer(player, true);
+            game.sendToLobby(player);
+        }
     }
 
 }
