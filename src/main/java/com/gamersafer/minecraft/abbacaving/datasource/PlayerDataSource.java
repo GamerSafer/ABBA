@@ -10,4 +10,6 @@ public interface PlayerDataSource {
 
     void savePlayerStats(final GamePlayer gp);
 
+    void savePlayerHotbar(final GamePlayer gp);
+
 }

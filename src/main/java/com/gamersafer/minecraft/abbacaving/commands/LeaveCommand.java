@@ -52,7 +52,6 @@ public class LeaveCommand implements CommandExecutor {
 
             if (game != null) {
                 game.removePlayer(player, true);
-                this.plugin.message(player, this.plugin.configMessage("leave-game"), Map.of("map", game.mapName()));
             }
         }
 

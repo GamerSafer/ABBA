@@ -4,6 +4,8 @@ import com.gamersafer.minecraft.abbacaving.AbbaCavingPlugin;
 import com.gamersafer.minecraft.abbacaving.game.CaveLoot;
 import com.gamersafer.minecraft.abbacaving.game.Game;
 import com.gamersafer.minecraft.abbacaving.game.GamePlayer;
+import java.util.Map;
+import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -12,6 +14,7 @@ import org.bukkit.event.inventory.InventoryDragEvent;
 import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.PlayerInventory;
 
 public class InventoryListener implements Listener {
 
@@ -75,6 +78,10 @@ public class InventoryListener implements Listener {
 
         event.setCancelled(true);
 
+        if (!this.handleInventoryMenu(event)) {
+            return;
+        }
+
         final CaveLoot lootItem = this.plugin.lootFromItem(currentItem.getType());
 
         if (lootItem == null) {
@@ -101,6 +108,47 @@ public class InventoryListener implements Listener {
         //         "item", Component.text(lootItem.name()),
         //         "article", Component.text(lootItem.article().isEmpty() ? "" : lootItem.article() + " ")
         // ));
+    }
+
+    private boolean handleInventoryMenu(final InventoryClickEvent event) {
+        if (!(event.getClickedInventory() instanceof PlayerInventory)) {
+            return true;
+        }
+
+        final Player player = (Player) event.getView().getPlayer();
+
+        // 19 21 23 25
+        switch (event.getRawSlot()) {
+            case 19 -> this.saveLayoutButton(player);
+            case 21 -> this.openCosmeticsMenu(player);
+            case 23 -> this.showStats(player);
+            case 25 -> this.returnToLobby(player);
+        }
+
+        return false;
+    }
+
+    private void saveLayoutButton(final Player player) {
+        final GamePlayer gamePlayer = this.plugin.gameTracker().findPlayerInGame(player);
+        final Game game = this.plugin.gameTracker().findGame(player);
+
+        if (game != null && gamePlayer != null) {
+            game.saveHotbar(gamePlayer);
+        }
+
+        this.plugin.message(player, this.plugin.configMessage("layout-saved"));
+    }
+
+    private void openCosmeticsMenu(final Player player) {
+
+    }
+
+    private void showStats(final Player player) {
+
+    }
+
+    private void returnToLobby(final Player player) {
+        this.plugin.gameTracker().removePlayer(player, true);
     }
 
 }

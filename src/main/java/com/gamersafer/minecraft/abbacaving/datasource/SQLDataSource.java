@@ -9,6 +9,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.Map;
 
 public class SQLDataSource implements PlayerDataSource {
 
@@ -45,6 +46,7 @@ public class SQLDataSource implements PlayerDataSource {
         try (final Connection conn = this.dataSource.getConnection()) {
             try (final Statement statement = conn.createStatement()) {
                 statement.execute("CREATE TABLE IF NOT EXISTS abba_caving_stats (uuid VARCHAR(50) PRIMARY KEY, wins INT, highest_score INT, ores_mined INT);");
+                statement.execute("CREATE TABLE IF NOT EXISTS abba_hotbar_layout (uuid VARCHAR(50) NOT NULL, slot INT NOT NULL, material VARCHAR(50)) CONSTRAINT hotbar_pk (uuid, slot)");
             }
         } catch (final SQLException ex) {
             ex.printStackTrace();
@@ -67,6 +69,20 @@ public class SQLDataSource implements PlayerDataSource {
                     }
                 }
             }
+
+            try (final PreparedStatement hotbarStatement = conn.prepareStatement("SELECT * FROM abba_hotbar_layout WHERE uuid =  ?;")) {
+                hotbarStatement.setString(1, gp.player().getUniqueId().toString());
+
+                try (final ResultSet rs = hotbarStatement.executeQuery()) {
+                    if (rs.next()) {
+                        gp.hotbarLayout(rs.getInt("slot"), rs.getString("material"));
+
+                        this.plugin.getLogger().info("Loaded " + gp.player().getName() + "'s hotbar layout");
+                    } else {
+                        this.plugin.getLogger().info("No hotbar layout found for player " + gp.player().getName());
+                    }
+                }
+            }
         } catch (final SQLException ex) {
             ex.printStackTrace();
         }
@@ -85,6 +101,24 @@ public class SQLDataSource implements PlayerDataSource {
                 stmt.setInt(7, gp.totalOresMined());
                 stmt.executeUpdate();
                 this.plugin.getLogger().info("Saved " + gp.player().getName() + "'s stats");
+            }
+        } catch (final SQLException ex) {
+            ex.printStackTrace();
+        }
+    }
+
+    public void savePlayerHotbar(final GamePlayer gp) {
+        try (final Connection conn = this.dataSource.getConnection()) {
+            for (final Map.Entry<Integer, String> entry : gp.hotbarLayout().entrySet()) {
+                try (final PreparedStatement stmt = conn.prepareStatement(
+                        "INSERT INTO abba_hotbar_layout (uuid, slot, material) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE slot = ?, material = ?;")) {
+                    stmt.setString(1, gp.player().getUniqueId().toString());
+                    stmt.setInt(2, entry.getKey());
+                    stmt.setString(3, entry.getValue());
+
+                    stmt.executeUpdate();
+                    this.plugin.getLogger().info("Saved " + gp.player().getName() + "'s hotbar");
+                }
             }
         } catch (final SQLException ex) {
             ex.printStackTrace();

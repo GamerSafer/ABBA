@@ -2,6 +2,7 @@ package com.gamersafer.minecraft.abbacaving.game;
 
 import com.gamersafer.minecraft.abbacaving.AbbaCavingPlugin;
 import com.gamersafer.minecraft.abbacaving.util.Util;
+import java.util.HashMap;
 import java.util.Map;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Location;
@@ -23,6 +24,7 @@ public class GamePlayer {
     private boolean hasRespawned;
     private Location spawn;
     private int bucketUses;
+    private Map<Integer, String> hotbarLayout = new HashMap<>();
 
     public GamePlayer(final AbbaCavingPlugin plugin, final Player player) {
         this.plugin = plugin;
@@ -31,6 +33,14 @@ public class GamePlayer {
 
     public Player player() {
         return this.player;
+    }
+
+    public Map<Integer, String> hotbarLayout() {
+        return this.hotbarLayout;
+    }
+
+    public void hotbarLayout(final Integer slot, final String material) {
+        this.hotbarLayout.put(slot, material);
     }
 
     public int wins() {

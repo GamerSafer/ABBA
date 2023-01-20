@@ -5,6 +5,7 @@ import com.gamersafer.minecraft.abbacaving.game.validators.BlockValidator;
 import com.gamersafer.minecraft.abbacaving.game.validators.YLevelValidator;
 import com.gamersafer.minecraft.abbacaving.lobby.LobbyQueue;
 import com.gamersafer.minecraft.abbacaving.lobby.QueueState;
+import com.gamersafer.minecraft.abbacaving.util.ItemBuilder;
 import com.gamersafer.minecraft.abbacaving.util.Util;
 import com.sk89q.worldedit.EditSession;
 import com.sk89q.worldedit.WorldEdit;
@@ -260,8 +261,6 @@ public class Game {
         final GamePlayer gp = this.players.get(player.getName());
         if (gp == null) return null;
 
-        this.saveHotbar(player);
-
         this.players.remove(player.getName());
         this.leaderboard.remove(gp);
         this.updateLeaderboard();
@@ -269,16 +268,17 @@ public class Game {
 
         if (quit) {
             this.broadcast(this.plugin.configMessage("player-left"), Map.of("player", player.displayName()));
+            this.plugin.message(player, this.plugin.configMessage("leave-game"), Map.of("map", this.mapName()));
         }
 
         return gp;
     }
 
-    private void saveHotbar(final Player player) {
+    public void saveHotbar(final GamePlayer player) {
         final Map<Integer, String> hotbarSlots = new HashMap<>();
 
         for (int i = 36; i <= 44; i++) {
-            final ItemStack slotItem = player.getInventory().getItem(i);
+            final ItemStack slotItem = player.player().getInventory().getItem(i);
 
             if (slotItem == null || slotItem.getType() == Material.AIR) {
                 continue;
@@ -287,7 +287,7 @@ public class Game {
             hotbarSlots.put(i, slotItem.getType().toString());
         }
 
-        // TODO: save hotbar
+        this.plugin.playerDataSource().savePlayerHotbar(player);
     }
 
     public GamePlayer player(final Player player) {
@@ -378,6 +378,7 @@ public class Game {
             gp.score(0);
             gp.bucketUses(0);
             this.startingInventory(gp.player());
+            this.setupGUIs(gp);
             gp.player().setGameMode(GameMode.SURVIVAL);
         }
 
@@ -747,6 +748,37 @@ public class Game {
                 this.plugin.getConfig().getDouble("lobby-spawn-location.z"),
                 (float) this.plugin.getConfig().getDouble("lobby-spawn-location.yaw"),
                 (float) this.plugin.getConfig().getDouble("lobby-spawn-location.pitch")));
+    }
+
+    final static ItemStack BACKGROUND_ITEM = new ItemStack(Material.GREEN_STAINED_GLASS_PANE);
+    final static ItemStack CHEST = new ItemBuilder(Material.CHEST).name(Component.text("Save Hotbar Layout")).build();
+    final static ItemStack BEACON = new ItemBuilder(Material.BEACON).name(Component.text("Cosmetics")).build();
+    final static ItemStack ARROW = new ItemBuilder(Material.ARROW).name(Component.text("Statistics")).build();
+    final static ItemStack REDSTONE = new ItemBuilder(Material.REDSTONE_BLOCK).name(Component.text("Return to Lobby")).build();
+
+    final static Map<String, ItemStack> MATERIAL_MAP = Map.of("CHEST", CHEST, "BEACON", BEACON,
+            "ARROW", ARROW, "REDSTONE_BLOCK", REDSTONE);
+
+    private void setupGUIs(final GamePlayer player) {
+        // Inventory slots 9 (top-left) to 35 (bottom-right) are the player's inventory grid
+        for (int index = 9; index <= 35; index++) {
+            player.player().getInventory().setItem(index, BACKGROUND_ITEM);
+        }
+
+        // Load existing hotbar layout
+        if (!player.hotbarLayout().isEmpty()) {
+            for (final Map.Entry<Integer, String> entry : player.hotbarLayout().entrySet()) {
+                player.player().getInventory().setItem(entry.getKey(), MATERIAL_MAP.get(entry.getValue()));
+            }
+
+            return;
+        }
+
+        // Populate GUI buttons
+        player.player().getInventory().setItem(19, CHEST);
+        player.player().getInventory().setItem(21, BEACON);
+        player.player().getInventory().setItem(23, ARROW);
+        player.player().getInventory().setItem(25, REDSTONE);
     }
 
 }
