@@ -144,7 +144,7 @@ public class InventoryListener implements Listener {
     }
 
     private void showStats(final Player player) {
-
+        player.performCommand("/stats");
     }
 
     private void returnToLobby(final Player player) {

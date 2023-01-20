@@ -23,6 +23,7 @@ import org.bukkit.event.player.PlayerBucketFillEvent;
 import org.bukkit.event.player.PlayerChangedWorldEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerItemConsumeEvent;
+import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.ItemStack;
 
@@ -32,6 +33,12 @@ public class PlayerListener implements Listener {
 
     public PlayerListener(final AbbaCavingPlugin plugin) {
         this.plugin = plugin;
+    }
+
+    @EventHandler
+    public void onPlayerJoin(final PlayerJoinEvent event) {
+        final GamePlayer gp = this.plugin.gameTracker().gamePlayer(event.getPlayer());
+        this.plugin.getServer().getScheduler().runTaskAsynchronously(this.plugin, () -> this.plugin.playerDataSource().loadPlayerStats(gp));
     }
 
     @EventHandler

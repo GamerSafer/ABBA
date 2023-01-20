@@ -2,7 +2,10 @@ package com.gamersafer.minecraft.abbacaving.game;
 
 import com.gamersafer.minecraft.abbacaving.AbbaCavingPlugin;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 import org.bukkit.GameMode;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
@@ -11,6 +14,7 @@ public class GameTracker {
 
     private final AbbaCavingPlugin plugin;
     private final List<Game> currentGames = new ArrayList<>();
+    private final Map<UUID, GamePlayer> playerCache = new HashMap<>();
 
     public GameTracker(final AbbaCavingPlugin plugin) {
         this.plugin = plugin;
@@ -22,12 +26,7 @@ public class GameTracker {
 
     public void addPlayerToGame(final Game game, final Player player) {
         player.setGameMode(GameMode.ADVENTURE);
-        //player.teleport(game.world().getSpawnLocation());
-
-        final GamePlayer gp = new GamePlayer(this.plugin, player);
-        game.addPlayer(gp);
-
-        this.plugin.getServer().getScheduler().runTaskAsynchronously(this.plugin, () -> this.plugin.playerDataSource().loadPlayerStats(gp));
+        game.addPlayer(this.gamePlayer(player));
     }
 
     public Game gameById(final String gameId) {
@@ -68,6 +67,10 @@ public class GameTracker {
         }
 
         return null;
+    }
+
+    public GamePlayer gamePlayer(final Player player) {
+        return this.playerCache.computeIfAbsent(player.getUniqueId(), uuid -> new GamePlayer(this.plugin, player));
     }
 
     public GamePlayer findPlayerInGame(final Player player) {
