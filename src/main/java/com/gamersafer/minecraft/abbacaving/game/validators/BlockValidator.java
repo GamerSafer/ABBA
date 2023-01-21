@@ -18,7 +18,11 @@ public class BlockValidator extends LocationValidator {
 
     @Override
     public boolean validate(final RandomSearcher randomSearcher, final Location location) {
-        return !this.invalidBlocks.contains(location.getBlock().getType().name());
+        if (this.invalidBlocks != null) {
+            return !this.invalidBlocks.contains(location.getBlock().getType().name());
+        }
+
+        return true;
     }
 
 }
