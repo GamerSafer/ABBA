@@ -663,11 +663,37 @@ public class Game {
             .miniMessageName("<green><bold>Infinite Bow")
             .build();
 
+    private final ItemStack SHOVEL = new ItemBuilder(Material.IRON_SHOVEL)
+            .miniMessageName("<green><bold>Starter Shovel")
+            .build();
+
+    private final ItemStack BEEF = new ItemBuilder(Material.COOKED_BEEF)
+            .miniMessageName("<green><bold>Infinite Steak Supply")
+            .build();
+
+    private final ItemStack COBBLESTONE = new ItemBuilder(Material.COBBLESTONE)
+            .miniMessageName("<green><bold>Infinite Cobble")
+            .build();
+
+    private final ItemStack BUCKET = new ItemStack(Material.WATER_BUCKET);
+
+    private final ItemStack TORCH = new ItemBuilder(Material.TORCH)
+            .miniMessageName("<green><bold>Infinite Torch")
+            .build();
+
+    private final ItemStack ARROW = new ItemStack(Material.ARROW);
+
     private final Map<String, ItemStack> hotbarItemCache = Map.of(
             "DIAMOND_PICKAXE", this.PICKAXE,
             "IRON_SWORD", this.SWORD,
-            "BOW", this.BOW
-    ); // TODO: finish adding rest of hotbar
+            "BOW", this.BOW,
+            "IRON_SHOVEL", this.SHOVEL,
+            "COOKED_BEEF", this.BEEF,
+            "COBBLESTONE", this.COBBLESTONE,
+            "WATER_BUCKET", this.BUCKET,
+            "TORCH", this.TORCH,
+            "ARROW", this.ARROW
+    );
 
     public void startingInventory(final GamePlayer player) {
         final Inventory inv = player.player().getInventory();
@@ -692,7 +718,8 @@ public class Game {
             return;
         }
 
-        // TODO: add items when player doesn't have a saved hotbar
+        inv.addItem(this.PICKAXE, this.SWORD, this.BOW, this.SHOVEL,
+                this.BEEF, this.COBBLESTONE, this.BUCKET, this.TORCH, this.ARROW);
     }
 
     public void preparePlayer(final Player player) {
@@ -744,7 +771,7 @@ public class Game {
     final static ItemStack BACKGROUND_ITEM = new ItemStack(Material.GREEN_STAINED_GLASS_PANE);
     final static ItemStack CHEST = new ItemBuilder(Material.CHEST).name(Component.text("Save Hotbar Layout")).build();
     final static ItemStack BEACON = new ItemBuilder(Material.BEACON).name(Component.text("Cosmetics")).build();
-    final static ItemStack ARROW = new ItemBuilder(Material.ARROW).name(Component.text("Statistics")).build();
+    final static ItemStack STATS_ARROW = new ItemBuilder(Material.ARROW).name(Component.text("Statistics")).build();
     final static ItemStack REDSTONE = new ItemBuilder(Material.REDSTONE_BLOCK).name(Component.text("Return to Lobby")).build();
 
     private void setupGUIs(final GamePlayer player) {
@@ -756,7 +783,7 @@ public class Game {
         // Populate GUI buttons
         player.player().getInventory().setItem(19, CHEST);
         player.player().getInventory().setItem(21, BEACON);
-        player.player().getInventory().setItem(23, ARROW);
+        player.player().getInventory().setItem(23, STATS_ARROW);
         player.player().getInventory().setItem(25, REDSTONE);
     }
 
