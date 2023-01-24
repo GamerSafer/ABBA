@@ -3,6 +3,7 @@ package com.gamersafer.minecraft.abbacaving.util;
 import java.util.ArrayList;
 import java.util.List;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.bukkit.Bukkit;
 import org.bukkit.Color;
 import org.bukkit.Material;
@@ -78,6 +79,10 @@ public class ItemBuilder {
         return this;
     }
 
+    public ItemBuilder miniMessageName(final String name) {
+        return this.name(MiniMessage.miniMessage().deserialize(name));
+    }
+
     /**
      * Adds a new line to the lore of the {@link ItemStack}.
      *
@@ -112,6 +117,16 @@ public class ItemBuilder {
 
         meta.lore(lines);
         this.is.setItemMeta(meta);
+
+        return this;
+    }
+
+    public ItemBuilder unbreakable(final boolean unbreakable) {
+        final ItemMeta itemMeta = this.is.getItemMeta();
+
+        itemMeta.setUnbreakable(unbreakable);
+
+        this.is.setItemMeta(itemMeta);
 
         return this;
     }

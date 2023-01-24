@@ -39,6 +39,10 @@ public class GamePlayer {
         return this.hotbarLayout;
     }
 
+    public void hotbarLayout(final Map<Integer, String> hotbarLayout) {
+        this.hotbarLayout = hotbarLayout;
+    }
+
     public void hotbarLayout(final Integer slot, final String material) {
         this.hotbarLayout.put(slot, material);
     }

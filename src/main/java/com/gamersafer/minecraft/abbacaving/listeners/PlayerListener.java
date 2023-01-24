@@ -114,7 +114,7 @@ public class PlayerListener implements Listener {
         gamePlayer.score(0);
         gamePlayer.bucketUses(0);
         game.updateLeaderboard();
-        game.startingInventory(player);
+        game.startingInventory(gamePlayer);
 
         // TODO: RTP player in world when respawning
 

@@ -277,7 +277,7 @@ public class Game {
     public void saveHotbar(final GamePlayer player) {
         final Map<Integer, String> hotbarSlots = new HashMap<>();
 
-        for (int i = 36; i <= 44; i++) {
+        for (int i = 0; i <= 8; i++) {
             final ItemStack slotItem = player.player().getInventory().getItem(i);
 
             if (slotItem == null || slotItem.getType() == Material.AIR) {
@@ -287,6 +287,7 @@ public class Game {
             hotbarSlots.put(i, slotItem.getType().toString());
         }
 
+        player.hotbarLayout(hotbarSlots);
         this.plugin.playerDataSource().savePlayerHotbar(player);
     }
 
@@ -377,7 +378,7 @@ public class Game {
             this.preparePlayer(gp.player());
             gp.score(0);
             gp.bucketUses(0);
-            this.startingInventory(gp.player());
+            this.startingInventory(gp);
             this.setupGUIs(gp);
             gp.player().setGameMode(GameMode.SURVIVAL);
         }
@@ -646,41 +647,52 @@ public class Game {
         this.plugin.getLogger().info("Removed " + removed + " entities (" + items + " were items)");
     }
 
-    public void startingInventory(final Player player) {
-        final Inventory inv = player.getInventory();
+    private final ItemStack PICKAXE = new ItemBuilder(Material.DIAMOND_PICKAXE)
+            .unbreakable(true)
+            .enchantment(Enchantment.SILK_TOUCH, 1)
+            .miniMessageName("<green><bold>Starter Pickaxe")
+            .build();
 
-        final ItemStack pickaxe = new ItemStack(Material.DIAMOND_PICKAXE);
-        final ItemMeta pickaxeMeta = pickaxe.getItemMeta();
-        pickaxeMeta.setUnbreakable(true);
-        pickaxe.setItemMeta(pickaxeMeta);
-        pickaxe.addUnsafeEnchantment(Enchantment.SILK_TOUCH, 1);
+    private final ItemStack SWORD = new ItemBuilder(Material.IRON_SWORD)
+            .miniMessageName("<green><bold>Starter Sword")
+            .build();
 
-        final ItemStack bow = new ItemStack(Material.BOW);
-        final ItemMeta bowMeta = bow.getItemMeta();
-        bowMeta.setUnbreakable(true);
-        bow.setItemMeta(bowMeta);
-        bow.addUnsafeEnchantment(Enchantment.ARROW_INFINITE, 1);
+    private final ItemStack BOW = new ItemBuilder(Material.BOW)
+            .unbreakable(true)
+            .enchantment(Enchantment.ARROW_INFINITE, 1)
+            .miniMessageName("<green><bold>Infinite Bow")
+            .build();
+
+    private final Map<String, ItemStack> hotbarItemCache = Map.of(
+            "DIAMOND_PICKAXE", this.PICKAXE,
+            "IRON_SWORD", this.SWORD,
+            "BOW", this.BOW
+    ); // TODO: finish adding rest of hotbar
+
+    public void startingInventory(final GamePlayer player) {
+        final Inventory inv = player.player().getInventory();
 
         final ItemStack shield = new ItemStack(Material.SHIELD);
         final Damageable damageable = (Damageable) shield.getItemMeta();
         damageable.setDamage(168);
         shield.setItemMeta(damageable);
-        player.getInventory().setItemInOffHand(shield);
+        player.player().getInventory().setItemInOffHand(shield);
 
-        inv.addItem(Util.displayName(pickaxe, "<green><bold>Starter Pickaxe"));
-        inv.addItem(Util.displayName(new ItemStack(Material.IRON_SWORD), "<green><bold>Starter Sword"));
-        inv.addItem(Util.displayName(bow, "<green><bold>Infinite Bow"));
-        inv.addItem(Util.displayName(new ItemStack(Material.IRON_SHOVEL), "<green><bold>Starter Shovel"));
-        inv.addItem(Util.displayName(new ItemStack(Material.COOKED_BEEF), "<green><bold>Infinite Steak Supply"));
-        inv.addItem(Util.displayName(new ItemStack(Material.COBBLESTONE), "<green><bold>Infinite Cobble"));
-        inv.addItem(new ItemStack(Material.WATER_BUCKET));
-        inv.addItem(Util.displayName(new ItemStack(Material.TORCH), "<green><bold>Infinite Torch"));
-        inv.addItem(new ItemStack(Material.ARROW, 1));
+        player.player().getInventory().setHelmet(new ItemStack(Material.IRON_HELMET));
+        player.player().getInventory().setChestplate(new ItemStack(Material.IRON_CHESTPLATE));
+        player.player().getInventory().setLeggings(new ItemStack(Material.IRON_LEGGINGS));
+        player.player().getInventory().setBoots(new ItemStack(Material.IRON_BOOTS));
 
-        player.getInventory().setHelmet(new ItemStack(Material.IRON_HELMET));
-        player.getInventory().setChestplate(new ItemStack(Material.IRON_CHESTPLATE));
-        player.getInventory().setLeggings(new ItemStack(Material.IRON_LEGGINGS));
-        player.getInventory().setBoots(new ItemStack(Material.IRON_BOOTS));
+        // Load existing hotbar layout
+        if (!player.hotbarLayout().isEmpty()) {
+            for (final Map.Entry<Integer, String> entry : player.hotbarLayout().entrySet()) {
+                player.player().getInventory().setItem(entry.getKey(), this.hotbarItemCache.get(entry.getValue()));
+            }
+
+            return;
+        }
+
+        // TODO: add items when player doesn't have a saved hotbar
     }
 
     public void preparePlayer(final Player player) {
@@ -719,27 +731,6 @@ public class Game {
         return result;
     }
 
-    public boolean canAccess(final Location loc, final Location spawn) {
-        final int radius = this.mapSetting("protected-spawn-radius");
-        if (radius < 1) return true;
-
-        return !this.inBounds(loc,
-                new Location(spawn.getWorld(),
-                        spawn.getX() - radius,
-                        spawn.getY() - radius,
-                        spawn.getZ() - radius),
-                new Location(spawn.getWorld(),
-                        spawn.getX() + radius,
-                        spawn.getY() + radius,
-                        spawn.getZ() + radius));
-    }
-
-    private boolean inBounds(final Location location, final Location bound1, final Location bound2) {
-        return Math.min(bound1.getX(), bound2.getX()) <= location.getX() && location.getX() <= Math.max(bound1.getX(), bound2.getX()) &&
-                Math.min(bound1.getY(), bound2.getY()) <= location.getY() && location.getY() <= Math.max(bound1.getY(), bound2.getY()) &&
-                Math.min(bound1.getZ(), bound2.getZ()) <= location.getZ() && location.getZ() <= Math.max(bound1.getZ(), bound2.getZ());
-    }
-
     public void sendToLobby(final Player player) {
         player.teleport(new Location(
                 Bukkit.getWorld(this.plugin.getConfig().getString("lobby-spawn-location.world")),
@@ -756,22 +747,10 @@ public class Game {
     final static ItemStack ARROW = new ItemBuilder(Material.ARROW).name(Component.text("Statistics")).build();
     final static ItemStack REDSTONE = new ItemBuilder(Material.REDSTONE_BLOCK).name(Component.text("Return to Lobby")).build();
 
-    final static Map<String, ItemStack> MATERIAL_MAP = Map.of("CHEST", CHEST, "BEACON", BEACON,
-            "ARROW", ARROW, "REDSTONE_BLOCK", REDSTONE);
-
     private void setupGUIs(final GamePlayer player) {
         // Inventory slots 9 (top-left) to 35 (bottom-right) are the player's inventory grid
         for (int index = 9; index <= 35; index++) {
             player.player().getInventory().setItem(index, BACKGROUND_ITEM);
-        }
-
-        // Load existing hotbar layout
-        if (!player.hotbarLayout().isEmpty()) {
-            for (final Map.Entry<Integer, String> entry : player.hotbarLayout().entrySet()) {
-                player.player().getInventory().setItem(entry.getKey(), MATERIAL_MAP.get(entry.getValue()));
-            }
-
-            return;
         }
 
         // Populate GUI buttons

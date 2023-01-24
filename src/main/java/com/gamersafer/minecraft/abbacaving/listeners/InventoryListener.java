@@ -68,15 +68,12 @@ public class InventoryListener implements Listener {
             return;
         }
 
-        final boolean canEditInventory = event.getWhoClicked().hasPermission("abbacaving.inventory");
-
-        if (canEditInventory) {
+        if (this.handleInventoryMenu(event)) {
+            event.setCancelled(true);
             return;
         }
 
-        event.setCancelled(true);
-
-        if (!this.handleInventoryMenu(event)) {
+        if (this.isHotbarClick(event)) {
             return;
         }
 
@@ -99,13 +96,10 @@ public class InventoryListener implements Listener {
         game.increasePlayerScore(gp, lootItem.value());
 
         event.setCurrentItem(null);
+    }
 
-        // TODO: Don't broadcast message for all items, if a chest has 7 items, that will be 7 messages in chat.
-        // game.broadcast(this.plugin.configMessage("player-found-item"), Map.of(
-        //         "player", player.displayName(),
-        //         "item", Component.text(lootItem.name()),
-        //         "article", Component.text(lootItem.article().isEmpty() ? "" : lootItem.article() + " ")
-        // ));
+    private boolean isHotbarClick(final InventoryClickEvent event) {
+        return event.getSlotType() == InventoryType.SlotType.QUICKBAR;
     }
 
     private boolean handleInventoryMenu(final InventoryClickEvent event) {
@@ -123,7 +117,7 @@ public class InventoryListener implements Listener {
             case 25 -> this.returnToLobby(player);
         }
 
-        return false;
+        return event.getSlot() >= 9 && event.getSlot() <= 35;
     }
 
     private void saveLayoutButton(final Player player) {
@@ -132,9 +126,11 @@ public class InventoryListener implements Listener {
 
         if (game != null && gamePlayer != null) {
             game.saveHotbar(gamePlayer);
+            this.plugin.message(player, this.plugin.configMessage("layout-saved"));
+        } else {
+            this.plugin.message(player, "<red>Failed to save hotbar layout!");
         }
 
-        this.plugin.message(player, this.plugin.configMessage("layout-saved"));
     }
 
     private void openCosmeticsMenu(final Player player) {
@@ -142,7 +138,7 @@ public class InventoryListener implements Listener {
     }
 
     private void showStats(final Player player) {
-        player.performCommand("/stats");
+        player.performCommand("/abbacaving:stats");
     }
 
     private void returnToLobby(final Player player) {

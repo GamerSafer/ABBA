@@ -115,14 +115,19 @@ public class SQLDataSource implements PlayerDataSource {
                     stmt.setString(1, gp.player().getUniqueId().toString());
                     stmt.setInt(2, entry.getKey());
                     stmt.setString(3, entry.getValue());
+                    stmt.setInt(4, entry.getKey());
+                    stmt.setString(5, entry.getValue());
 
                     stmt.executeUpdate();
-                    this.plugin.getLogger().info("Saved " + gp.player().getName() + "'s hotbar");
+                } catch (final SQLException ex) {
+                    ex.printStackTrace();
                 }
             }
         } catch (final SQLException ex) {
             ex.printStackTrace();
         }
+
+        this.plugin.getLogger().info("Saved " + gp.player().getName() + "'s hotbar");
     }
 
 }
