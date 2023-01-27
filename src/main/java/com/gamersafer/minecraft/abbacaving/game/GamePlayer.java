@@ -39,6 +39,10 @@ public class GamePlayer {
         return this.hotbarLayout;
     }
 
+    public boolean hasCustomHotbarLayout() {
+        return this.hotbarLayout != null && !this.hotbarLayout.isEmpty();
+    }
+
     public void hotbarLayout(final Map<Integer, String> hotbarLayout) {
         this.hotbarLayout = hotbarLayout;
     }

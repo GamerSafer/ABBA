@@ -289,6 +289,18 @@ public class Game {
         this.plugin.playerDataSource().savePlayerHotbar(player);
     }
 
+    public void applyCustomHotbar(final GamePlayer player) {
+        for (final Map.Entry<Integer, String> entry : player.hotbarLayout().entrySet()) {
+            final ItemStack hotbarItem = this.hotbarItemCache.get(entry.getValue());
+
+            if (hotbarItem == null) {
+                this.plugin.getLogger().warning("Hotbar item not cached for key [" + entry.getValue() + "]");
+            }
+            
+            player.player().getInventory().setItem(entry.getKey(), hotbarItem);
+        }
+    }
+
     public void applyDefaultHotbar(final GamePlayer player) {
         for (int i = 0; i < 9; i++) {
             player.player().getInventory().setItem(i, null);
@@ -713,15 +725,12 @@ public class Game {
         inv.setBoots(new ItemStack(Material.IRON_BOOTS));
 
         // Load existing hotbar layout
-        if (!player.hotbarLayout().isEmpty()) {
-            for (final Map.Entry<Integer, String> entry : player.hotbarLayout().entrySet()) {
-                inv.setItem(entry.getKey(), this.hotbarItemCache.get(entry.getValue()));
-            }
-
-            return;
+        if (player.hasCustomHotbarLayout()) {
+            this.applyCustomHotbar(player);
+        } else {
+            this.applyDefaultHotbar(player);
         }
 
-        this.applyDefaultHotbar(player);
     }
 
     public void preparePlayer(final Player player) {

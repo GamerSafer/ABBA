@@ -9,6 +9,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.HashMap;
 import java.util.Map;
 
 public class SQLDataSource implements PlayerDataSource {
@@ -74,12 +75,12 @@ public class SQLDataSource implements PlayerDataSource {
                 hotbarStatement.setString(1, gp.player().getUniqueId().toString());
 
                 try (final ResultSet rs = hotbarStatement.executeQuery()) {
-                    if (rs.next()) {
+                    while (rs.next()) {
                         gp.hotbarLayout(rs.getInt("slot"), rs.getString("material"));
+                    }
 
+                    if (gp.hasCustomHotbarLayout()) {
                         this.plugin.getLogger().info("Loaded " + gp.player().getName() + "'s hotbar layout");
-                    } else {
-                        this.plugin.getLogger().info("No hotbar layout found for player " + gp.player().getName());
                     }
                 }
             }
