@@ -113,6 +113,9 @@ public class PlayerListener implements Listener {
                     "count", Component.text(players.size()),
                     "optional-s", Component.text(players.size() != 1 ? "s" : "")
             ));
+        } else {
+            // There are 0 players left in the round (everyone quit/died), end the round early
+            game.stop();
         }
 
         gamePlayer.gameStats().isDead(true);
