@@ -226,10 +226,6 @@ public class Lobby implements Listener {
         final List<UUID> uuidsToRemove = new ArrayList<>();
 
         for (final UUID playerId : queue.playerQueue()) {
-            if (game.players().size() >= game.maxPlayersPerRound()) {
-                break;
-            }
-
             final Player player = Bukkit.getPlayer(playerId);
 
             if (player != null) {
