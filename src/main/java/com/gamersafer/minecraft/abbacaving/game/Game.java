@@ -390,13 +390,12 @@ public class Game {
         this.broadcast(this.plugin.configMessage("game-started"));
 
         for (final GamePlayer gp : this.players.values()) {
+            // TODO: change this to use the player's RTP location
             final Location loc = this.world.getSpawnLocation();
 
-            gp.spawnLocation(loc);
+            gp.gameStats(loc);
             this.leaderboard.put(gp, 0);
             this.preparePlayer(gp.player());
-            gp.score(0);
-            gp.bucketUses(0);
             this.startingInventory(gp);
             this.setupGUIs(gp);
             gp.player().setGameMode(GameMode.SURVIVAL);
@@ -409,7 +408,7 @@ public class Game {
         this.gameState(GameState.RUNNING);
     }
 
-    private void stop() {
+    public void stop() {
         this.plugin.getLogger().info("Game ended for map [" + this.mapName + "] and game ID [" + this.gameId + "]");
 
         this.broadcast(this.plugin.configMessage("game-ended"));
@@ -433,7 +432,7 @@ public class Game {
             this.broadcast(this.plugin.configMessage("game-win"), Map.of(
                     "player", winner.getKey().player().displayName(),
                     "score", Component.text(Util.addCommas(winner.getValue())),
-                    "optional-s", Component.text(winner.getKey().score() != 1 ? "s" : "")
+                    "optional-s", Component.text(winner.getKey().gameStats().score() != 1 ? "s" : "")
             ));
 
             this.broadcast(this.plugin.configMessage("game-top-players"));
@@ -569,7 +568,7 @@ public class Game {
 
         this.plugin.getServer().getScheduler().runTaskLater(this.plugin, () -> {
             for (final GamePlayer gp : this.players.values()) {
-                gp.score(0);
+                gp.gameStats().score(0);
                 this.sendToLobby(gp.player());
             }
 

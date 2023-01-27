@@ -82,7 +82,7 @@ public class ACLookupCommand implements CommandExecutor, TabCompleter, Paginatio
     @Override
     public @NotNull Collection<Component> renderRow(final @Nullable GamePlayer value, final int index) {
         return List.of(Component.text().append(value.player().displayName()).append(Component.text(" - ", NamedTextColor.WHITE))
-                .append(Component.text(value.score())).build());
+                .append(Component.text(value.gameStats().score())).build());
     }
 
     private List<String> mapNames() {

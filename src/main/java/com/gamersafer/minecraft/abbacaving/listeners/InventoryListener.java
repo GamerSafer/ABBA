@@ -49,7 +49,7 @@ public class InventoryListener implements Listener {
 
         final Game game = this.plugin.gameTracker().findGame(player);
 
-        gp.addScore(lootItem.value(), lootItem.name());
+        gp.gameStats().addScore(lootItem.value(), lootItem.name());
         game.increasePlayerScore(gp, lootItem.value());
 
         // game.broadcast(this.plugin.configMessage("player-found-item"), Map.of(
@@ -96,7 +96,7 @@ public class InventoryListener implements Listener {
 
         final Game game = this.plugin.gameTracker().findGame(player);
 
-        gp.addScore(lootItem.value(), lootItem.name());
+        gp.gameStats().addScore(lootItem.value(), lootItem.name());
         game.increasePlayerScore(gp, lootItem.value());
 
         event.setCurrentItem(null);

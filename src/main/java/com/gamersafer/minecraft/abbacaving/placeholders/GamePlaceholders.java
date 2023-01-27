@@ -69,11 +69,11 @@ public class GamePlaceholders extends PlaceholderExpansion {
         if (gp != null) {
             switch (identifier) {
                 case "current_score":
-                    return Util.addCommas(gp.score());
+                    return Util.addCommas(gp.gameStats().score());
                 case "highest_score":
                     return Util.addCommas(gp.highestScore());
                 case "current_ores_mined":
-                    return Util.addCommas(gp.currentOresMined());
+                    return Util.addCommas(gp.gameStats().currentOresMined());
                 case "total_ores_mined":
                     return Util.addCommas(gp.totalOresMined());
                 case "wins":

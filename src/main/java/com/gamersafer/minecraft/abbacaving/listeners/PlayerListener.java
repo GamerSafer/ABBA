@@ -90,35 +90,34 @@ public class PlayerListener implements Listener {
             return;
         }
 
-        if (!player.hasPermission("abbacaving.respawn") || gamePlayer.hasRespawned()) {
-            game.broadcast(this.plugin.configMessage("player-died"), Map.of("player", player.displayName(),
-                    "score", Component.text(gamePlayer.score())));
+        if (player.hasPermission("abbacaving.respawn") && !gamePlayer.gameStats().hasRespawned()) {
+            gamePlayer.gameStats().hasRespawned(true);
+            gamePlayer.gameStats().score(0);
+            game.updateLeaderboard();
+            game.startingInventory(gamePlayer);
 
-            final Collection<GamePlayer> players = game.players();
+            // TODO: Use player's original RTP spawn location and teleport them there
 
-            if (players.size() > 1) {
-                game.broadcast(this.plugin.configMessage("remaining-players"), Map.of(
-                        "count", Component.text(players.size()),
-                        "optional-s", Component.text(players.size() != 1 ? "s" : "")
-                ));
-            }
-
-            gamePlayer.isDead(true);
-            game.removePlayer(player, false);
-            game.sendToLobby(player);
+            game.broadcast(this.plugin.configMessage("player-respawned"), Map.of("player", player.displayName()));
 
             return;
         }
 
-        gamePlayer.hasRespawned(true);
-        gamePlayer.score(0);
-        gamePlayer.bucketUses(0);
-        game.updateLeaderboard();
-        game.startingInventory(gamePlayer);
+        game.broadcast(this.plugin.configMessage("player-died"), Map.of("player", player.displayName(),
+                "score", Component.text(gamePlayer.gameStats().score())));
 
-        // TODO: RTP player in world when respawning
+        final Collection<GamePlayer> players = game.players();
 
-        game.broadcast(this.plugin.configMessage("player-respawned"), Map.of("player", player.displayName()));
+        if (players.size() > 1) {
+            game.broadcast(this.plugin.configMessage("remaining-players"), Map.of(
+                    "count", Component.text(players.size()),
+                    "optional-s", Component.text(players.size() != 1 ? "s" : "")
+            ));
+        }
+
+        gamePlayer.gameStats().isDead(true);
+        game.removePlayer(player, false);
+        game.sendToLobby(player);
     }
 
     @EventHandler
@@ -137,7 +136,7 @@ public class PlayerListener implements Listener {
         if (target instanceof Player player) {
             final GamePlayer gp = this.plugin.gameTracker().findPlayerInGame(player);
 
-            if (gp != null && gp.isDead()) {
+            if (gp != null && gp.gameStats().isDead()) {
                 cancellable.setCancelled(true);
                 return;
             }
