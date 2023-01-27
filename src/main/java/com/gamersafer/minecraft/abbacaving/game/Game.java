@@ -60,9 +60,8 @@ import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
-import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.Damageable;
+import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.plugin.Plugin;
 import org.intellij.lang.annotations.Subst;
 
@@ -288,6 +287,15 @@ public class Game {
 
         player.hotbarLayout(hotbarSlots);
         this.plugin.playerDataSource().savePlayerHotbar(player);
+    }
+
+    public void applyDefaultHotbar(final GamePlayer player) {
+        for (int i = 0; i < 9; i++) {
+            player.player().getInventory().setItem(i, null);
+        }
+
+        player.player().getInventory().addItem(this.PICKAXE, this.SWORD, this.BOW, this.SHOVEL,
+                this.BEEF, this.COBBLESTONE, this.BUCKET, this.TORCH, this.ARROW);
     }
 
     public GamePlayer player(final Player player) {
@@ -695,30 +703,25 @@ public class Game {
     );
 
     public void startingInventory(final GamePlayer player) {
-        final Inventory inv = player.player().getInventory();
+        final PlayerInventory inv = player.player().getInventory();
 
-        final ItemStack shield = new ItemStack(Material.SHIELD);
-        final Damageable damageable = (Damageable) shield.getItemMeta();
-        damageable.setDamage(168);
-        shield.setItemMeta(damageable);
-        player.player().getInventory().setItemInOffHand(shield);
+        inv.setItemInOffHand(new ItemBuilder(Material.SHIELD).durability(168).build());
 
-        player.player().getInventory().setHelmet(new ItemStack(Material.IRON_HELMET));
-        player.player().getInventory().setChestplate(new ItemStack(Material.IRON_CHESTPLATE));
-        player.player().getInventory().setLeggings(new ItemStack(Material.IRON_LEGGINGS));
-        player.player().getInventory().setBoots(new ItemStack(Material.IRON_BOOTS));
+        inv.setHelmet(new ItemStack(Material.IRON_HELMET));
+        inv.setChestplate(new ItemStack(Material.IRON_CHESTPLATE));
+        inv.setLeggings(new ItemStack(Material.IRON_LEGGINGS));
+        inv.setBoots(new ItemStack(Material.IRON_BOOTS));
 
         // Load existing hotbar layout
         if (!player.hotbarLayout().isEmpty()) {
             for (final Map.Entry<Integer, String> entry : player.hotbarLayout().entrySet()) {
-                player.player().getInventory().setItem(entry.getKey(), this.hotbarItemCache.get(entry.getValue()));
+                inv.setItem(entry.getKey(), this.hotbarItemCache.get(entry.getValue()));
             }
 
             return;
         }
 
-        inv.addItem(this.PICKAXE, this.SWORD, this.BOW, this.SHOVEL,
-                this.BEEF, this.COBBLESTONE, this.BUCKET, this.TORCH, this.ARROW);
+        this.applyDefaultHotbar(player);
     }
 
     public void preparePlayer(final Player player) {

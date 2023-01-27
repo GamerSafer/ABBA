@@ -7,6 +7,7 @@ import com.gamersafer.minecraft.abbacaving.game.GamePlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.inventory.ClickType;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryDragEvent;
 import org.bukkit.event.inventory.InventoryType;
@@ -111,7 +112,7 @@ public class InventoryListener implements Listener {
 
         // 19 21 23 25
         switch (event.getSlot()) {
-            case 19 -> this.saveLayoutButton(player);
+            case 19 -> this.saveLayoutButton(player, event.isShiftClick());
             case 21 -> this.openCosmeticsMenu(player);
             case 23 -> this.showStats(player);
             case 25 -> this.returnToLobby(player);
@@ -120,11 +121,15 @@ public class InventoryListener implements Listener {
         return event.getSlot() >= 9 && event.getSlot() <= 35;
     }
 
-    private void saveLayoutButton(final Player player) {
+    private void saveLayoutButton(final Player player, final boolean isShiftClick) {
         final GamePlayer gamePlayer = this.plugin.gameTracker().findPlayerInGame(player);
         final Game game = this.plugin.gameTracker().findGame(player);
 
         if (game != null && gamePlayer != null) {
+            if (isShiftClick) {
+                game.applyDefaultHotbar(gamePlayer); // TODO: message "hotbar reset"
+            }
+
             game.saveHotbar(gamePlayer);
             this.plugin.message(player, this.plugin.configMessage("layout-saved"));
         } else {
