@@ -7,7 +7,6 @@ import com.gamersafer.minecraft.abbacaving.game.GamePlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import org.bukkit.event.inventory.ClickType;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryDragEvent;
 import org.bukkit.event.inventory.InventoryType;
@@ -66,6 +65,10 @@ public class InventoryListener implements Listener {
         final ItemStack currentItem = event.getCurrentItem();
 
         if (inv == null || currentItem == null) {
+            return;
+        }
+
+        if (event.getWhoClicked().hasPermission("abbacaving.inventory")) {
             return;
         }
 
