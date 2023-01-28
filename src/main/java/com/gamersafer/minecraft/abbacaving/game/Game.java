@@ -33,6 +33,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
@@ -217,13 +218,22 @@ public class Game {
             if (location != null) {
                 this.plugin.getLogger().info("Player RTP location: " + location);
 
+                this.randomSpawns.put(player.getUniqueId(), location);
+
                 if (this.state == GameState.STARTING || this.state == GameState.RUNNING) {
                     player.teleport(location);
-                } else {
-                    this.randomSpawns.put(player.getUniqueId(), location);
                 }
             }
         });
+    }
+
+    public void respawnPlayer(final GamePlayer gamePlayer) {
+        this.players.put(gamePlayer.player().getName(), gamePlayer);
+        gamePlayer.player().teleport(gamePlayer.gameStats().spawnLocation());
+        this.preparePlayer(gamePlayer.player());
+
+        gamePlayer.gameStats().game().broadcast(this.plugin.configMessage("player-respawned"),
+                Map.of("player", gamePlayer.player().displayName()));
     }
 
     public void addPlayer(final GamePlayer gamePlayer) {
@@ -242,7 +252,7 @@ public class Game {
             }
 
             // Remove random spawns when used, players should have a unique experience each round
-            this.randomSpawns.remove(gamePlayer.player().getUniqueId());
+            //this.randomSpawns.remove(gamePlayer.player().getUniqueId());
         } else {
             this.plugin.getLogger().info("Player [" + gamePlayer.player().getName() + "] already in game [" + this.mapName + "]");
         }
@@ -390,10 +400,10 @@ public class Game {
         this.broadcast(this.plugin.configMessage("game-started"));
 
         for (final GamePlayer gp : this.players.values()) {
-            // TODO: change this to use the player's RTP location
-            final Location loc = this.world.getSpawnLocation();
+            final Location randomSpawn = this.randomSpawns.get(gp.player().getUniqueId());
 
-            gp.gameStats(loc);
+            gp.gameStats(this, Objects.requireNonNullElseGet(randomSpawn, this.world::getSpawnLocation));
+
             this.leaderboard.put(gp, 0);
             this.preparePlayer(gp.player());
             this.startingInventory(gp);
@@ -573,6 +583,7 @@ public class Game {
             }
 
             this.resetMap();
+            this.randomSpawns.clear();
             this.leaderboard.clear();
             this.players.clear();
             this.gameState(GameState.READY);

@@ -69,8 +69,12 @@ public class GameTracker {
         return null;
     }
 
+    public GamePlayer gamePlayer(final UUID uuid) {
+        return this.playerCache.computeIfAbsent(uuid, _uuid -> new GamePlayer(this.plugin, _uuid));
+    }
+
     public GamePlayer gamePlayer(final Player player) {
-        return this.playerCache.computeIfAbsent(player.getUniqueId(), uuid -> new GamePlayer(this.plugin, player));
+        return this.playerCache.computeIfAbsent(player.getUniqueId(), uuid -> new GamePlayer(this.plugin, uuid));
     }
 
     public GamePlayer findPlayerInGame(final Player player) {

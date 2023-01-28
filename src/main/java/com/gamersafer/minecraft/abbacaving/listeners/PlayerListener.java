@@ -1,14 +1,22 @@
 package com.gamersafer.minecraft.abbacaving.listeners;
 
+import com.destroystokyo.paper.event.player.PlayerPostRespawnEvent;
 import com.gamersafer.minecraft.abbacaving.AbbaCavingPlugin;
 import com.gamersafer.minecraft.abbacaving.game.Game;
 import com.gamersafer.minecraft.abbacaving.game.GamePlayer;
 import com.gamersafer.minecraft.abbacaving.game.GameState;
+import com.gamersafer.minecraft.abbacaving.util.ItemBuilder;
 import com.gamersafer.minecraft.abbacaving.util.Util;
+import com.github.stefvanschie.inventoryframework.adventuresupport.ComponentHolder;
+import com.github.stefvanschie.inventoryframework.gui.GuiItem;
+import com.github.stefvanschie.inventoryframework.gui.type.ChestGui;
+import com.github.stefvanschie.inventoryframework.pane.StaticPane;
 import io.papermc.paper.event.player.AsyncChatEvent;
 import java.util.Collection;
 import java.util.Map;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.minimessage.MiniMessage;
+import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
@@ -30,9 +38,38 @@ import org.bukkit.inventory.ItemStack;
 public class PlayerListener implements Listener {
 
     private final AbbaCavingPlugin plugin;
+    private final ChestGui gui;
 
     public PlayerListener(final AbbaCavingPlugin plugin) {
         this.plugin = plugin;
+
+        final Component title = MiniMessage.miniMessage().deserialize(this.plugin.configMessage("respawn-title"));
+        this.gui = new ChestGui(3, ComponentHolder.of(title));
+
+        final StaticPane backgroundPane = new StaticPane(0, 0, 9, 3);
+        backgroundPane.fillWith(new ItemStack(Material.GRAY_STAINED_GLASS_PANE));
+
+        final ItemStack yesItem = new ItemBuilder(Material.EMERALD_BLOCK).name(Component.text("Yes, Continue!")).build();
+        final GuiItem yesButton = new GuiItem(yesItem, onClick -> {
+            final GamePlayer gamePlayer = this.plugin.gameTracker().gamePlayer(onClick.getWhoClicked().getUniqueId());
+            // TODO: check if game is still running
+            gamePlayer.gameStats().game().respawnPlayer(gamePlayer);
+        });
+        backgroundPane.addItem(yesButton, 2, 1);
+
+        final ItemStack spectateItem = new ItemBuilder(Material.EMERALD_BLOCK).name(Component.text("Spectate - WIP")).build();
+        final GuiItem spectateButton = new GuiItem(spectateItem, onClick -> {
+            // TODO: implement spectate feature
+        });
+        backgroundPane.addItem(spectateButton, 4, 1);
+
+        final ItemStack noItem = new ItemBuilder(Material.REDSTONE_BLOCK).name(Component.text("No, return to lobby.")).build();
+        final GuiItem noButton = new GuiItem(noItem, onClick -> {
+            onClick.getWhoClicked().closeInventory();
+        });
+        backgroundPane.addItem(noButton, 6, 1);
+
+        this.gui.addPane(backgroundPane);
     }
 
     @EventHandler
@@ -81,6 +118,17 @@ public class PlayerListener implements Listener {
     }
 
     @EventHandler
+    public void onPlayerSpawn(final PlayerPostRespawnEvent event) {
+        final Player player = event.getPlayer();
+        final GamePlayer gamePlayer = this.plugin.gameTracker().findPlayerInGame(player);
+
+        if (gamePlayer.gameStats().showRespawnGui()) {
+            this.gui.show(player);
+            gamePlayer.gameStats().showRespawnGui(false);
+        }
+    }
+
+    @EventHandler
     public void onPlayerDeath(final PlayerDeathEvent event) {
         final Player player = event.getEntity();
         final GamePlayer gamePlayer = this.plugin.gameTracker().findPlayerInGame(player);
@@ -91,14 +139,13 @@ public class PlayerListener implements Listener {
         }
 
         if (player.hasPermission("abbacaving.respawn") && !gamePlayer.gameStats().hasRespawned()) {
+            Bukkit.getScheduler().runTask(this.plugin, () -> this.gui.show(player));
+
             gamePlayer.gameStats().hasRespawned(true);
+            gamePlayer.gameStats().showRespawnGui(true);
             gamePlayer.gameStats().score(0);
             game.updateLeaderboard();
             game.startingInventory(gamePlayer);
-
-            // TODO: Use player's original RTP spawn location and teleport them there
-
-            game.broadcast(this.plugin.configMessage("player-respawned"), Map.of("player", player.displayName()));
 
             return;
         }

@@ -33,8 +33,8 @@ public class GamePlayer {
         return Bukkit.getPlayer(this.playerUUID);
     }
 
-    public void gameStats(final Location spawnLocation) {
-        this.gameStats = new GameStats(this, this.plugin, spawnLocation);
+    public void gameStats(final Game game, final Location spawnLocation) {
+        this.gameStats = new GameStats(this, this.plugin, game, spawnLocation);
     }
 
     public GameStats gameStats() {
@@ -85,6 +85,7 @@ public class GamePlayer {
 
         private final GamePlayer gamePlayer;
         private final AbbaCavingPlugin plugin;
+        private final Game game;
 
         private Location spawn;
         private int score;
@@ -92,11 +93,17 @@ public class GamePlayer {
         private boolean surpassedHighestScore;
         private boolean isDead;
         private boolean hasRespawned;
+        private boolean showRespawnGui = false;
 
-        GameStats(final GamePlayer gamePlayer, final AbbaCavingPlugin plugin, final Location spawn) {
+        GameStats(final GamePlayer gamePlayer, final AbbaCavingPlugin plugin, final Game game, final Location spawn) {
             this.gamePlayer = gamePlayer;
             this.plugin = plugin;
+            this.game = game;
             this.spawn = spawn;
+        }
+
+        public Game game() {
+            return this.game;
         }
 
         public int score() {
@@ -137,6 +144,14 @@ public class GamePlayer {
 
         public void hasRespawned(final boolean hasRespawned) {
             this.hasRespawned = hasRespawned;
+        }
+
+        public boolean showRespawnGui() {
+            return this.showRespawnGui;
+        }
+
+        public void showRespawnGui(final boolean showRespawnGui) {
+            this.showRespawnGui = showRespawnGui;
         }
 
         public void addScore(final int amount, final String rewardName) {
