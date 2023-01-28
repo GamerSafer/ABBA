@@ -231,6 +231,8 @@ public class Game {
         this.players.put(gamePlayer.player().getName(), gamePlayer);
         gamePlayer.player().teleport(gamePlayer.gameStats().spawnLocation());
         this.preparePlayer(gamePlayer.player());
+        this.setupGUIs(gamePlayer);
+        this.startingInventory(gamePlayer);
 
         gamePlayer.gameStats().game().broadcast(this.plugin.configMessage("player-respawned"),
                 Map.of("player", gamePlayer.player().displayName()));

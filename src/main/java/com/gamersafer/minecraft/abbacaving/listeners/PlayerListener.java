@@ -47,7 +47,7 @@ public class PlayerListener implements Listener {
         this.gui = new ChestGui(3, ComponentHolder.of(title));
 
         final StaticPane backgroundPane = new StaticPane(0, 0, 9, 3);
-        backgroundPane.fillWith(new ItemStack(Material.GRAY_STAINED_GLASS_PANE));
+        //backgroundPane.fillWith(new ItemStack(Material.GRAY_STAINED_GLASS_PANE));
 
         final ItemStack yesItem = new ItemBuilder(Material.EMERALD_BLOCK).name(Component.text("Yes, Continue!")).build();
         final GuiItem yesButton = new GuiItem(yesItem, onClick -> {
@@ -57,7 +57,7 @@ public class PlayerListener implements Listener {
         });
         backgroundPane.addItem(yesButton, 2, 1);
 
-        final ItemStack spectateItem = new ItemBuilder(Material.EMERALD_BLOCK).name(Component.text("Spectate - WIP")).build();
+        final ItemStack spectateItem = new ItemBuilder(Material.FEATHER).name(Component.text("Spectate - WIP")).build();
         final GuiItem spectateButton = new GuiItem(spectateItem, onClick -> {
             // TODO: implement spectate feature
         });
