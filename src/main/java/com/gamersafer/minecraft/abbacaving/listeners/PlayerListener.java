@@ -46,8 +46,8 @@ public class PlayerListener implements Listener {
         final Component title = MiniMessage.miniMessage().deserialize(this.plugin.configMessage("respawn-title"));
         this.gui = new ChestGui(3, ComponentHolder.of(title));
 
-        final StaticPane backgroundPane = new StaticPane(0, 0, 9, 3);
-        //backgroundPane.fillWith(new ItemStack(Material.GRAY_STAINED_GLASS_PANE));
+        final StaticPane backgroundPane = new StaticPane(0, 0, 9, this.gui.getRows());
+        backgroundPane.fillWith(new ItemStack(Material.GRAY_STAINED_GLASS_PANE));
 
         final ItemStack yesItem = new ItemBuilder(Material.EMERALD_BLOCK).name(Component.text("Yes, Continue!")).build();
         final GuiItem yesButton = new GuiItem(yesItem, onClick -> {

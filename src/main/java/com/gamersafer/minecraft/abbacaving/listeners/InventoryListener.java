@@ -4,6 +4,16 @@ import com.gamersafer.minecraft.abbacaving.AbbaCavingPlugin;
 import com.gamersafer.minecraft.abbacaving.game.CaveLoot;
 import com.gamersafer.minecraft.abbacaving.game.Game;
 import com.gamersafer.minecraft.abbacaving.game.GamePlayer;
+import com.gamersafer.minecraft.abbacaving.util.ItemBuilder;
+import com.github.stefvanschie.inventoryframework.gui.GuiItem;
+import com.github.stefvanschie.inventoryframework.gui.type.ChestGui;
+import com.github.stefvanschie.inventoryframework.pane.OutlinePane;
+import com.github.stefvanschie.inventoryframework.pane.Pane;
+import com.github.stefvanschie.inventoryframework.pane.PatternPane;
+import com.github.stefvanschie.inventoryframework.pane.StaticPane;
+import com.github.stefvanschie.inventoryframework.pane.util.Pattern;
+import net.kyori.adventure.text.Component;
+import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -17,9 +27,63 @@ import org.bukkit.inventory.PlayerInventory;
 public class InventoryListener implements Listener {
 
     private final AbbaCavingPlugin plugin;
+    private final ChestGui cosmeticsGui;
 
     public InventoryListener(final AbbaCavingPlugin plugin) {
         this.plugin = plugin;
+        this.cosmeticsGui = new ChestGui(6, "Cosmetics");
+        this.setupGui();
+    }
+
+    private void setupGui() {
+        final StaticPane outlinePane = new StaticPane(0, 0, 9, 6);
+        outlinePane.fillWith(new ItemStack(Material.GRAY_STAINED_GLASS_PANE));
+        outlinePane.setPriority(Pane.Priority.LOWEST);
+        this.cosmeticsGui.addPane(outlinePane);
+
+        final StaticPane inlinePane = new StaticPane(1, 1, 7, 4);
+        inlinePane.fillWith(new ItemStack(Material.GREEN_STAINED_GLASS_PANE));
+        inlinePane.setPriority(Pane.Priority.LOW);
+        this.cosmeticsGui.addPane(inlinePane);
+
+        final StaticPane contentPane = new StaticPane(0, 0, 9, 6);
+        contentPane.setPriority(Pane.Priority.HIGHEST);
+
+        // TODO: info book
+
+        final GuiItem resetArmor = new GuiItem(new ItemBuilder(Material.IRON_CHESTPLATE)
+                .name(Component.text("Reset Armor Cosmetics")).build(), event -> {
+            // TODO: reset armor
+        });
+
+        contentPane.addItem(resetArmor, 2, 2);
+
+        contentPane.addItem(new GuiItem(new ItemStack(Material.STONE)), 4, 2);
+
+        final GuiItem resetWeapon = new GuiItem(new ItemBuilder(Material.STONE_SWORD)
+                .name(Component.text("Reset Weapon Cosmetics")).build(), event -> {
+            // TODO: reset weapon
+        });
+
+        contentPane.addItem(resetWeapon, 6, 2);
+
+        final GuiItem armorCosmetics = new GuiItem(new ItemBuilder(Material.DIAMOND_CHESTPLATE)
+                .name(Component.text("Armor Cosmetics")).build(), event -> {
+            // TODO: open armor cosmetics menu
+        });
+
+        contentPane.addItem(armorCosmetics, 2, 3);
+
+        contentPane.addItem(new GuiItem(new ItemStack(Material.STONE)), 4, 3);
+
+        final GuiItem weaponCosmetics = new GuiItem(new ItemBuilder(Material.GOLDEN_SWORD)
+                .name(Component.text("Weapon Cosmetics")).build(), event -> {
+            // TODO: open weapon cosmetics menu
+        });
+
+        contentPane.addItem(weaponCosmetics, 6, 3);
+
+        this.cosmeticsGui.addPane(contentPane);
     }
 
     @EventHandler
@@ -142,7 +206,7 @@ public class InventoryListener implements Listener {
     }
 
     private void openCosmeticsMenu(final Player player) {
-
+        this.cosmeticsGui.show(player);
     }
 
     private void showStats(final Player player) {
