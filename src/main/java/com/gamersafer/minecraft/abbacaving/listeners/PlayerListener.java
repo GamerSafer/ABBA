@@ -162,7 +162,9 @@ public class PlayerListener implements Listener {
             ));
         } else {
             // There are 0 players left in the round (everyone quit/died), end the round early
-            game.stop();
+            if (game.mapSetting("end-empty-games")) {
+                game.stop();
+            }
         }
 
         gamePlayer.gameStats().isDead(true);

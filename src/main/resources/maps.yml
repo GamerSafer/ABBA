@@ -15,6 +15,7 @@ default-settings:
       - WATER
       - LAVA
       - FIRE
+  end-empty-games: true
   end-of-round:
     title: "<green>Round has ended!"
     subtitle: "<aqua>Example subtitle."
