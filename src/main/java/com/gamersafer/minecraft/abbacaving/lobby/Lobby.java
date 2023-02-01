@@ -25,6 +25,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.jetbrains.annotations.Nullable;
+import org.spigotmc.event.player.PlayerSpawnLocationEvent;
 
 public class Lobby implements Listener {
 
@@ -92,18 +93,21 @@ public class Lobby implements Listener {
     }
 
     @EventHandler
-    public void onPlayerJoin(final PlayerJoinEvent event) {
-        event.joinMessage(null);
-
-        this.resetPlayer(event.getPlayer());
-
-        event.getPlayer().teleport(new Location(
+    public void onPlayerPreJoin(final PlayerSpawnLocationEvent event) {
+        event.setSpawnLocation(new Location(
                 Bukkit.getWorld(this.plugin.getConfig().getString("lobby-spawn-location.world")),
                 this.plugin.getConfig().getDouble("lobby-spawn-location.x"),
                 this.plugin.getConfig().getDouble("lobby-spawn-location.y"),
                 this.plugin.getConfig().getDouble("lobby-spawn-location.z"),
                 (float) this.plugin.getConfig().getDouble("lobby-spawn-location.yaw"),
                 (float) this.plugin.getConfig().getDouble("lobby-spawn-location.pitch")));
+    }
+
+    @EventHandler
+    public void onPlayerJoin(final PlayerJoinEvent event) {
+        event.joinMessage(null);
+
+        this.resetPlayer(event.getPlayer());
     }
 
     @EventHandler
