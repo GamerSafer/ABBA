@@ -10,6 +10,7 @@ import com.gamersafer.minecraft.abbacaving.util.Util;
 import com.github.stefvanschie.inventoryframework.adventuresupport.ComponentHolder;
 import com.github.stefvanschie.inventoryframework.gui.GuiItem;
 import com.github.stefvanschie.inventoryframework.gui.type.ChestGui;
+import com.github.stefvanschie.inventoryframework.pane.Pane;
 import com.github.stefvanschie.inventoryframework.pane.StaticPane;
 import io.papermc.paper.event.player.AsyncChatEvent;
 import java.util.Collection;
@@ -49,6 +50,12 @@ public class PlayerListener implements Listener {
 
         final StaticPane backgroundPane = new StaticPane(0, 0, 9, this.gui.getRows());
         backgroundPane.fillWith(new ItemStack(Material.GRAY_STAINED_GLASS_PANE));
+        backgroundPane.setPriority(Pane.Priority.LOWEST);
+
+        this.gui.addPane(backgroundPane);
+
+        final StaticPane buttonPane = new StaticPane(0, 0, 9, this.gui.getRows());
+        buttonPane.setPriority(Pane.Priority.HIGHEST);
 
         final ItemStack yesItem = new ItemBuilder(Material.EMERALD_BLOCK).name(Component.text("Yes, Continue!")).build();
         final GuiItem yesButton = new GuiItem(yesItem, onClick -> {
@@ -56,13 +63,13 @@ public class PlayerListener implements Listener {
             // TODO: check if game is still running
             gamePlayer.gameStats().game().respawnPlayer(gamePlayer);
         });
-        backgroundPane.addItem(yesButton, 2, 1);
+        buttonPane.addItem(yesButton, 2, 1);
 
         final ItemStack spectateItem = new ItemBuilder(Material.FEATHER).name(Component.text("Spectate - WIP")).build();
         final GuiItem spectateButton = new GuiItem(spectateItem, onClick -> {
             // TODO: implement spectate feature
         });
-        backgroundPane.addItem(spectateButton, 4, 1);
+        buttonPane.addItem(spectateButton, 4, 1);
 
         final ItemStack noItem = new ItemBuilder(Material.REDSTONE_BLOCK).name(Component.text("No, return to lobby.")).build();
         final GuiItem noButton = new GuiItem(noItem, onClick -> {
@@ -75,9 +82,9 @@ public class PlayerListener implements Listener {
                     (float) this.plugin.getConfig().getDouble("lobby-spawn-location.yaw"),
                     (float) this.plugin.getConfig().getDouble("lobby-spawn-location.pitch")));
         });
-        backgroundPane.addItem(noButton, 6, 1);
+        buttonPane.addItem(noButton, 6, 1);
 
-        this.gui.addPane(backgroundPane);
+        this.gui.addPane(buttonPane);
     }
 
     @EventHandler
