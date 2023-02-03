@@ -138,7 +138,12 @@ public class PlayerListener implements Listener {
             return;
         }
 
-        if (player.hasPermission("abbacaving.respawn") && !gamePlayer.gameStats().hasRespawned()) {
+        final boolean hasPermission = player.hasPermission("abbacaving.respawn");
+        final boolean hasRespawned = gamePlayer.gameStats().hasRespawned();
+
+        this.plugin.getLogger().info(player.getName() + " has died in a match [hasPermission=" + hasPermission + ", hasRespawned=" + hasRespawned + "]");
+
+        if (hasPermission && !hasRespawned) {
             Bukkit.getScheduler().runTask(this.plugin, () -> this.gui.show(player));
 
             gamePlayer.gameStats().hasRespawned(true);
