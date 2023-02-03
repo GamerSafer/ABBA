@@ -88,7 +88,7 @@ public class Game {
         this.world = this.loadMap();
 
         this.yLevelValidator = new YLevelValidator(this);
-        this.blockValidator = new BlockValidator(this);
+        this.blockValidator = new BlockValidator(this.plugin, this);
 
         this.gameState(GameState.READY);
         this.counter(0);
@@ -146,16 +146,16 @@ public class Game {
         if (randomTPPlugin instanceof RandomTeleport randomTeleport) {
             final int minRadius = this.mapSetting("random-teleport.min-radius");
             final int maxRadius = this.mapSetting("random-teleport.max-radius");
+
             final int minY = this.mapSetting("random-teleport.min-y");
             final int maxY = this.mapSetting("random-teleport.max-y");
+
+            final int maxTries = this.mapSetting("random-teleport.max-tries");
 
             final RandomSearcher randomSearcher = randomTeleport.getRandomSearcher(player, this.world().getSpawnLocation(),
                     minRadius, maxRadius, this.blockValidator);
 
-            this.plugin.getLogger().info("Random searcher old max tries: [" + randomSearcher.getMaxTries() +
-                    "]. New: [" + randomSearcher.getMaxTries() * 2 + "]");
-
-            randomSearcher.setMaxTries(randomSearcher.getMaxTries() * 2);
+            randomSearcher.setMaxTries(maxTries);
             randomSearcher.setMinY(minY);
             randomSearcher.setMaxY(maxY);
 

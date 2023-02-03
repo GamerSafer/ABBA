@@ -7,6 +7,7 @@ default-settings:
   game-end-grace-period-seconds: 60
   player-health: 40
   random-teleport:
+    max-tries: 300
     min-radius: 100
     max-radius: 1000
     min-y: 0
