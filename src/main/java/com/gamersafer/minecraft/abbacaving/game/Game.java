@@ -587,7 +587,6 @@ public class Game {
 
         this.plugin.getServer().getScheduler().runTaskLater(this.plugin, () -> {
             for (final GamePlayer gp : this.players.values()) {
-                gp.gameStats().score(0);
                 this.sendToLobby(gp.player());
             }
 
