@@ -277,8 +277,15 @@ public class Game {
         this.plugin.lobby().resetPlayer(player);
 
         if (quit) {
-            this.broadcast(this.plugin.configMessage("player-left"), Map.of("player", player.displayName()));
-            this.plugin.message(player, this.plugin.configMessage("leave-game"), Map.of("map", this.mapName()));
+            this.broadcast(this.plugin.configMessage("player-left"), Map.of(
+                    "player", player.displayName(),
+                    "score", Component.text(gp.gameStats().score())
+            ));
+
+            this.plugin.message(player, this.plugin.configMessage("leave-game"), Map.of(
+                    "map", this.mapName(),
+                    "score", Integer.toString(gp.gameStats().score())
+            ));
         }
 
         return gp;
