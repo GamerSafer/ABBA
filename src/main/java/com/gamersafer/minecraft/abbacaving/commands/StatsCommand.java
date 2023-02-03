@@ -37,20 +37,10 @@ public class StatsCommand implements CommandExecutor, TabCompleter {
                 return false;
             }
 
-            gp = this.plugin.gameTracker().findPlayerInGame(target);
-            if (gp == null) {
-                this.plugin.message(player, this.plugin.configMessage("not-ingame"), Map.of("player", args[0]));
-                return true;
-            }
-
+            gp = this.plugin.gameTracker().gamePlayer(target);
             this.plugin.message(player, this.plugin.configMessage("stats-other"), Map.of("player", target.getName().toUpperCase()));
         } else {
-            gp = this.plugin.gameTracker().findPlayerInGame(player);
-            if (gp == null) {
-                this.plugin.message(player, this.plugin.configMessage("sender-not-ingame"));
-                return true;
-            }
-
+            gp = this.plugin.gameTracker().gamePlayer(player);
             this.plugin.message(player, this.plugin.configMessage("stats-own"));
         }
 
