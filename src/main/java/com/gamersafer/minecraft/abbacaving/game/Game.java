@@ -2,7 +2,6 @@ package com.gamersafer.minecraft.abbacaving.game;
 
 import com.gamersafer.minecraft.abbacaving.AbbaCavingPlugin;
 import com.gamersafer.minecraft.abbacaving.game.validators.BlockValidator;
-import com.gamersafer.minecraft.abbacaving.game.validators.YLevelValidator;
 import com.gamersafer.minecraft.abbacaving.lobby.LobbyQueue;
 import com.gamersafer.minecraft.abbacaving.lobby.QueueState;
 import com.gamersafer.minecraft.abbacaving.util.ItemBuilder;
@@ -79,7 +78,6 @@ public class Game {
     private boolean gracePeriod;
     private GameState state;
     private EditSession editSession = null;
-    private final YLevelValidator yLevelValidator;
     private final BlockValidator blockValidator;
 
     public Game(final AbbaCavingPlugin plugin, final String mapName) {
@@ -87,7 +85,6 @@ public class Game {
         this.mapName = mapName;
         this.world = this.loadMap();
 
-        this.yLevelValidator = new YLevelValidator(this);
         this.blockValidator = new BlockValidator(this.plugin, this);
 
         this.gameState(GameState.READY);
@@ -204,6 +201,8 @@ public class Game {
         }
 
         this.randomLocation(player).whenComplete((location, exception) -> {
+            Location teleportLocation = location;
+
             if (exception != null) {
                 if (exception instanceof NotFoundException notFoundException) {
                     this.plugin.getLogger().info("Could not find random spawn for player [" + player.getName() + "]");
@@ -212,16 +211,17 @@ public class Game {
                     exception.printStackTrace();
                 }
 
-                location = this.world.getSpawnLocation();
+                teleportLocation = this.world.getSpawnLocation();
             }
 
-            if (location != null) {
-                this.plugin.getLogger().info("Player RTP location: " + location);
+            if (teleportLocation != null) {
+                this.plugin.getLogger().info("World spawn: " + this.world.getSpawnLocation());
+                this.plugin.getLogger().info("Player RTP location: " + teleportLocation);
 
-                this.randomSpawns.put(player.getUniqueId(), location);
+                this.randomSpawns.put(player.getUniqueId(), teleportLocation);
 
                 if (this.state == GameState.STARTING || this.state == GameState.RUNNING) {
-                    player.teleport(location);
+                    player.teleport(teleportLocation);
                 }
             }
         });
