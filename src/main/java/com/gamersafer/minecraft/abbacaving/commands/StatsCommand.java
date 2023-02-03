@@ -1,6 +1,7 @@
 package com.gamersafer.minecraft.abbacaving.commands;
 
 import com.gamersafer.minecraft.abbacaving.AbbaCavingPlugin;
+import com.gamersafer.minecraft.abbacaving.game.Game;
 import com.gamersafer.minecraft.abbacaving.game.GamePlayer;
 import com.gamersafer.minecraft.abbacaving.util.Util;
 import java.util.ArrayList;
@@ -47,6 +48,15 @@ public class StatsCommand implements CommandExecutor, TabCompleter {
         this.plugin.message(player, this.plugin.configMessage("stats-wins"), Map.of("wins", Util.addCommas(gp.wins())));
         this.plugin.message(player, this.plugin.configMessage("stats-score"), Map.of("score", Util.addCommas(gp.highestScore())));
         this.plugin.message(player, this.plugin.configMessage("stats-ores"), Map.of("ores", Util.addCommas(gp.totalOresMined())));
+
+        final Game game = gp.gameStats().game();
+
+        if (game.player(gp.player()) != null) {
+            this.plugin.message(player, this.plugin.configMessage("stats-ingame"), Map.of("map", game.mapName()));
+        } else {
+            this.plugin.message(player, this.plugin.configMessage("stats-not-ingame"));
+        }
+
         return true;
     }
 
