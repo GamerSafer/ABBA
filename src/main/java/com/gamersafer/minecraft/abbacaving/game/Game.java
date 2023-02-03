@@ -248,7 +248,7 @@ public class Game {
 
             if (randomSpawn == null) {
                 this.plugin.getLogger().info("Could not find random spawn for player [" + gamePlayer.player().getName() + "]");
-                //gamePlayer.player().teleport(this.world().getSpawnLocation());
+                gamePlayer.player().teleport(this.world().getSpawnLocation());
             } else {
                 gamePlayer.player().teleport(randomSpawn);
             }
