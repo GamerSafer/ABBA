@@ -5,10 +5,12 @@ import com.gamersafer.minecraft.abbacaving.game.CaveLoot;
 import com.gamersafer.minecraft.abbacaving.game.Game;
 import com.gamersafer.minecraft.abbacaving.game.GamePlayer;
 import com.gamersafer.minecraft.abbacaving.util.ItemBuilder;
+import com.gamersafer.minecraft.abbacaving.util.Util;
 import com.github.stefvanschie.inventoryframework.gui.GuiItem;
 import com.github.stefvanschie.inventoryframework.gui.type.ChestGui;
 import com.github.stefvanschie.inventoryframework.pane.Pane;
 import com.github.stefvanschie.inventoryframework.pane.StaticPane;
+import java.util.Map;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -207,7 +209,13 @@ public class InventoryListener implements Listener {
     }
 
     private void showStats(final Player player) {
-        player.performCommand("/abbacaving:stats");
+        final GamePlayer gamePlayer = this.plugin.gameTracker().gamePlayer(player);
+
+        this.plugin.message(player, this.plugin.configMessage("stats-own"));
+
+        this.plugin.message(player, this.plugin.configMessage("stats-wins"), Map.of("wins", Util.addCommas(gamePlayer.wins())));
+        this.plugin.message(player, this.plugin.configMessage("stats-score"), Map.of("score", Util.addCommas(gamePlayer.highestScore())));
+        this.plugin.message(player, this.plugin.configMessage("stats-ores"), Map.of("ores", Util.addCommas(gamePlayer.totalOresMined())));
     }
 
     private void returnToLobby(final Player player) {
