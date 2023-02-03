@@ -17,6 +17,7 @@ import java.util.Map;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.bukkit.Bukkit;
+import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
@@ -66,6 +67,13 @@ public class PlayerListener implements Listener {
         final ItemStack noItem = new ItemBuilder(Material.REDSTONE_BLOCK).name(Component.text("No, return to lobby.")).build();
         final GuiItem noButton = new GuiItem(noItem, onClick -> {
             onClick.getWhoClicked().closeInventory();
+            onClick.getWhoClicked().teleport(new Location(
+                    Bukkit.getWorld(this.plugin.getConfig().getString("lobby-spawn-location.world")),
+                    this.plugin.getConfig().getDouble("lobby-spawn-location.x"),
+                    this.plugin.getConfig().getDouble("lobby-spawn-location.y"),
+                    this.plugin.getConfig().getDouble("lobby-spawn-location.z"),
+                    (float) this.plugin.getConfig().getDouble("lobby-spawn-location.yaw"),
+                    (float) this.plugin.getConfig().getDouble("lobby-spawn-location.pitch")));
         });
         backgroundPane.addItem(noButton, 6, 1);
 
@@ -120,7 +128,7 @@ public class PlayerListener implements Listener {
     @EventHandler
     public void onPlayerSpawn(final PlayerPostRespawnEvent event) {
         final Player player = event.getPlayer();
-        final GamePlayer gamePlayer = this.plugin.gameTracker().findPlayerInGame(player);
+        final GamePlayer gamePlayer = this.plugin.gameTracker().gamePlayer(player);
 
         if (gamePlayer == null || gamePlayer.gameStats() == null) {
             this.plugin.getLogger().info("Skipping respawn-gui for " + player.getName() + " due to missing gameStats");
@@ -151,6 +159,7 @@ public class PlayerListener implements Listener {
         if (hasPermission && !hasRespawned) {
             Bukkit.getScheduler().runTask(this.plugin, () -> this.gui.show(player));
 
+            player.setBedSpawnLocation(gamePlayer.gameStats().spawnLocation(), true);
             gamePlayer.gameStats().hasRespawned(true);
             gamePlayer.gameStats().showRespawnGui(true);
             gamePlayer.gameStats().score(0);

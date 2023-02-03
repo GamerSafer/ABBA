@@ -247,7 +247,7 @@ public class Game {
             final Location randomSpawn = this.randomSpawns.get(gamePlayer.player().getUniqueId());
 
             if (randomSpawn == null) {
-                this.plugin.getLogger().info("Could not find random spawn for player [" + gamePlayer.player().getName() + "]");
+                this.plugin.getLogger().info("Game starting, no RTP for player [" + gamePlayer.player().getName() + "]");
                 gamePlayer.player().teleport(this.world().getSpawnLocation());
             } else {
                 gamePlayer.player().teleport(randomSpawn);
