@@ -122,6 +122,11 @@ public class PlayerListener implements Listener {
         final Player player = event.getPlayer();
         final GamePlayer gamePlayer = this.plugin.gameTracker().findPlayerInGame(player);
 
+        if (gamePlayer == null || gamePlayer.gameStats() == null) {
+            this.plugin.getLogger().info("Skipping respawn-gui for " + player.getName() + " due to missing gameStats");
+            return;
+        }
+
         if (gamePlayer.gameStats().showRespawnGui()) {
             this.gui.show(player);
             gamePlayer.gameStats().showRespawnGui(false);
