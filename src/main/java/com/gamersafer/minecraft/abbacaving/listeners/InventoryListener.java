@@ -216,6 +216,11 @@ public class InventoryListener implements Listener {
         this.plugin.message(player, this.plugin.configMessage("stats-wins"), Map.of("wins", Util.addCommas(gamePlayer.wins())));
         this.plugin.message(player, this.plugin.configMessage("stats-score"), Map.of("score", Util.addCommas(gamePlayer.highestScore())));
         this.plugin.message(player, this.plugin.configMessage("stats-ores"), Map.of("ores", Util.addCommas(gamePlayer.totalOresMined())));
+
+        this.plugin.message(player, this.plugin.configMessage("stats-ingame"), Map.of(
+                "map", gamePlayer.gameStats().game().mapName(),
+                "score", Integer.toString(gamePlayer.gameStats().score())
+        ));
     }
 
     private void returnToLobby(final Player player) {
