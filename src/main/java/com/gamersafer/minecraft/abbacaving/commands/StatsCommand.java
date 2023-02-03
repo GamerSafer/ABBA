@@ -52,7 +52,10 @@ public class StatsCommand implements CommandExecutor, TabCompleter {
         final Game game = gp.gameStats().game();
 
         if (game.player(gp.player()) != null) {
-            this.plugin.message(player, this.plugin.configMessage("stats-ingame"), Map.of("map", game.mapName()));
+            this.plugin.message(player, this.plugin.configMessage("stats-ingame"), Map.of(
+                    "map", game.mapName(),
+                    "score", Integer.toString(gp.gameStats().score())
+            ));
         } else {
             this.plugin.message(player, this.plugin.configMessage("stats-not-ingame"));
         }
