@@ -156,19 +156,6 @@ public class PlayerListener implements Listener {
 
         this.plugin.getLogger().info(player.getName() + " has died in a match [hasPermission=" + hasPermission + ", hasRespawned=" + hasRespawned + "]");
 
-        if (hasPermission && !hasRespawned) {
-            Bukkit.getScheduler().runTask(this.plugin, () -> this.gui.show(player));
-
-            player.setBedSpawnLocation(gamePlayer.gameStats().spawnLocation(), true);
-            gamePlayer.gameStats().hasRespawned(true);
-            gamePlayer.gameStats().showRespawnGui(true);
-            gamePlayer.gameStats().score(0);
-            game.updateLeaderboard();
-            game.startingInventory(gamePlayer);
-
-            return;
-        }
-
         game.broadcast(this.plugin.configMessage("player-died"), Map.of("player", player.displayName(),
                 "score", Component.text(gamePlayer.gameStats().score())));
 
@@ -183,7 +170,21 @@ public class PlayerListener implements Listener {
             // There are 0 players left in the round (everyone quit/died), end the round early
             if (game.mapSetting("end-empty-games")) {
                 game.stop();
+                return;
             }
+        }
+
+        if (hasPermission && !hasRespawned) {
+            Bukkit.getScheduler().runTask(this.plugin, () -> this.gui.show(player));
+
+            player.setBedSpawnLocation(gamePlayer.gameStats().spawnLocation(), true);
+            gamePlayer.gameStats().hasRespawned(true);
+            gamePlayer.gameStats().showRespawnGui(true);
+            gamePlayer.gameStats().score(0);
+            game.updateLeaderboard();
+            game.startingInventory(gamePlayer);
+
+            return;
         }
 
         gamePlayer.gameStats().isDead(true);
