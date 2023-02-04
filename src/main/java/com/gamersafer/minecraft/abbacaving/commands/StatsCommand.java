@@ -49,6 +49,10 @@ public class StatsCommand implements CommandExecutor, TabCompleter {
         this.plugin.message(player, this.plugin.configMessage("stats-score"), Map.of("score", Util.addCommas(gp.highestScore())));
         this.plugin.message(player, this.plugin.configMessage("stats-ores"), Map.of("ores", Util.addCommas(gp.totalOresMined())));
 
+        if (gp.gameStats() == null) {
+            return true;
+        }
+
         final Game game = gp.gameStats().game();
 
         if (game.player(gp.player()) != null) {
