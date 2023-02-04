@@ -126,11 +126,14 @@ public class PlayerListener implements Listener {
     public void onPlayerQuit(final PlayerQuitEvent event) {
         event.quitMessage(null);
 
-        final GamePlayer gp = this.plugin.gameTracker().removePlayer(event.getPlayer(), true);
+        final GamePlayer gp = this.plugin.gameTracker().gamePlayer(event.getPlayer());
 
-        if (gp != null) {
-            this.plugin.getServer().getScheduler().runTaskAsynchronously(this.plugin, () -> this.plugin.playerDataSource().savePlayerStats(gp));
+        if (gp == null) {
+            this.plugin.getLogger().info("Could not save stats for [" + event.getPlayer().getName() + "]");
+            return;
         }
+
+        this.plugin.getServer().getScheduler().runTaskAsynchronously(this.plugin, () -> this.plugin.playerDataSource().savePlayerStats(gp));
     }
 
     @EventHandler
