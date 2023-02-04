@@ -30,6 +30,10 @@ public class GamePlayer {
         this.playerUUID = playerUUID;
     }
 
+    public UUID playerUUID() {
+        return this.playerUUID;
+    }
+
     public Player player() {
         return Bukkit.getPlayer(this.playerUUID);
     }

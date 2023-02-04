@@ -92,7 +92,7 @@ public class SQLDataSource implements PlayerDataSource {
         try (final Connection conn = this.dataSource.getConnection()) {
             try (final PreparedStatement stmt = conn.prepareStatement(
                     "INSERT INTO abba_caving_stats (uuid, wins, highest_score, ores_mined) VALUES (?, ?, ?, ?) ON DUPLICATE KEY UPDATE wins = ?, highest_score = ?, ores_mined = ?;")) {
-                stmt.setString(1, gp.player().getUniqueId().toString());
+                stmt.setString(1, gp.playerUUID().toString());
                 stmt.setInt(2, gp.wins());
                 stmt.setInt(3, gp.highestScore());
                 stmt.setInt(4, gp.totalOresMined());
@@ -100,7 +100,6 @@ public class SQLDataSource implements PlayerDataSource {
                 stmt.setInt(6, gp.highestScore());
                 stmt.setInt(7, gp.totalOresMined());
                 stmt.executeUpdate();
-                this.plugin.getLogger().info("Saved " + gp.player().getName() + "'s stats");
             }
         } catch (final SQLException ex) {
             ex.printStackTrace();
