@@ -39,7 +39,7 @@ public class Lobby implements Listener {
         Bukkit.getPluginManager().registerEvents(this, this.plugin);
 
         for (final String mapName : this.plugin.configuredMapNames()) {
-            this.lobbyQueues.put(mapName, new LobbyQueue(mapName, this.playersRequiredToStart(mapName), new LinkedList<>()));
+            this.lobbyQueues.put(mapName, new LobbyQueue(mapName, this.maxPlayers(mapName), new LinkedList<>()));
         }
     }
 
@@ -260,6 +260,18 @@ public class Lobby implements Listener {
         }
 
         return this.plugin.mapSettings("default-settings").getInt("players-required-to-start");
+    }
+
+    public int maxPlayers(final String mapName) {
+        final ConfigurationSection section = this.plugin.mapSettings(mapName);
+
+        if (section != null) {
+            if (section.contains("maximum-players-per-round")) {
+                return section.getInt("maximum-players-per-round");
+            }
+        }
+
+        return this.plugin.mapSettings("default-settings").getInt("maximum-players-per-round");
     }
 
     public void sendToLobby(final HumanEntity player) {
