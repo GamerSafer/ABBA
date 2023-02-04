@@ -46,7 +46,7 @@ public class BlockValidator extends LocationValidator {
         final Block block = location.getBlock();
 
         return this.isBlockSafe(block) && this.isHeightOk(block) && this.isBlockSafe(block.getRelative(BlockFace.UP))
-                && this.isBlockSafe(block.getRelative(BlockFace.UP, 2)) && this.isBlockSafe(block.getRelative(BlockFace.DOWN));
+                && this.isBlockSafe(block.getRelative(BlockFace.UP, 2));
     }
 
     private boolean isBlockSafe(final Block block) {
