@@ -229,7 +229,7 @@ public class Game {
 
     public void respawnPlayer(final GamePlayer gamePlayer) {
         this.players.put(gamePlayer.player().getName(), gamePlayer);
-        gamePlayer.player().teleport(gamePlayer.gameStats().spawnLocation());
+        gamePlayer.player().teleport(gamePlayer.gameStats().respawnLocation());
         this.preparePlayer(gamePlayer.player());
         this.setupGUIs(gamePlayer);
         this.startingInventory(gamePlayer);
