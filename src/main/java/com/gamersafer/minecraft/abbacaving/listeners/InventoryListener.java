@@ -228,7 +228,7 @@ public class InventoryListener implements Listener {
 
         if (game != null) {
             game.removePlayer(player, true);
-            game.sendToLobby(player);
+            this.plugin.lobby().sendToLobby(player);
         }
     }
 

@@ -19,6 +19,7 @@ import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -94,13 +95,7 @@ public class Lobby implements Listener {
 
     @EventHandler
     public void onPlayerPreJoin(final PlayerSpawnLocationEvent event) {
-        event.setSpawnLocation(new Location(
-                Bukkit.getWorld(this.plugin.getConfig().getString("lobby-spawn-location.world")),
-                this.plugin.getConfig().getDouble("lobby-spawn-location.x"),
-                this.plugin.getConfig().getDouble("lobby-spawn-location.y"),
-                this.plugin.getConfig().getDouble("lobby-spawn-location.z"),
-                (float) this.plugin.getConfig().getDouble("lobby-spawn-location.yaw"),
-                (float) this.plugin.getConfig().getDouble("lobby-spawn-location.pitch")));
+        event.setSpawnLocation(this.lobbySpawn());
     }
 
     @EventHandler
@@ -265,6 +260,20 @@ public class Lobby implements Listener {
         }
 
         return this.plugin.mapSettings("default-settings").getInt("players-required-to-start");
+    }
+
+    public void sendToLobby(final HumanEntity player) {
+        player.teleport(this.lobbySpawn());
+    }
+
+    private Location lobbySpawn() {
+        return new Location(
+                Bukkit.getWorld(this.plugin.getConfig().getString("lobby-spawn-location.world")),
+                this.plugin.getConfig().getDouble("lobby-spawn-location.x"),
+                this.plugin.getConfig().getDouble("lobby-spawn-location.y"),
+                this.plugin.getConfig().getDouble("lobby-spawn-location.z"),
+                (float) this.plugin.getConfig().getDouble("lobby-spawn-location.yaw"),
+                (float) this.plugin.getConfig().getDouble("lobby-spawn-location.pitch"));
     }
 
 }

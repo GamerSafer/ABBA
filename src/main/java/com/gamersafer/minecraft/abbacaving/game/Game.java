@@ -219,10 +219,6 @@ public class Game {
                 this.plugin.getLogger().info("Player RTP location: " + teleportLocation);
 
                 this.randomSpawns.put(player.getUniqueId(), teleportLocation);
-
-                if (this.state == GameState.STARTING || this.state == GameState.RUNNING) {
-                    player.teleport(teleportLocation);
-                }
             }
         });
     }
@@ -241,20 +237,7 @@ public class Game {
     public void addPlayer(final GamePlayer gamePlayer) {
         if (this.players.put(gamePlayer.player().getName(), gamePlayer) == null) {
             this.broadcast(this.plugin.configMessage("player-joined"), Map.of("player", gamePlayer.player().displayName()));
-
             this.preparePlayer(gamePlayer.player());
-
-            final Location randomSpawn = this.randomSpawns.get(gamePlayer.player().getUniqueId());
-
-            if (randomSpawn == null) {
-                this.plugin.getLogger().info("Game starting, no RTP for player [" + gamePlayer.player().getName() + "]");
-                //gamePlayer.player().teleport(this.world().getSpawnLocation());
-            } else {
-                gamePlayer.player().teleport(randomSpawn);
-            }
-
-            // Remove random spawns when used, players should have a unique experience each round
-            //this.randomSpawns.remove(gamePlayer.player().getUniqueId());
         } else {
             this.plugin.getLogger().info("Player [" + gamePlayer.player().getName() + "] already in game [" + this.mapName + "]");
         }
@@ -408,23 +391,35 @@ public class Game {
         this.counter(gracePeriodSeconds);
         this.broadcast(this.plugin.configMessage("game-started"));
 
-        for (final GamePlayer gp : this.players.values()) {
-            final Location randomSpawn = this.randomSpawns.get(gp.player().getUniqueId());
+        this.spawnPlatform();
+        this.teleportPlayersToPlatform();
 
-            gp.gameStats(this, Objects.requireNonNullElseGet(randomSpawn, this.world::getSpawnLocation));
+        Bukkit.getScheduler().runTaskLater(this.plugin, () -> {
+            this.removePlatform();
+        }, 10 * 20);
 
-            this.leaderboard.put(gp, 0);
-            this.preparePlayer(gp.player());
-            this.startingInventory(gp);
-            this.setupGUIs(gp);
-            gp.player().setGameMode(GameMode.SURVIVAL);
-        }
+        Bukkit.getScheduler().runTaskLater(this.plugin, () -> {
+            for (final GamePlayer gp : this.players.values()) {
+                final Location randomSpawn = this.randomSpawns.get(gp.player().getUniqueId());
 
-        this.updateLeaderboard();
+                gp.gameStats(this, Objects.requireNonNullElseGet(randomSpawn, this.world::getSpawnLocation));
 
-        this.broadcast(this.plugin.configMessage("game-objective"));
-        this.playSound(Sound.sound(Key.key("block.note_block.snare"), Sound.Source.NEUTRAL, 1f, 1f));
-        this.gameState(GameState.RUNNING);
+                this.leaderboard.put(gp, 0);
+                this.preparePlayer(gp.player());
+                this.startingInventory(gp);
+                this.setupGUIs(gp);
+                gp.player().setGameMode(GameMode.SURVIVAL);
+
+                gp.player().teleport(gp.gameStats().spawnLocation());
+            }
+
+            this.updateLeaderboard();
+
+            this.broadcast(this.plugin.configMessage("game-objective"));
+            this.playSound(Sound.sound(Key.key("block.note_block.snare"), Sound.Source.NEUTRAL, 1f, 1f));
+            this.gameState(GameState.RUNNING);
+        }, 5 * 20);
+
     }
 
     public void stop() {
@@ -531,6 +526,33 @@ public class Game {
         this.gameState(GameState.DONE);
         this.counter(0);
 
+        this.spawnPlatform();
+        this.teleportPlayersToPlatform();
+
+        final int postGameGracePeriod = this.mapSetting("game-end-grace-period-seconds");
+
+        this.broadcast(this.plugin.configMessage("game-end-lobby"), Map.of("counter", Component.text(postGameGracePeriod)));
+
+        this.plugin.getServer().getScheduler().runTaskLater(this.plugin, () -> {
+            for (final GamePlayer gp : this.players.values()) {
+                this.plugin.lobby().sendToLobby(gp.player());
+            }
+
+            this.resetMap();
+            this.randomSpawns.clear();
+            this.leaderboard.clear();
+            this.players.clear();
+            this.gameState(GameState.READY);
+
+            final LobbyQueue queue = this.plugin.lobby().lobbyQueue(this.mapName);
+
+            if (queue != null) {
+                queue.state(QueueState.WAITING);
+            }
+        }, 20L * postGameGracePeriod);
+    }
+
+    private void spawnPlatform() {
         final String schematicFile = this.mapSetting("end-of-round.schematic.name");
 
         if (schematicFile != null && !schematicFile.isBlank()) {
@@ -569,7 +591,19 @@ public class Game {
                 }
             }
         }
+    }
 
+    private void removePlatform() {
+        if (this.editSession != null) {
+            this.plugin.getLogger().info("Rolling back schematics");
+
+            this.editSession.undo(this.editSession);
+
+            this.plugin.getLogger().info("Schematics rolled back");
+        }
+    }
+
+    private void teleportPlayersToPlatform() {
         final ConfigurationSection tpSection = this.mapSetting("end-of-round.teleport");
 
         if (tpSection != null) {
@@ -581,27 +615,6 @@ public class Game {
             }
         }
 
-        final int postGameGracePeriod = this.mapSetting("game-end-grace-period-seconds");
-
-        this.broadcast(this.plugin.configMessage("game-end-lobby"), Map.of("counter", Component.text(postGameGracePeriod)));
-
-        this.plugin.getServer().getScheduler().runTaskLater(this.plugin, () -> {
-            for (final GamePlayer gp : this.players.values()) {
-                this.sendToLobby(gp.player());
-            }
-
-            this.resetMap();
-            this.randomSpawns.clear();
-            this.leaderboard.clear();
-            this.players.clear();
-            this.gameState(GameState.READY);
-
-            final LobbyQueue queue = this.plugin.lobby().lobbyQueue(this.mapName);
-
-            if (queue != null) {
-                queue.state(QueueState.WAITING);
-            }
-        }, 20L * postGameGracePeriod);
     }
 
     private CoreProtectAPI coreProtect() {
@@ -657,14 +670,11 @@ public class Game {
             this.plugin.getLogger().info("Block changes rolled back");
         });
 
-        if (this.editSession != null) {
-            this.plugin.getLogger().info("Rolling back schematics");
+        this.removePlatform();
+        this.resetEntities();
+    }
 
-            this.editSession.undo(this.editSession);
-
-            this.plugin.getLogger().info("Schematics rolled back");
-        }
-
+    private void resetEntities() {
         int removed = 0;
         int items = 0;
 
@@ -785,16 +795,6 @@ public class Game {
         }
 
         return result;
-    }
-
-    public void sendToLobby(final Player player) {
-        player.teleport(new Location(
-                Bukkit.getWorld(this.plugin.getConfig().getString("lobby-spawn-location.world")),
-                this.plugin.getConfig().getDouble("lobby-spawn-location.x"),
-                this.plugin.getConfig().getDouble("lobby-spawn-location.y"),
-                this.plugin.getConfig().getDouble("lobby-spawn-location.z"),
-                (float) this.plugin.getConfig().getDouble("lobby-spawn-location.yaw"),
-                (float) this.plugin.getConfig().getDouble("lobby-spawn-location.pitch")));
     }
 
     final static ItemStack BACKGROUND_ITEM = new ItemStack(Material.GREEN_STAINED_GLASS_PANE);

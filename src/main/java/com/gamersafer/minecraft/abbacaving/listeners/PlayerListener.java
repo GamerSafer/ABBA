@@ -75,13 +75,7 @@ public class PlayerListener implements Listener {
         final ItemStack noItem = new ItemBuilder(Material.REDSTONE_BLOCK).name(Component.text("No, return to lobby.")).build();
         final GuiItem noButton = new GuiItem(noItem, onClick -> {
             onClick.getWhoClicked().closeInventory();
-            onClick.getWhoClicked().teleport(new Location(
-                    Bukkit.getWorld(this.plugin.getConfig().getString("lobby-spawn-location.world")),
-                    this.plugin.getConfig().getDouble("lobby-spawn-location.x"),
-                    this.plugin.getConfig().getDouble("lobby-spawn-location.y"),
-                    this.plugin.getConfig().getDouble("lobby-spawn-location.z"),
-                    (float) this.plugin.getConfig().getDouble("lobby-spawn-location.yaw"),
-                    (float) this.plugin.getConfig().getDouble("lobby-spawn-location.pitch")));
+            this.plugin.lobby().sendToLobby(onClick.getWhoClicked());
         });
         buttonPane.addItem(noButton, 6, 1);
 
@@ -213,7 +207,7 @@ public class PlayerListener implements Listener {
 
         gamePlayer.gameStats().isDead(true);
         game.removePlayer(player, false);
-        game.sendToLobby(player);
+        this.plugin.lobby().sendToLobby(player);
     }
 
     @EventHandler
