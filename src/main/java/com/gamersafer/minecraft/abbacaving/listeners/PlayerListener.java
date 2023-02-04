@@ -35,6 +35,7 @@ import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerItemConsumeEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.inventory.ItemStack;
 
 public class PlayerListener implements Listener {
@@ -133,6 +134,19 @@ public class PlayerListener implements Listener {
     }
 
     @EventHandler
+    public void onPlayerRespawn(final PlayerRespawnEvent event) {
+        final Player player = event.getPlayer();
+        final GamePlayer gamePlayer = this.plugin.gameTracker().gamePlayer(player);
+
+        if (gamePlayer == null || gamePlayer.gameStats() == null) {
+            this.plugin.getLogger().info("Skipping game respawn for " + player.getName() + " due to missing gameStats");
+            return;
+        }
+
+        event.setRespawnLocation(gamePlayer.gameStats().respawnLocation());
+    }
+
+    @EventHandler
     public void onPlayerSpawn(final PlayerPostRespawnEvent event) {
         final Player player = event.getPlayer();
         final GamePlayer gamePlayer = this.plugin.gameTracker().gamePlayer(player);
@@ -184,7 +198,7 @@ public class PlayerListener implements Listener {
         if (hasPermission && !hasRespawned) {
             Bukkit.getScheduler().runTask(this.plugin, () -> this.gui.show(player));
 
-            player.setBedSpawnLocation(gamePlayer.gameStats().spawnLocation(), true);
+            gamePlayer.gameStats().respawnLocation(event.getPlayer().getLocation());
             gamePlayer.gameStats().hasRespawned(true);
             gamePlayer.gameStats().showRespawnGui(true);
             gamePlayer.gameStats().score(0);

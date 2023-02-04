@@ -4,6 +4,7 @@ import com.gamersafer.minecraft.abbacaving.AbbaCavingPlugin;
 import com.gamersafer.minecraft.abbacaving.util.Util;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.UUID;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
@@ -88,6 +89,7 @@ public class GamePlayer {
         private final Game game;
 
         private Location spawn;
+        private Location respawnLocation = null;
         private int score;
         private int currentOresMined;
         private boolean surpassedHighestScore;
@@ -144,6 +146,14 @@ public class GamePlayer {
 
         public void hasRespawned(final boolean hasRespawned) {
             this.hasRespawned = hasRespawned;
+        }
+
+        public void respawnLocation(final Location location) {
+            this.respawnLocation = location;
+        }
+
+        public Location respawnLocation() {
+            return Objects.requireNonNullElse(this.respawnLocation, this.spawn);
         }
 
         public boolean showRespawnGui() {
