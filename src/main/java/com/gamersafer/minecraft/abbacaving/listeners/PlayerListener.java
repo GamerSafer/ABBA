@@ -143,7 +143,9 @@ public class PlayerListener implements Listener {
             return;
         }
 
-        event.setRespawnLocation(gamePlayer.gameStats().respawnLocation());
+        if (gamePlayer.gameStats().showRespawnGui()) {
+            event.setRespawnLocation(gamePlayer.gameStats().respawnLocation());
+        }
     }
 
     @EventHandler
@@ -196,8 +198,6 @@ public class PlayerListener implements Listener {
         }
 
         if (hasPermission && !hasRespawned) {
-            Bukkit.getScheduler().runTask(this.plugin, () -> this.gui.show(player));
-
             gamePlayer.gameStats().respawnLocation(event.getPlayer().getLocation());
             gamePlayer.gameStats().hasRespawned(true);
             gamePlayer.gameStats().showRespawnGui(true);
