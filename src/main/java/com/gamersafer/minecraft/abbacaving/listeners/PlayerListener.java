@@ -181,7 +181,7 @@ public class PlayerListener implements Listener {
 
         final Collection<GamePlayer> players = game.players();
 
-        if (players.size() - 1 > 1) {
+        if (players.size() - 1 >= 1) {
             game.broadcast(this.plugin.configMessage("remaining-players"), Map.of(
                     "count", Component.text(players.size() - 1),
                     "optional-s", Component.text(players.size() != 1 ? "s" : "")
