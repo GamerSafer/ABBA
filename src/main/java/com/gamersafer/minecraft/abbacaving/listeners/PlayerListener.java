@@ -17,8 +17,6 @@ import java.util.Collection;
 import java.util.Map;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
-import org.bukkit.Bukkit;
-import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
@@ -223,19 +221,19 @@ public class PlayerListener implements Listener {
     }
 
     private void handleEntityEvent(final Entity target, final Cancellable cancellable) {
-        if (target instanceof Player player) {
-            final GamePlayer gp = this.plugin.gameTracker().findPlayerInGame(player);
-
-            if (gp != null && gp.gameStats().isDead()) {
-                cancellable.setCancelled(true);
-                return;
-            }
-        }
-
         final Game game = this.plugin.gameTracker().findGame(target.getWorld());
 
         if (game == null || game.isGracePeriod() || game.gameState() == GameState.DONE) {
             cancellable.setCancelled(true);
+            return;
+        }
+
+        if (target instanceof Player player) {
+            final GamePlayer gp = game.player(player);
+
+            if (gp != null && gp.gameStats() != null && gp.gameStats().isDead()) {
+                cancellable.setCancelled(true);
+            }
         }
     }
 
