@@ -29,7 +29,7 @@ public class StatsCommand implements CommandExecutor, TabCompleter {
     public boolean onCommand(@NotNull final CommandSender sender, @NotNull final Command command, @NotNull final String label, @NotNull final String[] args) {
         final Player player = (Player) sender;
 
-        final GamePlayer gp;
+        final GamePlayer gamePlayer;
 
         if (args.length == 1) {
             final Player target = Bukkit.getPlayer(args[0]);
@@ -38,30 +38,34 @@ public class StatsCommand implements CommandExecutor, TabCompleter {
                 return false;
             }
 
-            gp = this.plugin.gameTracker().gamePlayer(target);
+            gamePlayer = this.plugin.gameTracker().gamePlayer(target);
             this.plugin.message(player, this.plugin.configMessage("stats-other"), Map.of("player", target.getName().toUpperCase()));
         } else {
-            gp = this.plugin.gameTracker().gamePlayer(player);
+            gamePlayer = this.plugin.gameTracker().gamePlayer(player);
             this.plugin.message(player, this.plugin.configMessage("stats-own"));
         }
 
-        this.plugin.message(player, this.plugin.configMessage("stats-wins"), Map.of("wins", Util.addCommas(gp.wins())));
-        this.plugin.message(player, this.plugin.configMessage("stats-score"), Map.of("score", Util.addCommas(gp.highestScore())));
-        this.plugin.message(player, this.plugin.configMessage("stats-ores"), Map.of("ores", Util.addCommas(gp.totalOresMined())));
+        this.plugin.message(player, "");
+        this.plugin.message(player, this.plugin.configMessage("stats-all-time"));
+        this.plugin.message(player, this.plugin.configMessage("stats-wins"), Map.of("wins", Util.addCommas(gamePlayer.wins())));
+        this.plugin.message(player, this.plugin.configMessage("stats-score"), Map.of("score", Util.addCommas(gamePlayer.highestScore())));
+        this.plugin.message(player, this.plugin.configMessage("stats-ores"), Map.of("ores", Util.addCommas(gamePlayer.totalOresMined())));
 
-        if (gp.gameStats() == null) {
+        if (gamePlayer.gameStats() == null) {
             return true;
         }
 
-        final Game game = gp.gameStats().game();
+        final Game game = gamePlayer.gameStats().game();
 
-        if (game.player(gp.player()) != null) {
-            this.plugin.message(player, this.plugin.configMessage("stats-ingame"), Map.of(
-                    "map", game.mapName(),
-                    "score", Integer.toString(gp.gameStats().score())
-            ));
+        if (game.player(gamePlayer.player()) != null) {
+            this.plugin.message(player, "");
+            this.plugin.message(player, this.plugin.configMessage("stats-in-game"));
+            this.plugin.message(player, this.plugin.configMessage("stats-in-game-map"), Map.of("map", game.mapName()));
+            this.plugin.message(player, this.plugin.configMessage("stats-in-game-score"), Map.of("score", Integer.toString(gamePlayer.gameStats().score())));
+            this.plugin.message(player, this.plugin.configMessage("stats-in-game-ores"), Map.of("ores", Integer.toString(gamePlayer.gameStats().currentOresMined())));
         } else {
-            this.plugin.message(player, this.plugin.configMessage("stats-not-ingame"));
+            this.plugin.message(player, "");
+            this.plugin.message(player, this.plugin.configMessage("stats-not-in-game"));
         }
 
         return true;
