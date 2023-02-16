@@ -384,11 +384,18 @@ public class Game {
 
     public void start(final String gameId) {
         this.gameId = gameId;
-        this.gracePeriod = true;
         this.leaderboard.clear();
 
-        final int gracePeriodSeconds = this.mapSetting("duration-seconds");
-        this.counter(gracePeriodSeconds);
+        final int gracePeriodSeconds = this.mapSetting("grace-period-duration-seconds");
+
+        if (gracePeriodSeconds < 2) {
+            this.gracePeriod = false;
+        } else {
+            this.gracePeriod = true;
+        }
+
+        final int roundDurationSeconds = this.mapSetting("duration-seconds");
+        this.counter(roundDurationSeconds);
         this.broadcast(this.plugin.configMessage("game-started"));
 
         this.spawnPlatform();
