@@ -63,9 +63,6 @@ public class StatsCommand implements CommandExecutor, TabCompleter {
             this.plugin.message(player, this.plugin.configMessage("stats-in-game-map"), Map.of("map", game.mapName()));
             this.plugin.message(player, this.plugin.configMessage("stats-in-game-score"), Map.of("score", Integer.toString(gamePlayer.gameStats().score())));
             this.plugin.message(player, this.plugin.configMessage("stats-in-game-ores"), Map.of("ores", Integer.toString(gamePlayer.gameStats().currentOresMined())));
-        } else {
-            this.plugin.message(player, "");
-            this.plugin.message(player, this.plugin.configMessage("stats-not-in-game"));
         }
 
         return true;
