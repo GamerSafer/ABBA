@@ -14,3 +14,19 @@ lobby-spawn-location:
   pitch: 0.0
 
 min-score-to-broadcast-new-record: 50
+
+cosmetics:
+  weapons:
+    textaxe:
+      custom_model_data: 0
+      display_name: "<dark_aqua>Testaxe"
+      material: DIAMOND_PICKAXE
+      permission: abbacaving.weapon.testaxe # Removing this defaults to abbacaving.weapon.[key]
+      lore:
+        - One
+        - Two
+        - Three
+  armor:
+    testplate:
+      display_name: "<gold>Testplate"
+      material: GOLDEN_CHESTPLATE

@@ -10,9 +10,14 @@ import com.github.stefvanschie.inventoryframework.gui.GuiItem;
 import com.github.stefvanschie.inventoryframework.gui.type.ChestGui;
 import com.github.stefvanschie.inventoryframework.pane.Pane;
 import com.github.stefvanschie.inventoryframework.pane.StaticPane;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.bukkit.Material;
+import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -22,6 +27,7 @@ import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
+import org.bukkit.inventory.meta.ItemMeta;
 
 public class InventoryListener implements Listener {
 
@@ -61,6 +67,45 @@ public class InventoryListener implements Listener {
 
             final StaticPane armorContentPane = this.setupCosmeticsGui(armorGui);
 
+            final ConfigurationSection armorConfig = this.plugin.getConfig().getConfigurationSection("cosmetics.armor");
+
+            int x = 2;
+            final int y = 2;
+
+            for (final String key : armorConfig.getKeys(false)) {
+                final ConfigurationSection armor = armorConfig.getConfigurationSection(key);
+
+                final String permission = Objects.requireNonNullElse(armor.getString("permission"), "abbacaving.armor." + key);
+
+                if (event.getWhoClicked().hasPermission(permission)) {
+                    final Material material = Material.getMaterial(armor.getString("material"));
+                    final Component displayName = MiniMessage.miniMessage().deserialize(armor.getString("display_name"));
+                    final ItemStack armorItem = new ItemStack(material);
+                    final List<Component> lore = new ArrayList<>();
+
+                    if (armor.contains("lore")) {
+                        for (final String loreEntry : armor.getStringList("lore")) {
+                            lore.add(MiniMessage.miniMessage().deserialize(loreEntry));
+                        }
+                    }
+
+                    armorItem.lore(lore);
+
+                    final ItemMeta itemMeta = armorItem.getItemMeta();
+                    itemMeta.displayName(displayName);
+
+                    if (armor.contains("custom_model_data")) {
+                        itemMeta.setCustomModelData(armor.getInt("custom_model_data"));
+                    }
+
+                    armorItem.setItemMeta(itemMeta);
+
+                    armorContentPane.addItem(new GuiItem(armorItem, cosmeticClick -> {
+                        // TODO: apply cosmetic
+                    }), x++, y);
+                }
+            }
+
             armorGui.show(event.getWhoClicked());
         });
 
@@ -73,6 +118,45 @@ public class InventoryListener implements Listener {
             final ChestGui weaponGui = new ChestGui(5, "Weapon Cosmetics");
 
             final StaticPane weaponContentPane = this.setupCosmeticsGui(weaponGui);
+
+            final ConfigurationSection weapons = this.plugin.getConfig().getConfigurationSection("cosmetics.weapons");
+
+            int x = 2;
+            final int y = 2;
+
+            for (final String key : weapons.getKeys(false)) {
+                final ConfigurationSection weapon = weapons.getConfigurationSection(key);
+
+                final String permission = Objects.requireNonNullElse(weapon.getString("permission"), "abbacaving.weapon." + key);
+
+                if (event.getWhoClicked().hasPermission(permission)) {
+                    final Material material = Material.getMaterial(weapon.getString("material"));
+                    final Component displayName = MiniMessage.miniMessage().deserialize(weapon.getString("display_name"));
+                    final ItemStack weaponItem = new ItemStack(material);
+                    final List<Component> lore = new ArrayList<>();
+
+                    if (weapon.contains("lore")) {
+                        for (final String loreEntry : weapon.getStringList("lore")) {
+                            lore.add(MiniMessage.miniMessage().deserialize(loreEntry));
+                        }
+                    }
+
+                    weaponItem.lore(lore);
+
+                    final ItemMeta itemMeta = weaponItem.getItemMeta();
+                    itemMeta.displayName(displayName);
+
+                    if (weapon.contains("custom_model_data")) {
+                        itemMeta.setCustomModelData(weapon.getInt("custom_model_data"));
+                    }
+
+                    weaponItem.setItemMeta(itemMeta);
+
+                    weaponContentPane.addItem(new GuiItem(weaponItem, cosmeticClick -> {
+                        // TODO: apply cosmetic
+                    }), x++, y);
+                }
+            }
 
             weaponGui.show(event.getWhoClicked());
         });
