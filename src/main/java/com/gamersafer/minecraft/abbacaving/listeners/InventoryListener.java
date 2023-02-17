@@ -35,18 +35,7 @@ public class InventoryListener implements Listener {
     }
 
     private void setupGui() {
-        final StaticPane outlinePane = new StaticPane(0, 0, 9, 6);
-        outlinePane.fillWith(new ItemStack(Material.GRAY_STAINED_GLASS_PANE));
-        outlinePane.setPriority(Pane.Priority.LOWEST);
-        this.cosmeticsGui.addPane(outlinePane);
-
-        final StaticPane inlinePane = new StaticPane(1, 1, 7, 4);
-        inlinePane.fillWith(new ItemStack(Material.GREEN_STAINED_GLASS_PANE));
-        inlinePane.setPriority(Pane.Priority.LOW);
-        this.cosmeticsGui.addPane(inlinePane);
-
-        final StaticPane contentPane = new StaticPane(0, 0, 9, 6);
-        contentPane.setPriority(Pane.Priority.HIGHEST);
+        final StaticPane contentPane = this.setupCosmeticsGui(this.cosmeticsGui);
 
         // TODO: info book
 
@@ -68,7 +57,11 @@ public class InventoryListener implements Listener {
 
         final GuiItem armorCosmetics = new GuiItem(new ItemBuilder(Material.DIAMOND_CHESTPLATE)
                 .name(Component.text("Armor Cosmetics")).build(), event -> {
-            // TODO: open armor cosmetics menu
+            final ChestGui armorGui = new ChestGui(5, "Armor Cosmetics");
+
+            final StaticPane armorContentPane = this.setupCosmeticsGui(armorGui);
+
+            armorGui.show(event.getWhoClicked());
         });
 
         contentPane.addItem(armorCosmetics, 2, 3);
@@ -77,12 +70,35 @@ public class InventoryListener implements Listener {
 
         final GuiItem weaponCosmetics = new GuiItem(new ItemBuilder(Material.GOLDEN_SWORD)
                 .name(Component.text("Weapon Cosmetics")).build(), event -> {
-            // TODO: open weapon cosmetics menu
+            final ChestGui weaponGui = new ChestGui(5, "Weapon Cosmetics");
+
+            final StaticPane weaponContentPane = this.setupCosmeticsGui(weaponGui);
+
+            weaponGui.show(event.getWhoClicked());
         });
 
         contentPane.addItem(weaponCosmetics, 6, 3);
 
         this.cosmeticsGui.addPane(contentPane);
+    }
+
+    private StaticPane setupCosmeticsGui(final ChestGui gui) {
+        final StaticPane outlinePane = new StaticPane(0, 0, 9, gui.getRows());
+        outlinePane.fillWith(new ItemStack(Material.GRAY_STAINED_GLASS_PANE));
+        outlinePane.setPriority(Pane.Priority.LOWEST);
+        gui.addPane(outlinePane);
+
+        final StaticPane inlinePane = new StaticPane(1, 1, 7, gui.getRows() - 2);
+        inlinePane.fillWith(new ItemStack(Material.GREEN_STAINED_GLASS_PANE));
+        inlinePane.setPriority(Pane.Priority.LOW);
+        gui.addPane(inlinePane);
+
+        final StaticPane contentPane = new StaticPane(0, 0, 9, gui.getRows());
+        contentPane.setPriority(Pane.Priority.HIGHEST);
+
+        gui.addPane(contentPane);
+
+        return contentPane;
     }
 
     @EventHandler
