@@ -1,5 +1,16 @@
 # Abba Caving
 
+## Commands
+* `acreload` - Reloads the configuration. (abbacaving.reload)
+* `aclookup` - Looks up stats for a specific round. (abbacaving.aclookup)
+* `bcastnp` - Broadcast a message. (abbacaving.broadcast)
+* `forcestart` - Force starts the game. (abbacaving.forcestart)
+* `join` - Joins a game lobby. (abbacaving.join)
+* `leave` - Leaves a game lobby. (abbacaving.leave)
+* `nightvision` -Night vision toggle. (abbacaving.nightvision)
+* `stats` - Display a player's stats. (abbacaving.stats)
+* `points` - Display a player's points. (abbacaving.points)
+
 ## Placeholders
 
 ### Game
@@ -16,10 +27,13 @@
 * `%abbacaving_game_state%`             - the current state of the game (Waiting, Starting, In Game, Game Over)
 * `%abbacaving_leaderboard_score_<n>%`  - the current score of the n-th top player
 * `%abbacaving_leaderboard_player_<n>%` - the name of the n-th top player
+* `%abbacaving_x%`                      - the current x coordinate of a player
+* `%abbacaving_y%`                      - the current y coordinate of a player
+* `%abbacaving_z%`                      - the current z coordinate of a player
 
 ### Lobby
 
-* `%abbacaving_online%`              - the current total number of players in all maps
+* `%abbacaving_online%`                    - the current total number of players in all maps
 * `%abbacaving_roundid_<mapName>_state%`   - the current state of the map `<mapName>`
 * `%abbacaving_roundid_<mapName>_players%` - the current number of players in the map `<mapName>`
 * `%abbacaving_roundid_<mapName>_slots%`   - the current slots for the map `<mapName>`
