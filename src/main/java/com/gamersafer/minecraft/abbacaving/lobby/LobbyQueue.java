@@ -1,7 +1,9 @@
 package com.gamersafer.minecraft.abbacaving.lobby;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 
 public class LobbyQueue {
 
@@ -12,6 +14,7 @@ public class LobbyQueue {
     private int counter = 0;
     private QueueState state;
     private boolean forceStart = false;
+    private final List<CompletableFuture<?>> waitingFutures = new ArrayList<>();
 
     public LobbyQueue(final String mapName, final int maxPlayers, final List<UUID> playerQueue) {
         this.mapName = mapName;
@@ -76,4 +79,21 @@ public class LobbyQueue {
         this.forceStart = forceStart;
     }
 
+    public void addWaitingFuture(CompletableFuture<?> future) {
+        this.waitingFutures.add(future);
+    }
+
+    public boolean isWaitingForFutures() {
+        for (CompletableFuture<?> future : this.waitingFutures) {
+            if (!future.isDone()) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    public void clearWaitingFutures() {
+        this.waitingFutures.clear();
+    }
 }

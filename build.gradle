@@ -16,13 +16,6 @@ repositories {
     maven { url "https://repo.extendedclip.com/content/repositories/placeholderapi/" }
     maven { url "https://maven.playpro.com/" }
     maven { url "https://jitpack.io" }
-    maven {
-        url "https://repo.minebench.de/"
-        content {
-            includeGroup "de.themoep"
-            includeGroupByRegex "de\\.themoep.*"
-        }
-    }
     //mavenLocal()
 }
 
@@ -40,8 +33,10 @@ dependencies {
     compileOnly "me.clip:placeholderapi:2.9.2"
     compileOnly "com.sk89q.worldedit:worldedit-bukkit:7.2.12"
     compileOnly "net.coreprotect:coreprotect:21.2"
-    compileOnly "de.themoep.randomteleport:randomteleport-plugin:2.0-SNAPSHOT"
 
+    compileOnly(fileTree("libs").matching {
+        include("**/*.jar")
+    })
 //    compile fileTree(dir: "lib", include: ["*.jar"])
 }
 

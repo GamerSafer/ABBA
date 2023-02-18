@@ -10,6 +10,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.logging.Level;
+
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.kyori.adventure.text.minimessage.tag.Tag;
@@ -158,7 +160,11 @@ public class Lobby implements Listener {
         }
 
         if (queue.counter() == 0) {
-            this.start(queue);
+            if (queue.isWaitingForFutures()) {
+                this.plugin.getLogger().log(Level.INFO, "Waiting for tasks to complete...");
+            } else {
+                this.start(queue);
+            }
         } else {
             if (queue.counter() % 60 == 0 || queue.counter() == 30 || queue.counter() == 15
                     || queue.counter() == 10 || queue.counter() <= 5) {
@@ -185,8 +191,7 @@ public class Lobby implements Listener {
             if (player == null) {
                 continue;
             }
-
-            this.plugin.game(queue.mapName()).preparePlayerSpawn(player);
+            queue.addWaitingFuture(this.plugin.game(queue.mapName()).preparePlayerSpawn(player));
         }
     }
 
@@ -206,6 +211,7 @@ public class Lobby implements Listener {
     }
 
     public Game start(final LobbyQueue queue) {
+        queue.clearWaitingFutures();
         queue.state(QueueState.LOCKED);
         queue.counter(0);
 

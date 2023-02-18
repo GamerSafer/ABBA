@@ -150,7 +150,7 @@ public class Game {
             final int maxTries = this.mapSetting("random-teleport.max-tries");
 
             final RandomSearcher randomSearcher = randomTeleport.getRandomSearcher(player, this.world().getSpawnLocation(),
-                    minRadius, maxRadius, this.blockValidator);
+                    minRadius, maxRadius); // Don't use our custom validator for now, it seems to cause problems.
 
             randomSearcher.setMaxTries(maxTries);
             randomSearcher.setMinY(minY);
@@ -194,13 +194,13 @@ public class Game {
         return this.mapName;
     }
 
-    public void preparePlayerSpawn(final Player player) {
+    public CompletableFuture<?> preparePlayerSpawn(final Player player) {
         // If the countdown cancels and restarts, don't find locations for players a second time
         if (this.randomSpawns.containsKey(player.getUniqueId())) {
-            return;
+            return CompletableFuture.completedFuture(null);
         }
 
-        this.randomLocation(player).whenComplete((location, exception) -> {
+        return this.randomLocation(player).whenComplete((location, exception) -> {
             Location teleportLocation = location;
 
             if (exception != null) {
@@ -398,35 +398,25 @@ public class Game {
         this.counter(roundDurationSeconds);
         this.broadcast(this.plugin.configMessage("game-started"));
 
-        this.spawnPlatform();
-        this.teleportPlayersToPlatform();
+        for (final GamePlayer gp : this.players.values()) {
+            final Location randomSpawn = this.randomSpawns.get(gp.player().getUniqueId());
 
-        Bukkit.getScheduler().runTaskLater(this.plugin, () -> {
-            this.removePlatform();
-        }, 10 * 20);
+            gp.gameStats(this, Objects.requireNonNullElseGet(randomSpawn, this.world::getSpawnLocation));
 
-        Bukkit.getScheduler().runTaskLater(this.plugin, () -> {
-            for (final GamePlayer gp : this.players.values()) {
-                final Location randomSpawn = this.randomSpawns.get(gp.player().getUniqueId());
+            this.leaderboard.put(gp, 0);
+            this.preparePlayer(gp.player());
+            this.startingInventory(gp);
+            this.setupGUIs(gp);
+            gp.player().setGameMode(GameMode.SURVIVAL);
 
-                gp.gameStats(this, Objects.requireNonNullElseGet(randomSpawn, this.world::getSpawnLocation));
+            gp.player().teleport(gp.gameStats().spawnLocation());
+        }
 
-                this.leaderboard.put(gp, 0);
-                this.preparePlayer(gp.player());
-                this.startingInventory(gp);
-                this.setupGUIs(gp);
-                gp.player().setGameMode(GameMode.SURVIVAL);
+        this.updateLeaderboard();
 
-                gp.player().teleport(gp.gameStats().spawnLocation());
-            }
-
-            this.updateLeaderboard();
-
-            this.broadcast(this.plugin.configMessage("game-objective"));
-            this.playSound(Sound.sound(Key.key("block.note_block.snare"), Sound.Source.NEUTRAL, 1f, 1f));
-            this.gameState(GameState.RUNNING);
-        }, 5 * 20);
-
+        this.broadcast(this.plugin.configMessage("game-objective"));
+        this.playSound(Sound.sound(Key.key("block.note_block.snare"), Sound.Source.NEUTRAL, 1f, 1f));
+        this.gameState(GameState.RUNNING);
     }
 
     public void stop() {
