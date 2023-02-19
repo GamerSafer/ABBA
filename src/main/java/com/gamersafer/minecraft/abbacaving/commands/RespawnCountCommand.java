@@ -4,6 +4,7 @@ import com.gamersafer.minecraft.abbacaving.AbbaCavingPlugin;
 import com.gamersafer.minecraft.abbacaving.game.Game;
 import com.gamersafer.minecraft.abbacaving.game.GamePlayer;
 import com.gamersafer.minecraft.abbacaving.util.Util;
+import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -28,8 +29,6 @@ public class RespawnCountCommand implements CommandExecutor, TabCompleter {
 
     @Override
     public boolean onCommand(@NotNull final CommandSender sender, @NotNull final Command command, @NotNull final String label, @NotNull final String[] args) {
-        final Player player = (Player) sender;
-
         final GamePlayer gamePlayer;
 
         if (args.length == 1) {
@@ -41,16 +40,21 @@ public class RespawnCountCommand implements CommandExecutor, TabCompleter {
 
             gamePlayer = this.plugin.gameTracker().gamePlayer(target);
         } else {
-            gamePlayer = this.plugin.gameTracker().gamePlayer(player);
+            if (sender instanceof Player player) {
+                gamePlayer = this.plugin.gameTracker().gamePlayer(player);
+            } else {
+                sender.sendMessage(Component.text("No target player set."));
+                return true;
+            }
         }
 
         if (args.length == 2) {
             int amount = Integer.parseInt(args[1]);
             gamePlayer.setRespawns(amount);
-            this.plugin.message(player, this.plugin.configMessage("player-respawns-set"), Map.of("amount", Util.addCommas(gamePlayer.getRespawns())));
+            this.plugin.message(sender, this.plugin.configMessage("player-respawns-set"), Map.of("amount", Util.addCommas(gamePlayer.getRespawns())));
             this.plugin.playerDataSource().savePlayerRespawns(gamePlayer);
         } else {
-            this.plugin.message(player, this.plugin.configMessage("player-respawns"), Map.of("amount", Util.addCommas(gamePlayer.getRespawns())));
+            this.plugin.message(sender, this.plugin.configMessage("player-respawns"), Map.of("amount", Util.addCommas(gamePlayer.getRespawns())));
         }
 
 
