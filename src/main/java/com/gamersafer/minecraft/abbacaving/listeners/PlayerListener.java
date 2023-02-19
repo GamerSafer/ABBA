@@ -17,6 +17,7 @@ import java.util.Collection;
 import java.util.Map;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
+import org.bukkit.GameMode;
 import org.bukkit.Material;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
@@ -59,8 +60,10 @@ public class PlayerListener implements Listener {
         final ItemStack yesItem = new ItemBuilder(Material.EMERALD_BLOCK).name(Component.text("Yes, Continue!")).build();
         final GuiItem yesButton = new GuiItem(yesItem, onClick -> {
             final GamePlayer gamePlayer = this.plugin.gameTracker().gamePlayer(onClick.getWhoClicked().getUniqueId());
-            // TODO: check if game is still running
-            gamePlayer.gameStats().game().respawnPlayer(gamePlayer);
+            Game game = gamePlayer.gameStats().game();
+            if (game.gameState() == GameState.RUNNING) {
+                game.respawnPlayer(gamePlayer);
+            }
         });
         buttonPane.addItem(yesButton, 2, 1);
 
@@ -214,7 +217,9 @@ public class PlayerListener implements Listener {
 
         gamePlayer.gameStats().isDead(true);
         game.removePlayer(player, false);
-        this.plugin.lobby().sendToLobby(player);
+        player.spigot().respawn();
+        player.setGameMode(GameMode.SPECTATOR);
+        player.teleport(event.getPlayer().getLocation());
     }
 
     @EventHandler
