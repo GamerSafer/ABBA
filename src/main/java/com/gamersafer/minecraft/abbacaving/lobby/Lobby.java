@@ -12,6 +12,7 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.logging.Level;
 
+import com.gamersafer.minecraft.abbacaving.util.Sounds;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.kyori.adventure.text.minimessage.tag.Tag;
@@ -175,6 +176,7 @@ public class Lobby implements Listener {
                         this.plugin.message(player, this.plugin.configMessage("game-starting"),
                                 TagResolver.resolver("seconds", Tag.inserting(Component.text(queue.counter()))),
                                 TagResolver.resolver("optional-s", Tag.inserting(Component.text(queue.counter() != 1 ? "s" : ""))));
+                        Sounds.pling(player);
                     }
                 }
             }

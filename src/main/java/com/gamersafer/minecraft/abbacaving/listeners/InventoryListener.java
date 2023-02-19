@@ -5,6 +5,7 @@ import com.gamersafer.minecraft.abbacaving.game.CaveLoot;
 import com.gamersafer.minecraft.abbacaving.game.Game;
 import com.gamersafer.minecraft.abbacaving.game.GamePlayer;
 import com.gamersafer.minecraft.abbacaving.util.ItemBuilder;
+import com.gamersafer.minecraft.abbacaving.util.Sounds;
 import com.gamersafer.minecraft.abbacaving.util.Util;
 import com.github.stefvanschie.inventoryframework.gui.GuiItem;
 import com.github.stefvanschie.inventoryframework.gui.type.ChestGui;
@@ -309,6 +310,8 @@ public class InventoryListener implements Listener {
     }
 
     private void showStats(final Player player) {
+        player.closeInventory();
+        Sounds.pling(player);
         final GamePlayer gamePlayer = this.plugin.gameTracker().gamePlayer(player);
         final Game game = gamePlayer.gameStats().game();
 

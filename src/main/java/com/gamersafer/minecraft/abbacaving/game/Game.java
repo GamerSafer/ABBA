@@ -335,6 +335,14 @@ public class Game {
         }
 
         if (this.state == GameState.RUNNING) {
+            if (this.players.isEmpty()) {
+                // There are 0 players left in the round (everyone quit/died), end the round early
+                if (mapSetting("end-empty-games")) {
+                    stop();
+                    return;
+                }
+            }
+
             final int gameDurationSeconds = this.mapSetting("duration-seconds");
             final int gracePeriodSeconds = this.mapSetting("grace-period-duration-seconds");
 

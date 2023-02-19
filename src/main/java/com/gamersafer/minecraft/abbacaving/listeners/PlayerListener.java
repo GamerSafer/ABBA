@@ -12,6 +12,7 @@ import com.github.stefvanschie.inventoryframework.gui.GuiItem;
 import com.github.stefvanschie.inventoryframework.gui.type.ChestGui;
 import com.github.stefvanschie.inventoryframework.pane.Pane;
 import com.github.stefvanschie.inventoryframework.pane.StaticPane;
+import com.google.common.collect.Iterables;
 import io.papermc.paper.event.player.AsyncChatEvent;
 import java.util.Collection;
 import java.util.Map;
@@ -67,9 +68,15 @@ public class PlayerListener implements Listener {
         });
         buttonPane.addItem(yesButton, 2, 1);
 
-        final ItemStack spectateItem = new ItemBuilder(Material.FEATHER).name(Component.text("Spectate - WIP")).build();
+        final ItemStack spectateItem = new ItemBuilder(Material.FEATHER).name(Component.text("Spectate")).build();
         final GuiItem spectateButton = new GuiItem(spectateItem, onClick -> {
-            // TODO: implement spectate feature
+            final GamePlayer gamePlayer = this.plugin.gameTracker().gamePlayer(onClick.getWhoClicked().getUniqueId());
+            Game game = gamePlayer.gameStats().game();
+            Player player = Iterables.getFirst(game.players(), null).player();
+
+            Player clicker = (Player) onClick.getWhoClicked();
+            clicker.teleport(player);
+            clicker.setGameMode(GameMode.SPECTATOR);
         });
         buttonPane.addItem(spectateButton, 4, 1);
 
@@ -135,9 +142,7 @@ public class PlayerListener implements Listener {
             return;
         }
 
-        if (!event.getPlayer().getWorld().equals(game.world())) {
-            game.removePlayer(event.getPlayer(), true);
-        }
+        game.removePlayer(event.getPlayer(), true);
     }
 
     @EventHandler
@@ -196,12 +201,6 @@ public class PlayerListener implements Listener {
                     "count", Component.text(players.size() - 1),
                     "optional-s", Component.text(players.size() != 1 ? "s" : "")
             ));
-        } else {
-            // There are 0 players left in the round (everyone quit/died), end the round early
-            if (game.mapSetting("end-empty-games")) {
-                game.stop();
-                return;
-            }
         }
 
         if (hasPermission && !hasRespawned) {
@@ -217,9 +216,7 @@ public class PlayerListener implements Listener {
 
         gamePlayer.gameStats().isDead(true);
         game.removePlayer(player, false);
-        player.spigot().respawn();
-        player.setGameMode(GameMode.SPECTATOR);
-        player.teleport(event.getPlayer().getLocation());
+        this.plugin.lobby().sendToLobby(player);
     }
 
     @EventHandler
@@ -288,7 +285,7 @@ public class PlayerListener implements Listener {
             return;
         }
 
-        if (!event.getPlayer().getWorld().equals(game.world())) {
+        if (!event.getPlayer().getWorld().equals(game.world()) && !game.player(event.getPlayer()).gameStats().isDead()) {
             game.removePlayer(event.getPlayer(), true);
         }
     }
