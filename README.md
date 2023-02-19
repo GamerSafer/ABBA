@@ -10,6 +10,7 @@
 * `nightvision` -Night vision toggle. (abbacaving.nightvision)
 * `stats` - Display a player's stats. (abbacaving.stats)
 * `points` - Display a player's points. (abbacaving.points)
+* `respawns` - Allows you to set the respawns of a .player (abbacaving.respawns)
 
 ## Placeholders
 

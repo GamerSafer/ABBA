@@ -12,4 +12,8 @@ public interface PlayerDataSource {
 
     void savePlayerHotbar(final GamePlayer gp);
 
+    void updatePlayerRespawns(final GamePlayer gp);
+
+    void savePlayerRespawns(final GamePlayer gp);
+
 }

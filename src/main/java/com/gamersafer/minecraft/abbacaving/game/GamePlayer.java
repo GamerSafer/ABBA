@@ -21,6 +21,8 @@ public class GamePlayer {
     private int highestScore;
     private int totalOresMined;
 
+    private int respawns;
+
     private GameStats gameStats = null;
 
     private Map<Integer, String> hotbarLayout = new HashMap<>();
@@ -84,6 +86,18 @@ public class GamePlayer {
 
     public void totalOresMined(final int oresMined) {
         this.totalOresMined = oresMined;
+    }
+
+    public int getRespawns() {
+        return respawns;
+    }
+
+    public void setRespawns(int respawns) {
+        this.respawns = respawns;
+    }
+
+    public void negateRespawn() {
+        this.respawns--;
     }
 
     public static final class GameStats {

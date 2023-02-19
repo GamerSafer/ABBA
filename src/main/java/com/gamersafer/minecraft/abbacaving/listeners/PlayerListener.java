@@ -2,6 +2,7 @@ package com.gamersafer.minecraft.abbacaving.listeners;
 
 import com.destroystokyo.paper.event.player.PlayerPostRespawnEvent;
 import com.gamersafer.minecraft.abbacaving.AbbaCavingPlugin;
+import com.gamersafer.minecraft.abbacaving.datasource.PlayerDataSource;
 import com.gamersafer.minecraft.abbacaving.game.Game;
 import com.gamersafer.minecraft.abbacaving.game.GamePlayer;
 import com.gamersafer.minecraft.abbacaving.game.GameState;
@@ -18,6 +19,8 @@ import java.util.Collection;
 import java.util.Map;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
+import net.kyori.adventure.text.minimessage.tag.Tag;
+import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
 import org.bukkit.GameMode;
 import org.bukkit.Material;
 import org.bukkit.entity.Entity;
@@ -70,11 +73,17 @@ public class PlayerListener implements Listener {
 
         final ItemStack spectateItem = new ItemBuilder(Material.FEATHER).name(Component.text("Spectate")).build();
         final GuiItem spectateButton = new GuiItem(spectateItem, onClick -> {
+            Player clicker = (Player) onClick.getWhoClicked();
+            if (!clicker.hasPermission("abbacaving.spectate")) {
+                clicker.closeInventory();
+                this.plugin.message(clicker, this.plugin.configMessage("no-permission"));
+                return;
+            }
+
             final GamePlayer gamePlayer = this.plugin.gameTracker().gamePlayer(onClick.getWhoClicked().getUniqueId());
             Game game = gamePlayer.gameStats().game();
             Player player = Iterables.getFirst(game.players(), null).player();
 
-            Player clicker = (Player) onClick.getWhoClicked();
             clicker.teleport(player);
             clicker.setGameMode(GameMode.SPECTATOR);
         });
@@ -135,7 +144,11 @@ public class PlayerListener implements Listener {
             return;
         }
 
-        this.plugin.getServer().getScheduler().runTaskAsynchronously(this.plugin, () -> this.plugin.playerDataSource().savePlayerStats(gp));
+        this.plugin.getServer().getScheduler().runTaskAsynchronously(this.plugin, () -> {
+            PlayerDataSource dataSource = this.plugin.playerDataSource();
+            dataSource.savePlayerStats(gp);
+            dataSource.savePlayerRespawns(gp);
+        });
 
         Game game = gp.gameStats().game();
         if (game == null || game.gameState() == GameState.DONE) {
@@ -203,13 +216,14 @@ public class PlayerListener implements Listener {
             ));
         }
 
-        if (hasPermission && !hasRespawned) {
+        if (hasPermission && !hasRespawned && gamePlayer.getRespawns() > 0) {
             gamePlayer.gameStats().respawnLocation(event.getPlayer().getLocation());
             gamePlayer.gameStats().hasRespawned(true);
             gamePlayer.gameStats().showRespawnGui(true);
             gamePlayer.gameStats().score(0);
             game.updateLeaderboard();
             game.startingInventory(gamePlayer);
+            gamePlayer.negateRespawn();
 
             return;
         }

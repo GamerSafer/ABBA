@@ -8,6 +8,7 @@ import com.gamersafer.minecraft.abbacaving.commands.JoinCommand;
 import com.gamersafer.minecraft.abbacaving.commands.LeaveCommand;
 import com.gamersafer.minecraft.abbacaving.commands.NightVisionCommand;
 import com.gamersafer.minecraft.abbacaving.commands.PointsCommand;
+import com.gamersafer.minecraft.abbacaving.commands.RespawnCountCommand;
 import com.gamersafer.minecraft.abbacaving.commands.StatsCommand;
 import com.gamersafer.minecraft.abbacaving.datasource.PlayerDataSource;
 import com.gamersafer.minecraft.abbacaving.datasource.SQLDataSource;
@@ -19,6 +20,7 @@ import com.gamersafer.minecraft.abbacaving.listeners.BlockBreakListener;
 import com.gamersafer.minecraft.abbacaving.listeners.BlockPlaceListener;
 import com.gamersafer.minecraft.abbacaving.listeners.EntityListener;
 import com.gamersafer.minecraft.abbacaving.listeners.InventoryListener;
+import com.gamersafer.minecraft.abbacaving.listeners.PlayerKillEntityListener;
 import com.gamersafer.minecraft.abbacaving.listeners.PlayerListener;
 import com.gamersafer.minecraft.abbacaving.lobby.Lobby;
 import com.gamersafer.minecraft.abbacaving.placeholders.GamePlaceholders;
@@ -80,6 +82,7 @@ public class AbbaCavingPlugin extends JavaPlugin {
         this.getServer().getPluginManager().registerEvents(new EntityListener(this), this);
         this.getServer().getPluginManager().registerEvents(new PlayerListener(this), this);
         this.getServer().getPluginManager().registerEvents(new InventoryListener(this), this);
+        this.getServer().getPluginManager().registerEvents(new PlayerKillEntityListener(this), this);
 
         if (Bukkit.getPluginManager().isPluginEnabled("PlaceholdersAPI")) {
             new GamePlaceholders(this);
@@ -111,6 +114,8 @@ public class AbbaCavingPlugin extends JavaPlugin {
         final StatsCommand statsCommand = new StatsCommand(this);
         this.getCommand("stats").setExecutor(statsCommand);
         this.getCommand("stats").setTabCompleter(statsCommand);
+
+        this.getCommand("respawns").setExecutor(new RespawnCountCommand(this));
 
         for (final String mapName : this.configuredMapNames()) {
             this.maps.put(mapName, new Game(this, mapName));

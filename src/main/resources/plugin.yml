@@ -42,6 +42,10 @@ commands:
     description: Display a player's points.
     permission: abbacaving.points
     permission-message: You are not allowed to view points.
+  respawns:
+    description: Modify the respawns of a player.
+    permission: abbacaving.respawns
+    permission-message: You are not allowed to edit respawns.
 permissions:
   abbacaving.*:
     description: Gives access to all Abba Caving permissions.
@@ -55,6 +59,7 @@ permissions:
       abbacaving.nightvision: true
       abbacaving.stats: true
       abbacaving.points: true
+      abbacaving.spectate: true
   abbacaving.join:
     children:
       abbacaving.join.full: false

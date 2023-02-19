@@ -329,6 +329,10 @@ public class Game {
         return this.mapSetting("maximum-players-per-round");
     }
 
+    public boolean countMobKills() {
+        return this.mapSetting("count-points-per-mob-kill");
+    }
+
     private void nextTick() {
         if (this.state == GameState.READY) {
             return;
@@ -617,6 +621,7 @@ public class Game {
 
             for (final GamePlayer gamePlayer : this.players.values()) {
                 gamePlayer.player().teleport(teleportLocation);
+                gamePlayer.player().setGameMode(GameMode.SURVIVAL);
             }
         }
 
