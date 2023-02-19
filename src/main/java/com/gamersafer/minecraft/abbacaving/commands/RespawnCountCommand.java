@@ -48,8 +48,14 @@ public class RespawnCountCommand implements CommandExecutor, TabCompleter {
             }
         }
 
-        if (args.length == 2) {
-            int amount = Integer.parseInt(args[1]);
+        if (args.length >= 2) {
+            int amount;
+            if (args[1].equals("add")) {
+                amount = gamePlayer.getRespawns() + Integer.parseInt(args[2]);
+            } else {
+                amount = Integer.parseInt(args[1]);
+            }
+
             gamePlayer.setRespawns(amount);
             this.plugin.message(sender, this.plugin.configMessage("player-respawns-set"), Map.of("amount", Util.addCommas(gamePlayer.getRespawns())));
             this.plugin.playerDataSource().savePlayerRespawns(gamePlayer);
