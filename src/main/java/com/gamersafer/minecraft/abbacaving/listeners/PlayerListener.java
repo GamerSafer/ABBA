@@ -126,6 +126,15 @@ public class PlayerListener implements Listener {
         }
 
         this.plugin.getServer().getScheduler().runTaskAsynchronously(this.plugin, () -> this.plugin.playerDataSource().savePlayerStats(gp));
+
+        Game game = gp.gameStats().game();
+        if (game == null || game.gameState() == GameState.DONE) {
+            return;
+        }
+
+        if (!event.getPlayer().getWorld().equals(game.world())) {
+            game.removePlayer(event.getPlayer(), true);
+        }
     }
 
     @EventHandler
