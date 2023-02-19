@@ -11,6 +11,9 @@
 * `stats` - Display a player's stats. (abbacaving.stats)
 * `points` - Display a player's points. (abbacaving.points)
 * `respawns` - Allows you to set the respawns of a .player (abbacaving.respawns)
+  * ``/respawns Owen1212055 1``- Sets Owen1212055's respawn amount to 1
+  * ``/respawns Owen1212055 add 1``- Adds 1 to Owen1212055's respawn amount
+  * ``/respawns Owen1212055``- Gets Owen1212055's respawn amount
 
 ## Placeholders
 
