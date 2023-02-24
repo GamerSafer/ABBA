@@ -6,6 +6,7 @@ import com.gamersafer.minecraft.abbacaving.lobby.LobbyQueue;
 import com.gamersafer.minecraft.abbacaving.lobby.QueueState;
 import com.gamersafer.minecraft.abbacaving.util.Components;
 import com.gamersafer.minecraft.abbacaving.util.ItemBuilder;
+import com.gamersafer.minecraft.abbacaving.util.OrderedMapBuilder;
 import com.gamersafer.minecraft.abbacaving.util.Util;
 import com.sk89q.worldedit.EditSession;
 import com.sk89q.worldedit.WorldEdit;
@@ -23,6 +24,7 @@ import de.themoep.randomteleport.RandomTeleport;
 import de.themoep.randomteleport.ValidatorRegistry;
 import de.themoep.randomteleport.searcher.RandomSearcher;
 import de.themoep.randomteleport.searcher.options.NotFoundException;
+import dev.lone.itemsadder.api.CustomStack;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -83,6 +85,52 @@ public class Game {
     private GameState state;
     private EditSession editSession = null;
     private final AbbaValidator blockValidator;
+
+    private final ItemStack PICKAXE = new ItemBuilder(Material.DIAMOND_PICKAXE)
+            .unbreakable(true)
+            .enchantment(Enchantment.SILK_TOUCH, 1)
+            .miniMessageName("<green><bold>Starter Pickaxe")
+            .build();
+
+    private final ItemStack SWORD = new ItemBuilder(Material.IRON_SWORD)
+            .miniMessageName("<green><bold>Starter Sword")
+            .build();
+
+    private final ItemStack BOW = new ItemBuilder(Material.BOW)
+            .unbreakable(true)
+            .enchantment(Enchantment.ARROW_INFINITE, 1)
+            .miniMessageName("<green><bold>Infinite Bow")
+            .build();
+
+    private final ItemStack SHOVEL = new ItemBuilder(Material.IRON_SHOVEL)
+            .miniMessageName("<green><bold>Starter Shovel")
+            .build();
+
+    private final ItemStack BEEF = new ItemBuilder(Material.COOKED_BEEF)
+            .miniMessageName("<green><bold>Infinite Steak Supply")
+            .build();
+
+    private final ItemStack COBBLESTONE = new ItemBuilder(Material.COBBLESTONE)
+            .miniMessageName("<green><bold>Infinite Cobble")
+            .build();
+
+    private final ItemStack BUCKET = new ItemStack(Material.WATER_BUCKET);
+
+    private final ItemStack TORCH = new ItemBuilder(Material.TORCH)
+            .miniMessageName("<green><bold>Infinite Torch")
+            .build();
+
+
+    private final Map<String, ItemStack> defaultHotbarItems = new OrderedMapBuilder<String, ItemStack>()
+            .add("DIAMOND_PICKAXE", this.PICKAXE)
+            .add("IRON_SWORD", this.SWORD)
+            .add("BOW", this.BOW)
+            .add("IRON_SHOVEL", this.SHOVEL)
+            .add("COOKED_BEEF", this.BEEF)
+            .add("COBBLESTONE", this.COBBLESTONE)
+            .add("WATER_BUCKET", this.BUCKET)
+            .add("TORCH", this.TORCH)
+            .build();
 
     public Game(final AbbaCavingPlugin plugin, final String mapName) {
         this.plugin = plugin;
@@ -300,13 +348,14 @@ public class Game {
 
     public void applyCustomHotbar(final GamePlayer player) {
         for (final Map.Entry<Integer, String> entry : player.hotbarLayout().entrySet()) {
-            final ItemStack hotbarItem = this.hotbarItemCache.get(entry.getValue());
+            final ItemStack cosmeticItem = this.cosmeticItem(player.player(), entry.getValue());
 
-            if (hotbarItem == null) {
-                this.plugin.getLogger().warning("Hotbar item not cached for key [" + entry.getValue() + "]");
+            if (cosmeticItem != null) {
+                player.player().getInventory().setItem(entry.getKey(), cosmeticItem);
+                continue;
             }
 
-            player.player().getInventory().setItem(entry.getKey(), hotbarItem);
+            player.player().getInventory().setItem(entry.getKey(), this.defaultHotbarItems.get(entry.getValue()));
         }
     }
 
@@ -315,8 +364,57 @@ public class Game {
             player.player().getInventory().setItem(i, null);
         }
 
-        player.player().getInventory().addItem(this.PICKAXE, this.SWORD, this.BOW, this.SHOVEL,
-                this.BEEF, this.COBBLESTONE, this.BUCKET, this.TORCH);
+        int slotIndex = 0;
+
+        for (final Map.Entry<String, ItemStack> entry : this.defaultHotbarItems.entrySet()) {
+            final ItemStack cosmeticItem = this.cosmeticItem(player.player(), entry.getKey());
+
+            if (cosmeticItem != null) {
+                player.player().getInventory().setItem(slotIndex, cosmeticItem);
+                continue;
+            }
+
+            player.player().getInventory().setItem(slotIndex, entry.getValue());
+
+            slotIndex++;
+        }
+    }
+
+    private ItemStack cosmeticItem(final Player player, final String materialKey) {
+        final ConfigurationSection cosmetics = this.plugin.getConfig().getConfigurationSection("cosmetics");
+
+        for (final String key : cosmetics.getKeys(false)) {
+            final ConfigurationSection cosmetic = cosmetics.getConfigurationSection(key);
+            final String cosmeticMaterial = cosmetic.getString("material");
+
+            if (cosmeticMaterial == null || !cosmeticMaterial.equalsIgnoreCase(materialKey)) {
+                continue;
+            }
+
+            if (!player.hasPermission(cosmetic.getString("permission"))) {
+                continue;
+            }
+
+            // TODO: check if cosmetic is selected
+
+            return this.cosmeticById(key);
+        }
+
+        return null;
+    }
+
+    private ItemStack cosmeticById(final String id) {
+        final CustomStack customStack = CustomStack.getInstance(id);
+
+        if (customStack != null) {
+            return customStack.getItemStack();
+        }
+
+        return null;
+    }
+
+    private ItemStack defaultItem(final Material material) {
+        return this.defaultHotbarItems.get(material.name());
     }
 
     public GamePlayer player(final Player player) {
@@ -710,51 +808,6 @@ public class Game {
 
         this.plugin.getLogger().info("Removed " + removed + " entities (" + items + " were items)");
     }
-
-    private final ItemStack PICKAXE = new ItemBuilder(Material.DIAMOND_PICKAXE)
-            .unbreakable(true)
-            .enchantment(Enchantment.SILK_TOUCH, 1)
-            .miniMessageName("<green><bold>Starter Pickaxe")
-            .build();
-
-    private final ItemStack SWORD = new ItemBuilder(Material.IRON_SWORD)
-            .miniMessageName("<green><bold>Starter Sword")
-            .build();
-
-    private final ItemStack BOW = new ItemBuilder(Material.BOW)
-            .unbreakable(true)
-            .enchantment(Enchantment.ARROW_INFINITE, 1)
-            .miniMessageName("<green><bold>Infinite Bow")
-            .build();
-
-    private final ItemStack SHOVEL = new ItemBuilder(Material.IRON_SHOVEL)
-            .miniMessageName("<green><bold>Starter Shovel")
-            .build();
-
-    private final ItemStack BEEF = new ItemBuilder(Material.COOKED_BEEF)
-            .miniMessageName("<green><bold>Infinite Steak Supply")
-            .build();
-
-    private final ItemStack COBBLESTONE = new ItemBuilder(Material.COBBLESTONE)
-            .miniMessageName("<green><bold>Infinite Cobble")
-            .build();
-
-    private final ItemStack BUCKET = new ItemStack(Material.WATER_BUCKET);
-
-    private final ItemStack TORCH = new ItemBuilder(Material.TORCH)
-            .miniMessageName("<green><bold>Infinite Torch")
-            .build();
-
-    private final Map<String, ItemStack> hotbarItemCache = Map.of(
-            "DIAMOND_PICKAXE", this.PICKAXE,
-            "IRON_SWORD", this.SWORD,
-            "BOW", this.BOW,
-            "IRON_SHOVEL", this.SHOVEL,
-            "COOKED_BEEF", this.BEEF,
-            "COBBLESTONE", this.COBBLESTONE,
-            "WATER_BUCKET", this.BUCKET,
-            "TORCH", this.TORCH
-    );
 
     public void startingInventory(final GamePlayer player) {
         final PlayerInventory inv = player.player().getInventory();
