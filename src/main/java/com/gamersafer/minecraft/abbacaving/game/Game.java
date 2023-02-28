@@ -348,7 +348,7 @@ public class Game {
 
     public void applyCustomHotbar(final GamePlayer player) {
         for (final Map.Entry<Integer, String> entry : player.hotbarLayout().entrySet()) {
-            final ItemStack cosmeticItem = this.cosmeticItem(player, entry.getValue());
+            final ItemStack cosmeticItem = player.selectedWeaponCosmetic(entry.getValue());
 
             if (cosmeticItem != null) {
                 player.player().getInventory().setItem(entry.getKey(), cosmeticItem);
@@ -367,7 +367,7 @@ public class Game {
         int slotIndex = 0;
 
         for (final Map.Entry<String, ItemStack> entry : this.defaultHotbarItems.entrySet()) {
-            final ItemStack cosmeticItem = this.cosmeticItem(player, entry.getKey());
+            final ItemStack cosmeticItem = player.selectedWeaponCosmetic(entry.getKey());
 
             if (cosmeticItem != null) {
                 player.player().getInventory().setItem(slotIndex, cosmeticItem);
@@ -378,39 +378,6 @@ public class Game {
 
             slotIndex++;
         }
-    }
-
-    private ItemStack cosmeticItem(final GamePlayer player, final String materialKey) {
-        final ConfigurationSection cosmetics = this.plugin.getConfig().getConfigurationSection("cosmetics");
-
-        for (final String key : cosmetics.getKeys(false)) {
-            final ConfigurationSection cosmetic = cosmetics.getConfigurationSection(key);
-            final String cosmeticMaterial = cosmetic.getString("material");
-
-            if (cosmeticMaterial == null || !cosmeticMaterial.equalsIgnoreCase(materialKey)) {
-                continue;
-            }
-
-            if (!player.player().hasPermission(cosmetic.getString("permission"))) {
-                continue;
-            }
-
-            if (player.hasCosmeticSelected(key)) {
-                return cosmeticById(key);
-            }
-        }
-
-        return null;
-    }
-
-    public static ItemStack cosmeticById(final String id) {
-        final CustomStack customStack = CustomStack.getInstance(id);
-
-        if (customStack != null) {
-            return customStack.getItemStack();
-        }
-
-        return null;
     }
 
     private ItemStack defaultItem(final Material material) {
@@ -812,7 +779,7 @@ public class Game {
     public void startingInventory(final GamePlayer player) {
         final PlayerInventory inv = player.player().getInventory();
 
-        final ItemStack cosmeticShield = this.cosmeticItem(player, "SHIELD");
+        final ItemStack cosmeticShield = player.selectedArmorCosmetic("SHIELD");
 
         if (cosmeticShield != null) {
             inv.setItemInOffHand(new ItemBuilder(cosmeticShield)/*.durability(168)*/.build());
@@ -820,16 +787,16 @@ public class Game {
             inv.setItemInOffHand(new ItemBuilder(Material.SHIELD)/*.durability(168)*/.build());
         }
 
-        final ItemStack cosmeticHelmet = this.cosmeticItem(player, "IRON_HELMET");
+        final ItemStack cosmeticHelmet = player.selectedArmorCosmetic("IRON_HELMET");
         inv.setHelmet(Objects.requireNonNullElseGet(cosmeticHelmet, () -> new ItemStack(Material.IRON_HELMET)));
 
-        final ItemStack cosmeticChestplate = this.cosmeticItem(player, "IRON_CHESTPLATE");
+        final ItemStack cosmeticChestplate = player.selectedArmorCosmetic("IRON_CHESTPLATE");
         inv.setChestplate(Objects.requireNonNullElseGet(cosmeticChestplate, () -> new ItemStack(Material.IRON_CHESTPLATE)));
 
-        final ItemStack cosmeticLeggings = this.cosmeticItem(player, "IRON_LEGGINGS");
+        final ItemStack cosmeticLeggings = player.selectedArmorCosmetic("IRON_LEGGINGS");
         inv.setLeggings(Objects.requireNonNullElseGet(cosmeticLeggings, () -> new ItemStack(Material.IRON_LEGGINGS)));
 
-        final ItemStack cosmeticBoots = this.cosmeticItem(player, "IRON_BOOTS");
+        final ItemStack cosmeticBoots = player.selectedArmorCosmetic("IRON_BOOTS");
         inv.setBoots(Objects.requireNonNullElseGet(cosmeticBoots, () -> new ItemStack(Material.IRON_BOOTS)));
 
         // Load existing hotbar layout

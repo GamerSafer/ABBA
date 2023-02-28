@@ -2,6 +2,7 @@ package com.gamersafer.minecraft.abbacaving.game;
 
 import com.gamersafer.minecraft.abbacaving.AbbaCavingPlugin;
 import com.gamersafer.minecraft.abbacaving.util.Util;
+import dev.lone.itemsadder.api.CustomStack;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -12,7 +13,9 @@ import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Sound;
+import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
 
 public class GamePlayer {
 
@@ -69,6 +72,62 @@ public class GamePlayer {
 
     public List<String> selectedCosmetics() {
         return this.selectedCosmetics; // TODO: return immutable copy
+    }
+
+    public ItemStack selectedWeaponCosmetic(final String materialKey) {
+        final ConfigurationSection cosmetics = this.plugin.getConfig().getConfigurationSection("cosmetics.weapon");
+
+        for (final String key : cosmetics.getKeys(false)) {
+            final ConfigurationSection cosmetic = cosmetics.getConfigurationSection(key);
+            final String cosmeticMaterial = cosmetic.getString("material");
+
+            if (cosmeticMaterial == null || !cosmeticMaterial.equalsIgnoreCase(materialKey)) {
+                continue;
+            }
+
+            if (!this.player().hasPermission(cosmetic.getString("permission"))) {
+                continue;
+            }
+
+            if (this.hasCosmeticSelected(key)) {
+                return cosmeticById(key);
+            }
+        }
+
+        return null;
+    }
+
+    public ItemStack selectedArmorCosmetic(final String materialKey) {
+        final ConfigurationSection cosmetics = this.plugin.getConfig().getConfigurationSection("cosmetics.armor");
+
+        for (final String key : cosmetics.getKeys(false)) {
+            final ConfigurationSection cosmetic = cosmetics.getConfigurationSection(key);
+            final String cosmeticMaterial = cosmetic.getString("material");
+
+            if (cosmeticMaterial == null || !cosmeticMaterial.equalsIgnoreCase(materialKey)) {
+                continue;
+            }
+
+            if (!this.player().hasPermission(cosmetic.getString("permission"))) {
+                continue;
+            }
+
+            if (this.hasCosmeticSelected(key)) {
+                return cosmeticById(key);
+            }
+        }
+
+        return null;
+    }
+
+    public static ItemStack cosmeticById(final String id) {
+        final CustomStack customStack = CustomStack.getInstance(id);
+
+        if (customStack != null) {
+            return customStack.getItemStack();
+        }
+
+        return null;
     }
 
     public Map<Integer, String> hotbarLayout() {

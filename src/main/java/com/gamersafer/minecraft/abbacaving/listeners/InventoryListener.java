@@ -78,7 +78,7 @@ public class InventoryListener implements Listener {
                 final String permission = Objects.requireNonNullElse(armor.getString("permission"), "abbacaving.armor." + key);
 
                 if (event.getWhoClicked().hasPermission(permission)) {
-                    final ItemStack cosmeticItem = Game.cosmeticById(key);
+                    final ItemStack cosmeticItem = GamePlayer.cosmeticById(key);
 
                     if (cosmeticItem != null) {
                         armorContentPane.addItem(new GuiItem(cosmeticItem, cosmeticClick -> {
@@ -121,7 +121,7 @@ public class InventoryListener implements Listener {
                 final String permission = Objects.requireNonNullElse(weapon.getString("permission"), "abbacaving.weapon." + key);
 
                 if (event.getWhoClicked().hasPermission(permission)) {
-                    final ItemStack cosmeticItem = Game.cosmeticById(key);
+                    final ItemStack cosmeticItem = GamePlayer.cosmeticById(key);
 
                     if (cosmeticItem != null) {
                         weaponContentPane.addItem(new GuiItem(cosmeticItem, cosmeticClick -> {
