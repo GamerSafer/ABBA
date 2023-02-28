@@ -82,8 +82,14 @@ public class InventoryListener implements Listener {
 
                     if (cosmeticItem != null) {
                         armorContentPane.addItem(new GuiItem(cosmeticItem, cosmeticClick -> {
-                            gamePlayer.addSelectedCosmetic(key);
-                            this.plugin.message(gamePlayer.player(), this.plugin.configMessage("cosmetic-select"), Map.of("cosmetic", key));
+                            if (gamePlayer.hasCosmeticSelected(key)) {
+                                gamePlayer.removeSelectedCosmetic(key);
+                                this.plugin.message(gamePlayer.player(), this.plugin.configMessage("cosmetic-deselect"), Map.of("cosmetic", key));
+                            } else {
+                                gamePlayer.addSelectedCosmetic(key);
+                                // TODO: remove other selected armor cosmetics
+                                this.plugin.message(gamePlayer.player(), this.plugin.configMessage("cosmetic-select"), Map.of("cosmetic", key));
+                            }
                         }), x++, y);
                     }
                 }
@@ -119,8 +125,14 @@ public class InventoryListener implements Listener {
 
                     if (cosmeticItem != null) {
                         weaponContentPane.addItem(new GuiItem(cosmeticItem, cosmeticClick -> {
-                            gamePlayer.addSelectedCosmetic(key);
-                            this.plugin.message(gamePlayer.player(), this.plugin.configMessage("cosmetic-select"), Map.of("cosmetic", key));
+                            if (gamePlayer.hasCosmeticSelected(key)) {
+                                gamePlayer.removeSelectedCosmetic(key);
+                                this.plugin.message(gamePlayer.player(), this.plugin.configMessage("cosmetic-deselect"), Map.of("cosmetic", key));
+                            } else {
+                                gamePlayer.addSelectedCosmetic(key);
+                                // TODO: remove other selected armor cosmetics
+                                this.plugin.message(gamePlayer.player(), this.plugin.configMessage("cosmetic-select"), Map.of("cosmetic", key));
+                            }
                         }), x++, y);
                     }
                 }
