@@ -3,11 +3,10 @@ package com.gamersafer.minecraft.abbacaving.game;
 import com.gamersafer.minecraft.abbacaving.AbbaCavingPlugin;
 import com.gamersafer.minecraft.abbacaving.util.Util;
 import dev.lone.itemsadder.api.CustomStack;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.UUID;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
@@ -31,7 +30,7 @@ public class GamePlayer {
     private GameStats gameStats = null;
 
     private Map<Integer, String> hotbarLayout = new HashMap<>();
-    private final List<String> selectedCosmetics = new ArrayList<>(); // TODO: Save to and load from DB
+    private final Map<String, String> selectedCosmetics = new HashMap<>();
 
     public GamePlayer(final AbbaCavingPlugin plugin, final UUID playerUUID) {
         this.plugin = plugin;
@@ -55,23 +54,54 @@ public class GamePlayer {
     }
 
     public boolean hasCosmeticSelected(final String cosmetic) {
-        return this.selectedCosmetics.contains(cosmetic);
+        return this.selectedCosmetics.containsKey(cosmetic);
     }
 
     public void addSelectedCosmetic(final String cosmetic) {
-        this.selectedCosmetics.add(cosmetic);
+        final String material = this.materialForCosmetic(cosmetic);
+
+        this.addSelectedCosmetic(cosmetic, material);
     }
 
-    public boolean removeSelectedCosmetic(final String cosmetic) {
-        return this.selectedCosmetics.remove(cosmetic);
+    public void addSelectedCosmetic(final String cosmetic, final String materialKey) {
+        this.selectedCosmetics.put(cosmetic, materialKey);
+
+        // remove other cosmetics with the same materialKey
+        this.selectedCosmetics.entrySet().removeIf(entry -> {
+            if (entry.getKey().equals(cosmetic)) {
+                return false;
+            }
+
+            return entry.getValue().equals(materialKey);
+        });
+    }
+
+    public void removeSelectedCosmetic(final String cosmetic) {
+        this.selectedCosmetics.remove(cosmetic);
     }
 
     public void removeAllSelectedCosmetics() {
         this.selectedCosmetics.clear();
     }
 
-    public List<String> selectedCosmetics() {
-        return this.selectedCosmetics; // TODO: return immutable copy
+    public Set<String> selectedCosmetics() {
+        return this.selectedCosmetics.keySet(); // TODO: return immutable copy
+    }
+
+    private String materialForCosmetic(final String cosmetic) {
+        final String weaponMaterial = this.plugin.getConfig().getString("cosmetics.weapon." + cosmetic + ".material");
+
+        if (weaponMaterial != null) {
+            return weaponMaterial;
+        }
+
+        final String armorMaterial = this.plugin.getConfig().getString("cosmetics.armor." + cosmetic + ".material");
+
+        if (armorMaterial != null) {
+            return armorMaterial;
+        }
+
+        return null;
     }
 
     public ItemStack selectedWeaponCosmetic(final String materialKey) {

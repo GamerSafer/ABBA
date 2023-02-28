@@ -24,7 +24,6 @@ import de.themoep.randomteleport.RandomTeleport;
 import de.themoep.randomteleport.ValidatorRegistry;
 import de.themoep.randomteleport.searcher.RandomSearcher;
 import de.themoep.randomteleport.searcher.options.NotFoundException;
-import dev.lone.itemsadder.api.CustomStack;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;

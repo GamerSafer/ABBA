@@ -74,6 +74,7 @@ public class InventoryListener implements Listener {
 
             for (final String key : armorConfig.getKeys(false)) {
                 final ConfigurationSection armor = armorConfig.getConfigurationSection(key);
+                final String material = armor.getString("material");
 
                 final String permission = Objects.requireNonNullElse(armor.getString("permission"), "abbacaving.armor." + key);
 
@@ -86,8 +87,7 @@ public class InventoryListener implements Listener {
                                 gamePlayer.removeSelectedCosmetic(key);
                                 this.plugin.message(gamePlayer.player(), this.plugin.configMessage("cosmetic-deselect"), Map.of("cosmetic", key));
                             } else {
-                                gamePlayer.addSelectedCosmetic(key);
-                                // TODO: remove other selected armor cosmetics
+                                gamePlayer.addSelectedCosmetic(key, material);
                                 this.plugin.message(gamePlayer.player(), this.plugin.configMessage("cosmetic-select"), Map.of("cosmetic", key));
                             }
                         }), x++, y);
@@ -117,6 +117,7 @@ public class InventoryListener implements Listener {
 
             for (final String key : weapons.getKeys(false)) {
                 final ConfigurationSection weapon = weapons.getConfigurationSection(key);
+                final String material = weapon.getString("material");
 
                 final String permission = Objects.requireNonNullElse(weapon.getString("permission"), "abbacaving.weapon." + key);
 
@@ -129,8 +130,7 @@ public class InventoryListener implements Listener {
                                 gamePlayer.removeSelectedCosmetic(key);
                                 this.plugin.message(gamePlayer.player(), this.plugin.configMessage("cosmetic-deselect"), Map.of("cosmetic", key));
                             } else {
-                                gamePlayer.addSelectedCosmetic(key);
-                                // TODO: remove other selected armor cosmetics
+                                gamePlayer.addSelectedCosmetic(key, material);
                                 this.plugin.message(gamePlayer.player(), this.plugin.configMessage("cosmetic-select"), Map.of("cosmetic", key));
                             }
                         }), x++, y);
