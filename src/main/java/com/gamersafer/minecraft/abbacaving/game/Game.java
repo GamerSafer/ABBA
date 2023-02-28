@@ -396,14 +396,14 @@ public class Game {
             }
 
             if (player.hasCosmeticSelected(key)) {
-                return this.cosmeticById(key);
+                return cosmeticById(key);
             }
         }
 
         return null;
     }
 
-    private ItemStack cosmeticById(final String id) {
+    public static ItemStack cosmeticById(final String id) {
         final CustomStack customStack = CustomStack.getInstance(id);
 
         if (customStack != null) {
