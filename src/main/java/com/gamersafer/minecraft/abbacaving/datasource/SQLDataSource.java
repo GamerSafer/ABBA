@@ -49,7 +49,7 @@ public class SQLDataSource implements PlayerDataSource {
                 statement.execute("CREATE TABLE IF NOT EXISTS abba_caving_stats (uuid VARCHAR(50) PRIMARY KEY, wins INT, highest_score INT, ores_mined INT);");
                 statement.execute("CREATE TABLE IF NOT EXISTS abba_hotbar_layout (uuid VARCHAR(50) NOT NULL, slot INT NOT NULL, material VARCHAR(50), CONSTRAINT layout_pk PRIMARY KEY(uuid, slot));");
                 statement.execute("CREATE TABLE IF NOT EXISTS abba_respawns (uuid VARCHAR(50) PRIMARY KEY, respawns INT);");
-
+                statement.execute("CREATE TABLE IF NOT EXISTS abba_cosmetics (uuid VARCHAR(50) NOT NULL, cosmetic VARCHAR(50);");
             }
         } catch (final SQLException ex) {
             ex.printStackTrace();
@@ -58,6 +58,7 @@ public class SQLDataSource implements PlayerDataSource {
 
     public void loadPlayerStats(final GamePlayer gp) {
         try (final Connection conn = this.dataSource.getConnection()) {
+            // Load game stats
             try (final PreparedStatement stmt = conn.prepareStatement("SELECT wins, highest_score, ores_mined FROM abba_caving_stats WHERE uuid = ?;")) {
                 stmt.setString(1, gp.player().getUniqueId().toString());
 
@@ -73,7 +74,8 @@ public class SQLDataSource implements PlayerDataSource {
                 }
             }
 
-            try (final PreparedStatement hotbarStatement = conn.prepareStatement("SELECT * FROM abba_hotbar_layout WHERE uuid =  ?;")) {
+            // Load hotbar layout
+            try (final PreparedStatement hotbarStatement = conn.prepareStatement("SELECT * FROM abba_hotbar_layout WHERE uuid = ?;")) {
                 hotbarStatement.setString(1, gp.player().getUniqueId().toString());
 
                 try (final ResultSet rs = hotbarStatement.executeQuery()) {
@@ -83,6 +85,17 @@ public class SQLDataSource implements PlayerDataSource {
 
                     if (gp.hasCustomHotbarLayout()) {
                         this.plugin.getLogger().info("Loaded " + gp.player().getName() + "'s hotbar layout");
+                    }
+                }
+            }
+
+            // Load selected cosmetics
+            try (final PreparedStatement cosmeticsStatement = conn.prepareStatement("SELECT * FROM abba_cosmetics WHERE uuid = ?;")) {
+                cosmeticsStatement.setString(1, gp.player().getUniqueId().toString());
+
+                try (final ResultSet rs = cosmeticsStatement.executeQuery()) {
+                    while (rs.next()) {
+                        gp.addSelectedCosmetic(rs.getString("cosmetic"));
                     }
                 }
             }
@@ -107,6 +120,9 @@ public class SQLDataSource implements PlayerDataSource {
         } catch (final SQLException ex) {
             ex.printStackTrace();
         }
+
+        this.savePlayerCosmetics(gp);
+        this.savePlayerHotbar(gp);
     }
 
     public void savePlayerHotbar(final GamePlayer gp) {
@@ -163,6 +179,25 @@ public class SQLDataSource implements PlayerDataSource {
                 stmt.setString(1, gp.playerUUID().toString());
                 stmt.setInt(2, gp.getRespawns());
                 stmt.executeUpdate();
+            }
+        } catch (final SQLException ex) {
+            ex.printStackTrace();
+        }
+    }
+
+    @Override
+    public void savePlayerCosmetics(final GamePlayer gp) {
+        try (final Connection conn = this.dataSource.getConnection()) {
+            for (final String cosmetic : gp.selectedCosmetics()) {
+                try (final PreparedStatement stmt = conn.prepareStatement(
+                        "INSERT INTO abba_cosmetics (uuid, cosmetic) VALUES (?, ?);")) {
+                    stmt.setString(1, gp.player().getUniqueId().toString());
+                    stmt.setString(2, cosmetic);
+
+                    stmt.executeUpdate();
+                } catch (final SQLException ex) {
+                    ex.printStackTrace();
+                }
             }
         } catch (final SQLException ex) {
             ex.printStackTrace();

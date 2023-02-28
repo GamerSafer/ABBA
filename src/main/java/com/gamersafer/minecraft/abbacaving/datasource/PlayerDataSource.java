@@ -16,4 +16,6 @@ public interface PlayerDataSource {
 
     void savePlayerRespawns(final GamePlayer gp);
 
+    void savePlayerCosmetics(final GamePlayer gp);
+
 }

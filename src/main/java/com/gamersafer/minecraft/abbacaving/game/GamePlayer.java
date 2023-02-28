@@ -67,6 +67,10 @@ public class GamePlayer {
         this.selectedCosmetics.clear();
     }
 
+    public List<String> selectedCosmetics() {
+        return this.selectedCosmetics; // TODO: return immutable copy
+    }
+
     public Map<Integer, String> hotbarLayout() {
         return this.hotbarLayout;
     }
