@@ -348,7 +348,7 @@ public class Game {
 
     public void applyCustomHotbar(final GamePlayer player) {
         for (final Map.Entry<Integer, String> entry : player.hotbarLayout().entrySet()) {
-            final ItemStack cosmeticItem = this.cosmeticItem(player.player(), entry.getValue());
+            final ItemStack cosmeticItem = this.cosmeticItem(player, entry.getValue());
 
             if (cosmeticItem != null) {
                 player.player().getInventory().setItem(entry.getKey(), cosmeticItem);
@@ -367,7 +367,7 @@ public class Game {
         int slotIndex = 0;
 
         for (final Map.Entry<String, ItemStack> entry : this.defaultHotbarItems.entrySet()) {
-            final ItemStack cosmeticItem = this.cosmeticItem(player.player(), entry.getKey());
+            final ItemStack cosmeticItem = this.cosmeticItem(player, entry.getKey());
 
             if (cosmeticItem != null) {
                 player.player().getInventory().setItem(slotIndex, cosmeticItem);
@@ -380,7 +380,7 @@ public class Game {
         }
     }
 
-    private ItemStack cosmeticItem(final Player player, final String materialKey) {
+    private ItemStack cosmeticItem(final GamePlayer player, final String materialKey) {
         final ConfigurationSection cosmetics = this.plugin.getConfig().getConfigurationSection("cosmetics");
 
         for (final String key : cosmetics.getKeys(false)) {
@@ -391,13 +391,13 @@ public class Game {
                 continue;
             }
 
-            if (!player.hasPermission(cosmetic.getString("permission"))) {
+            if (!player.player().hasPermission(cosmetic.getString("permission"))) {
                 continue;
             }
 
-            // TODO: check if cosmetic is selected
-
-            return this.cosmeticById(key);
+            if (player.hasCosmeticSelected(key)) {
+                return this.cosmeticById(key);
+            }
         }
 
         return null;
@@ -812,12 +812,25 @@ public class Game {
     public void startingInventory(final GamePlayer player) {
         final PlayerInventory inv = player.player().getInventory();
 
-        inv.setItemInOffHand(new ItemBuilder(Material.SHIELD)/*.durability(168)*/.build());
+        final ItemStack cosmeticShield = this.cosmeticItem(player, "SHIELD");
 
-        inv.setHelmet(new ItemStack(Material.IRON_HELMET));
-        inv.setChestplate(new ItemStack(Material.IRON_CHESTPLATE));
-        inv.setLeggings(new ItemStack(Material.IRON_LEGGINGS));
-        inv.setBoots(new ItemStack(Material.IRON_BOOTS));
+        if (cosmeticShield != null) {
+            inv.setItemInOffHand(new ItemBuilder(cosmeticShield)/*.durability(168)*/.build());
+        } else {
+            inv.setItemInOffHand(new ItemBuilder(Material.SHIELD)/*.durability(168)*/.build());
+        }
+
+        final ItemStack cosmeticHelmet = this.cosmeticItem(player, "IRON_HELMET");
+        inv.setHelmet(Objects.requireNonNullElseGet(cosmeticHelmet, () -> new ItemStack(Material.IRON_HELMET)));
+
+        final ItemStack cosmeticChestplate = this.cosmeticItem(player, "IRON_CHESTPLATE");
+        inv.setChestplate(Objects.requireNonNullElseGet(cosmeticChestplate, () -> new ItemStack(Material.IRON_CHESTPLATE)));
+
+        final ItemStack cosmeticLeggings = this.cosmeticItem(player, "IRON_LEGGINGS");
+        inv.setLeggings(Objects.requireNonNullElseGet(cosmeticLeggings, () -> new ItemStack(Material.IRON_LEGGINGS)));
+
+        final ItemStack cosmeticBoots = this.cosmeticItem(player, "IRON_BOOTS");
+        inv.setBoots(Objects.requireNonNullElseGet(cosmeticBoots, () -> new ItemStack(Material.IRON_BOOTS)));
 
         // Load existing hotbar layout
         if (player.hasCustomHotbarLayout()) {

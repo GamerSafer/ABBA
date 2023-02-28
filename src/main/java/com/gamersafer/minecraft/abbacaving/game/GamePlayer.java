@@ -2,7 +2,9 @@ package com.gamersafer.minecraft.abbacaving.game;
 
 import com.gamersafer.minecraft.abbacaving.AbbaCavingPlugin;
 import com.gamersafer.minecraft.abbacaving.util.Util;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
@@ -26,6 +28,7 @@ public class GamePlayer {
     private GameStats gameStats = null;
 
     private Map<Integer, String> hotbarLayout = new HashMap<>();
+    private final List<String> selectedCosmetics = new ArrayList<>(); // TODO: Save to and load from DB
 
     public GamePlayer(final AbbaCavingPlugin plugin, final UUID playerUUID) {
         this.plugin = plugin;
@@ -46,6 +49,22 @@ public class GamePlayer {
 
     public GameStats gameStats() {
         return this.gameStats;
+    }
+
+    public boolean hasCosmeticSelected(final String cosmetic) {
+        return this.selectedCosmetics.contains(cosmetic);
+    }
+
+    public void addSelectedCosmetic(final String cosmetic) {
+        this.selectedCosmetics.add(cosmetic);
+    }
+
+    public boolean removeSelectedCosmetic(final String cosmetic) {
+        return this.selectedCosmetics.remove(cosmetic);
+    }
+
+    public void removeAllSelectedCosmetics() {
+        this.selectedCosmetics.clear();
     }
 
     public Map<Integer, String> hotbarLayout() {
