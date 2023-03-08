@@ -55,9 +55,9 @@ public class InventoryListener implements Listener {
         contentPane.addItem(new GuiItem(new ItemStack(Material.STONE)), 4, 2);
 
         final GuiItem resetWeapon = new GuiItem(new ItemBuilder(Material.STONE_SWORD)
-                .name(Component.text("Reset Weapon Cosmetics")).build(), event -> {
+                .name(Component.text("Reset Tool Cosmetics")).build(), event -> {
             final GamePlayer gamePlayer = this.plugin.gameTracker().gamePlayer(event.getWhoClicked().getUniqueId());
-            gamePlayer.removeWeaponCosmetic();
+            gamePlayer.removeToolCosmetics();
             this.plugin.message(gamePlayer.player(), this.plugin.configMessage("cosmetic-reset-weapon"));
         });
 

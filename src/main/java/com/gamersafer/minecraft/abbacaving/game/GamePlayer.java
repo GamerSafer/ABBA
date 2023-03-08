@@ -5,6 +5,7 @@ import com.gamersafer.minecraft.abbacaving.util.Util;
 import dev.lone.itemsadder.api.CustomStack;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -77,12 +78,16 @@ public class GamePlayer {
         });
     }
 
-    public void removeWeaponCosmetic() {
-        this.selectedCosmetics.keySet().removeIf(key -> key.equals("IRON_SWORD"));
+    // There's a better way to do this, but this works for now.
+    private final List<String> TOOL_ITEMS = List.of("IRON_SWORD", "IRON_SHOVEL", "DIAMOND_PICKAXE");
+    private final List<String> ARMOR_ITEMS = List.of("IRON_HELMET", "IRON_CHESTPLATE", "IRON_LEGGINGS", "IRON_BOOTS");
+
+    public void removeToolCosmetics() {
+        this.selectedCosmetics.keySet().removeIf(this.TOOL_ITEMS::contains);
     }
 
     public void removeArmorCosmetics() {
-        this.selectedCosmetics.keySet().removeIf(key -> !key.equals("IRON_SWORD"));
+        this.selectedCosmetics.keySet().removeIf(this.ARMOR_ITEMS::contains);
     }
 
     public void removeSelectedCosmetic(final String cosmetic) {
