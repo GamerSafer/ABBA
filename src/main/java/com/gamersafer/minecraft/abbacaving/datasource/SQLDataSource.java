@@ -237,6 +237,7 @@ public class SQLDataSource implements PlayerDataSource {
                     "INSERT INTO abba_respawns (uuid, points) VALUES (?, ?) ON DUPLICATE KEY UPDATE points = ?;")) {
                 stmt.setString(1, gp.playerUUID().toString());
                 stmt.setInt(2, gp.respawns());
+                stmt.setInt(3, gp.respawns());
                 stmt.executeUpdate();
             }
         } catch (final SQLException ex) {
