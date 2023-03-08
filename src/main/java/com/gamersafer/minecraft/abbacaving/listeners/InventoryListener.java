@@ -45,7 +45,9 @@ public class InventoryListener implements Listener {
 
         final GuiItem resetArmor = new GuiItem(new ItemBuilder(Material.IRON_CHESTPLATE)
                 .name(Component.text("Reset Armor Cosmetics")).build(), event -> {
-            // TODO: reset armor
+            final GamePlayer gamePlayer = this.plugin.gameTracker().gamePlayer(event.getWhoClicked().getUniqueId());
+            gamePlayer.removeArmorCosmetics();
+            this.plugin.message(gamePlayer.player(), this.plugin.configMessage("cosmetic-reset-armor"));
         });
 
         contentPane.addItem(resetArmor, 2, 2);
@@ -54,7 +56,9 @@ public class InventoryListener implements Listener {
 
         final GuiItem resetWeapon = new GuiItem(new ItemBuilder(Material.STONE_SWORD)
                 .name(Component.text("Reset Weapon Cosmetics")).build(), event -> {
-            // TODO: reset weapon
+            final GamePlayer gamePlayer = this.plugin.gameTracker().gamePlayer(event.getWhoClicked().getUniqueId());
+            gamePlayer.removeWeaponCosmetic();
+            this.plugin.message(gamePlayer.player(), this.plugin.configMessage("cosmetic-reset-weapon"));
         });
 
         contentPane.addItem(resetWeapon, 6, 2);

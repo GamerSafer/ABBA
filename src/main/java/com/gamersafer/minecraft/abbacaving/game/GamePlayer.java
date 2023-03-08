@@ -3,6 +3,7 @@ package com.gamersafer.minecraft.abbacaving.game;
 import com.gamersafer.minecraft.abbacaving.AbbaCavingPlugin;
 import com.gamersafer.minecraft.abbacaving.util.Util;
 import dev.lone.itemsadder.api.CustomStack;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -76,6 +77,14 @@ public class GamePlayer {
         });
     }
 
+    public void removeWeaponCosmetic() {
+        this.selectedCosmetics.keySet().removeIf(key -> key.equals("IRON_SWORD"));
+    }
+
+    public void removeArmorCosmetics() {
+        this.selectedCosmetics.keySet().removeIf(key -> !key.equals("IRON_SWORD"));
+    }
+
     public void removeSelectedCosmetic(final String cosmetic) {
         this.selectedCosmetics.remove(cosmetic);
     }
@@ -85,7 +94,7 @@ public class GamePlayer {
     }
 
     public Set<String> selectedCosmetics() {
-        return this.selectedCosmetics.keySet(); // TODO: return immutable copy
+        return Collections.unmodifiableSet(this.selectedCosmetics.keySet());
     }
 
     private String materialForCosmetic(final String cosmetic) {

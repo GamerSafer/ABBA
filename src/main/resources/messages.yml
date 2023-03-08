@@ -1,3 +1,7 @@
+cosmetic-deselect: "<green>You are no longer using the <gray><cosmetic> <green>cosmetic!"
+cosmetic-select: "<green>You are now using the <gray><cosmetic> <green>cosmetic!"
+cosmetic-reset-armor: "<green>Armor cosmetics removed."
+cosmetic-reset-weapon: "<green>Weapon cosmetic removed."
 cannot-mine-near-spawn: "<red>You must move further away from the spawn to start mining!"
 gained-points: "<green>+<amount> <gray>point<optional-s>! (<green><reward><gray>)"
 game-end-draw: "<green>The game has ended in a draw!"
