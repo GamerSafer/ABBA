@@ -119,7 +119,7 @@ public class GamePlayer {
     }
 
     public ItemStack selectedWeaponCosmetic(final String materialKey) {
-        final ConfigurationSection cosmetics = this.plugin.getConfig().getConfigurationSection("cosmetics.weapon");
+        final ConfigurationSection cosmetics = this.plugin.getConfig().getConfigurationSection("cosmetics.weapons");
 
         for (final String key : cosmetics.getKeys(false)) {
             final ConfigurationSection cosmetic = cosmetics.getConfigurationSection(key);
@@ -129,7 +129,9 @@ public class GamePlayer {
                 continue;
             }
 
-            if (!this.player().hasPermission(cosmetic.getString("permission"))) {
+            final String permission = Objects.requireNonNullElse(cosmetic.getString("permission"), "abbacaving.weapon." + key);
+
+            if (!this.player().hasPermission(permission)) {
                 continue;
             }
 
