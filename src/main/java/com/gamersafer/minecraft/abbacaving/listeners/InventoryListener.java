@@ -38,6 +38,10 @@ public class InventoryListener implements Listener {
         this.setupGui();
     }
 
+    public void showCosmeticsGUI(final Player player) {
+        this.cosmeticsGui.show(player);
+    }
+
     private void setupGui() {
         final StaticPane contentPane = this.setupCosmeticsGui(this.cosmeticsGui);
 

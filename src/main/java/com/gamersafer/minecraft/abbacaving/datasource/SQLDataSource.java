@@ -47,8 +47,7 @@ public class SQLDataSource implements PlayerDataSource {
             try (final Statement statement = conn.createStatement()) {
                 statement.execute("CREATE TABLE IF NOT EXISTS abba_caving_stats (uuid VARCHAR(50) PRIMARY KEY, wins INT, highest_score INT, ores_mined INT);");
                 statement.execute("CREATE TABLE IF NOT EXISTS abba_hotbar_layout (uuid VARCHAR(50) NOT NULL, slot INT NOT NULL, material VARCHAR(50), CONSTRAINT layout_pk PRIMARY KEY(uuid, slot));");
-                statement.execute("CREATE TABLE IF NOT EXISTS abba_respawns (uuid VARCHAR(50) PRIMARY KEY, respawns INT);");
-                statement.execute("CREATE TABLE IF NOT EXISTS abba_cosmetics (uuid VARCHAR(50) NOT NULL, cosmetic VARCHAR(50);");
+                statement.execute("CREATE TABLE IF NOT EXISTS abba_cosmetics (uuid VARCHAR(50) NOT NULL, cosmetic VARCHAR(50));");
                 statement.execute("CREATE TABLE IF NOT EXISTS abba_respawns (uuid VARCHAR(50) PRIMARY KEY, respawns INT);");
             }
         } catch (final SQLException ex) {

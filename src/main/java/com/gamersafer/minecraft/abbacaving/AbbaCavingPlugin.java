@@ -49,6 +49,7 @@ import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -65,6 +66,8 @@ public class AbbaCavingPlugin extends JavaPlugin {
     private FileConfiguration pointsConfig = new YamlConfiguration();
     private final Map<String, Game> maps = new HashMap<>();
 
+    private InventoryListener inventoryListener;
+
     @Override
     public void onEnable() {
         this.saveDefaultConfig();
@@ -80,11 +83,13 @@ public class AbbaCavingPlugin extends JavaPlugin {
 
         this.loadData();
 
+        this.inventoryListener = new InventoryListener(this);
+        this.getServer().getPluginManager().registerEvents(this.inventoryListener, this);
+
         this.getServer().getPluginManager().registerEvents(new BlockBreakListener(this), this);
         this.getServer().getPluginManager().registerEvents(new BlockPlaceListener(this), this);
         this.getServer().getPluginManager().registerEvents(new EntityListener(this), this);
         this.getServer().getPluginManager().registerEvents(new PlayerListener(this), this);
-        this.getServer().getPluginManager().registerEvents(new InventoryListener(this), this);
         this.getServer().getPluginManager().registerEvents(new PlayerKillEntityListener(this), this);
 
         if (Bukkit.getPluginManager().isPluginEnabled("PlaceholdersAPI")) {
@@ -101,6 +106,7 @@ public class AbbaCavingPlugin extends JavaPlugin {
 
         this.getCommand("acreload").setExecutor(new ACReloadCommand(this));
         this.getCommand("bcastnp").setExecutor(new BroadcastNPCommand(this));
+        this.getCommand("cosmetics").setExecutor(new CosmeticsCommand(this));
 
         final ForceStartCommand forceStartCommand = new ForceStartCommand(this);
         this.getCommand("forcestart").setExecutor(forceStartCommand);
@@ -136,6 +142,10 @@ public class AbbaCavingPlugin extends JavaPlugin {
         this.mapsConfig = this.fileConfiguration("maps.yml");
         this.messagesConfig = this.fileConfiguration("messages.yml");
         this.pointsConfig = this.fileConfiguration("points.yml");
+    }
+
+    public void showCosmeticsGUI(final Player player) {
+        this.inventoryListener.showCosmeticsGUI(player);
     }
 
     public Game game(final String mapName) {
