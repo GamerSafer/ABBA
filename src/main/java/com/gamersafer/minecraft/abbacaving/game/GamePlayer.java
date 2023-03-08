@@ -209,11 +209,11 @@ public class GamePlayer {
         this.totalOresMined = oresMined;
     }
 
-    public int getRespawns() {
-        return respawns;
+    public int respawns() {
+        return this.respawns;
     }
 
-    public void setRespawns(int respawns) {
+    public void respawns(final int respawns) {
         this.respawns = respawns;
     }
 

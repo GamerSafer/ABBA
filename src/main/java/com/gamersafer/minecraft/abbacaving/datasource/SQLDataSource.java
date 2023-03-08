@@ -4,7 +4,6 @@ import com.gamersafer.minecraft.abbacaving.AbbaCavingPlugin;
 import com.gamersafer.minecraft.abbacaving.game.GamePlayer;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
-
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -57,6 +56,7 @@ public class SQLDataSource implements PlayerDataSource {
         }
     }
 
+    @Override
     public void loadPlayerStats(final GamePlayer gp) {
         try (final Connection conn = this.dataSource.getConnection()) {
             // Load game stats
@@ -105,6 +105,7 @@ public class SQLDataSource implements PlayerDataSource {
         }
     }
 
+    @Override
     public void savePlayerStats(final GamePlayer gp) {
         try (final Connection conn = this.dataSource.getConnection()) {
             try (final PreparedStatement stmt = conn.prepareStatement(
@@ -126,6 +127,7 @@ public class SQLDataSource implements PlayerDataSource {
         this.savePlayerHotbar(gp);
     }
 
+    @Override
     public void savePlayerHotbar(final GamePlayer gp) {
         try (final Connection conn = this.dataSource.getConnection()) {
             for (final Map.Entry<Integer, String> entry : gp.hotbarLayout().entrySet()) {
@@ -206,7 +208,7 @@ public class SQLDataSource implements PlayerDataSource {
     }
 
     @Override
-    public void updatePlayerRespawns(GamePlayer gp) {
+    public void updatePlayerRespawns(final GamePlayer gp) {
         try (final Connection conn = this.dataSource.getConnection()) {
             try (final PreparedStatement stmt = conn.prepareStatement("SELECT respawns FROM abba_respawns WHERE uuid = ?;")) {
                 stmt.setString(1, gp.player().getUniqueId().toString());
@@ -220,7 +222,7 @@ public class SQLDataSource implements PlayerDataSource {
                         this.plugin.getLogger().info("No respawns found for player " + gp.player().getName());
                     }
                 }
-                gp.setRespawns(respawns);
+                gp.respawns(respawns);
             }
         } catch (final SQLException ex) {
             ex.printStackTrace();
@@ -229,12 +231,12 @@ public class SQLDataSource implements PlayerDataSource {
     }
 
     @Override
-    public void savePlayerRespawns(GamePlayer gp) {
+    public void savePlayerRespawns(final GamePlayer gp) {
         try (final Connection conn = this.dataSource.getConnection()) {
             try (final PreparedStatement stmt = conn.prepareStatement(
                     "INSERT INTO abba_respawns (uuid, points) VALUES (?, ?) ON DUPLICATE KEY UPDATE points = ?;")) {
                 stmt.setString(1, gp.playerUUID().toString());
-                stmt.setInt(2, gp.getRespawns());
+                stmt.setInt(2, gp.respawns());
                 stmt.executeUpdate();
             }
         } catch (final SQLException ex) {

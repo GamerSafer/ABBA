@@ -19,8 +19,6 @@ import java.util.Collection;
 import java.util.Map;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
-import net.kyori.adventure.text.minimessage.tag.Tag;
-import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
 import org.bukkit.GameMode;
 import org.bukkit.Material;
 import org.bukkit.entity.Entity;
@@ -64,7 +62,7 @@ public class PlayerListener implements Listener {
         final ItemStack yesItem = new ItemBuilder(Material.EMERALD_BLOCK).name(Component.text("Yes, Continue!")).build();
         final GuiItem yesButton = new GuiItem(yesItem, onClick -> {
             final GamePlayer gamePlayer = this.plugin.gameTracker().gamePlayer(onClick.getWhoClicked().getUniqueId());
-            Game game = gamePlayer.gameStats().game();
+            final Game game = gamePlayer.gameStats().game();
             if (game.gameState() == GameState.RUNNING) {
                 game.respawnPlayer(gamePlayer);
             }
@@ -73,7 +71,7 @@ public class PlayerListener implements Listener {
 
         final ItemStack spectateItem = new ItemBuilder(Material.FEATHER).name(Component.text("Spectate")).build();
         final GuiItem spectateButton = new GuiItem(spectateItem, onClick -> {
-            Player clicker = (Player) onClick.getWhoClicked();
+            final Player clicker = (Player) onClick.getWhoClicked();
             if (!clicker.hasPermission("abbacaving.spectate")) {
                 clicker.closeInventory();
                 this.plugin.message(clicker, this.plugin.configMessage("no-permission"));
@@ -81,8 +79,8 @@ public class PlayerListener implements Listener {
             }
 
             final GamePlayer gamePlayer = this.plugin.gameTracker().gamePlayer(onClick.getWhoClicked().getUniqueId());
-            Game game = gamePlayer.gameStats().game();
-            Player player = Iterables.getFirst(game.players(), null).player();
+            final Game game = gamePlayer.gameStats().game();
+            final Player player = Iterables.getFirst(game.players(), null).player();
 
             clicker.teleport(player);
             clicker.setGameMode(GameMode.SPECTATOR);
@@ -145,12 +143,12 @@ public class PlayerListener implements Listener {
         }
 
         this.plugin.getServer().getScheduler().runTaskAsynchronously(this.plugin, () -> {
-            PlayerDataSource dataSource = this.plugin.playerDataSource();
+            final PlayerDataSource dataSource = this.plugin.playerDataSource();
             dataSource.savePlayerStats(gp);
             dataSource.savePlayerRespawns(gp);
         });
 
-        Game game = gp.gameStats().game();
+        final Game game = gp.gameStats().game();
         if (game == null || game.gameState() == GameState.DONE) {
             return;
         }
@@ -216,7 +214,7 @@ public class PlayerListener implements Listener {
             ));
         }
 
-        if (hasPermission && !hasRespawned && gamePlayer.getRespawns() > 0) {
+        if (hasPermission && !hasRespawned && gamePlayer.respawns() > 0) {
             gamePlayer.gameStats().respawnLocation(event.getPlayer().getLocation());
             gamePlayer.gameStats().hasRespawned(true);
             gamePlayer.gameStats().showRespawnGui(true);
