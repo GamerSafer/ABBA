@@ -310,7 +310,12 @@ public class InventoryListener implements Listener {
             }
 
             game.saveHotbar(gamePlayer);
-            this.plugin.message(player, this.plugin.configMessage("layout-saved"));
+            if (isShiftClick) {
+                this.plugin.message(player, this.plugin.configMessage("layout-default-saved"));
+            } else {
+                this.plugin.message(player, this.plugin.configMessage("layout-saved"));
+            }
+            Sounds.pling(player);
         } else {
             this.plugin.message(player, "<red>Failed to save hotbar layout!");
         }

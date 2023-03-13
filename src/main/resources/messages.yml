@@ -23,6 +23,7 @@ leave-game: "<gray>You have left <green><map> <gray>with a score of <green><scor
 lobby-count: "<green><current><gray>/<green><max> <gray>players required!"
 lookup-title: "Top scores for match "
 layout-saved: "<green>Hotbar layout saved!"
+layout-default-saved: "<green>Default hotbar layout saved!"
 new-high-score: "<green><player> <gray>surpassed their highest score of <green><score><gray>!"
 no-open-queues: "<red>There are no maps available!"
 no-permission: "<red>You do not have permission to do this."
