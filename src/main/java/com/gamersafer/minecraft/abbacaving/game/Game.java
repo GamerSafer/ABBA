@@ -808,14 +808,21 @@ public class Game {
     }
 
     final static ItemStack BACKGROUND_ITEM = new ItemStack(Material.GREEN_STAINED_GLASS_PANE);
-    final static ItemStack CHEST = new ItemBuilder(Material.CHEST).name(Components.plainText("Save Hotbar Layout")).build();
+    final static ItemStack CHEST = new ItemBuilder(Material.CHEST)
+            .name(Components.plainText("Save Hotbar Layout"))
+            .lore(List.of(Components.plainText("Shift+Right Click to Reset")
+                    .color(NamedTextColor.GRAY))
+            )
+            .build();
     final static ItemStack BEACON = new ItemBuilder(Material.BEACON)
             .name(Components.plainText("Cosmetics"))
-            .lore(List.of(Components.plainText("Shift+Right Click to Reset")
-                            .color(NamedTextColor.GRAY))
-            ).build();
-    final static ItemStack STATS_ARROW = new ItemBuilder(Material.ARROW).name(Components.plainText("Statistics")).build();
-    final static ItemStack REDSTONE = new ItemBuilder(Material.REDSTONE_BLOCK).name(Components.plainText("Return to Lobby")).build();
+            .build();
+    final static ItemStack STATS_ARROW = new ItemBuilder(Material.ARROW)
+            .name(Components.plainText("Statistics"))
+            .build();
+    final static ItemStack REDSTONE = new ItemBuilder(Material.REDSTONE_BLOCK)
+            .name(Components.plainText("Return to Lobby"))
+            .build();
 
     private void setupGUIs(final GamePlayer player) {
         // Inventory slots 9 (top-left) to 35 (bottom-right) are the player's inventory grid
