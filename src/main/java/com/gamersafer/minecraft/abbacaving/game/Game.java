@@ -4,6 +4,7 @@ import com.gamersafer.minecraft.abbacaving.AbbaCavingPlugin;
 import com.gamersafer.minecraft.abbacaving.game.validators.AbbaValidator;
 import com.gamersafer.minecraft.abbacaving.lobby.LobbyQueue;
 import com.gamersafer.minecraft.abbacaving.lobby.QueueState;
+import com.gamersafer.minecraft.abbacaving.util.Components;
 import com.gamersafer.minecraft.abbacaving.util.ItemBuilder;
 import com.gamersafer.minecraft.abbacaving.util.Util;
 import com.sk89q.worldedit.EditSession;
@@ -43,6 +44,7 @@ import net.kyori.adventure.key.InvalidKeyException;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.sound.Sound;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.kyori.adventure.text.minimessage.tag.Tag;
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
@@ -299,7 +301,7 @@ public class Game {
             if (hotbarItem == null) {
                 this.plugin.getLogger().warning("Hotbar item not cached for key [" + entry.getValue() + "]");
             }
-            
+
             player.player().getInventory().setItem(entry.getKey(), hotbarItem);
         }
     }
@@ -806,10 +808,14 @@ public class Game {
     }
 
     final static ItemStack BACKGROUND_ITEM = new ItemStack(Material.GREEN_STAINED_GLASS_PANE);
-    final static ItemStack CHEST = new ItemBuilder(Material.CHEST).name(Component.text("Save Hotbar Layout")).build();
-    final static ItemStack BEACON = new ItemBuilder(Material.BEACON).name(Component.text("Cosmetics")).build();
-    final static ItemStack STATS_ARROW = new ItemBuilder(Material.ARROW).name(Component.text("Statistics")).build();
-    final static ItemStack REDSTONE = new ItemBuilder(Material.REDSTONE_BLOCK).name(Component.text("Return to Lobby")).build();
+    final static ItemStack CHEST = new ItemBuilder(Material.CHEST).name(Components.plainText("Save Hotbar Layout")).build();
+    final static ItemStack BEACON = new ItemBuilder(Material.BEACON)
+            .name(Components.plainText("Cosmetics"))
+            .lore(List.of(Components.plainText("Shift+Right Click to Reset")
+                            .color(NamedTextColor.GRAY))
+            ).build();
+    final static ItemStack STATS_ARROW = new ItemBuilder(Material.ARROW).name(Components.plainText("Statistics")).build();
+    final static ItemStack REDSTONE = new ItemBuilder(Material.REDSTONE_BLOCK).name(Components.plainText("Return to Lobby")).build();
 
     private void setupGUIs(final GamePlayer player) {
         // Inventory slots 9 (top-left) to 35 (bottom-right) are the player's inventory grid
