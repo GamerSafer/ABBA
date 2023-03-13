@@ -238,11 +238,6 @@ public class InventoryListener implements Listener {
             return;
         }
 
-        int slot = event.getSlot();
-        if (slot < 9 && clicker.hasPermission("abbacaving.hotbar")) {
-            return;
-        }
-
         if (this.handleInventoryMenu(event)) {
             event.setCancelled(true);
             return;
