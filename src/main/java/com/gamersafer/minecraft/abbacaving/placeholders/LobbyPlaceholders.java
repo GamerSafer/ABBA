@@ -63,6 +63,7 @@ public class LobbyPlaceholders extends PlaceholderExpansion {
                 case "players" -> Integer.toString(queue.playerQueue().size());
                 case "slots" -> Integer.toString(queue.maxPlayers());
                 case "counter" -> Integer.toString(queue.counter());
+                case "required" -> Integer.toString(queue.getStartPlayerAmount());
                 default -> "";
             };
         }

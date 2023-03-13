@@ -42,7 +42,7 @@ public class Lobby implements Listener {
         Bukkit.getPluginManager().registerEvents(this, this.plugin);
 
         for (final String mapName : this.plugin.configuredMapNames()) {
-            this.lobbyQueues.put(mapName, new LobbyQueue(mapName, this.maxPlayers(mapName), new LinkedList<>()));
+            this.lobbyQueues.put(mapName, new LobbyQueue(mapName, this.maxPlayers(mapName), new LinkedList<>(), this.playersRequiredToStart(mapName)));
         }
     }
 
@@ -127,7 +127,7 @@ public class Lobby implements Listener {
     }
     
     private void handleQueueWaiting(final LobbyQueue queue) {
-        if (queue.playerQueue().size() >= this.playersRequiredToStart(queue.mapName())) {
+        if (queue.playerQueue().size() >= queue.getStartPlayerAmount()) {
             this.preStart(queue);
         } else {
             for (final UUID uuid : queue.playerQueue()) {
@@ -136,14 +136,14 @@ public class Lobby implements Listener {
                 if (player != null) {
                     player.sendActionBar(MiniMessage.miniMessage().deserialize(this.plugin.configMessage("lobby-count"),
                             TagResolver.resolver("current", Tag.inserting(Component.text(queue.playerQueue().size()))),
-                            TagResolver.resolver("max", Tag.inserting(Component.text(this.playersRequiredToStart(queue.mapName()))))));
+                            TagResolver.resolver("max", Tag.inserting(Component.text(queue.getStartPlayerAmount())))));
                 }
             }
         }
     }
     
     private void handleQueueStarting(final LobbyQueue queue) {
-        if (!queue.forceStart() && queue.playerQueue().size() < this.playersRequiredToStart(queue.mapName())) {
+        if (!queue.forceStart() && queue.playerQueue().size() < queue.getStartPlayerAmount()) {
             this.cancelPreStart(queue);
             return;
         }
@@ -258,7 +258,7 @@ public class Lobby implements Listener {
         return sb.toString();
     }
 
-    public int playersRequiredToStart(final String mapName) {
+    private int playersRequiredToStart(final String mapName) {
         final ConfigurationSection section = this.plugin.mapSettings(mapName);
 
         if (section != null) {

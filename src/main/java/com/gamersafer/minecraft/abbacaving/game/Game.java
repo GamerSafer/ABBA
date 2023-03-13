@@ -1,7 +1,7 @@
 package com.gamersafer.minecraft.abbacaving.game;
 
 import com.gamersafer.minecraft.abbacaving.AbbaCavingPlugin;
-import com.gamersafer.minecraft.abbacaving.game.validators.BlockValidator;
+import com.gamersafer.minecraft.abbacaving.game.validators.AbbaValidator;
 import com.gamersafer.minecraft.abbacaving.lobby.LobbyQueue;
 import com.gamersafer.minecraft.abbacaving.lobby.QueueState;
 import com.gamersafer.minecraft.abbacaving.util.ItemBuilder;
@@ -36,6 +36,7 @@ import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
+
 import net.coreprotect.CoreProtect;
 import net.coreprotect.CoreProtectAPI;
 import net.kyori.adventure.key.InvalidKeyException;
@@ -78,14 +79,14 @@ public class Game {
     private boolean gracePeriod;
     private GameState state;
     private EditSession editSession = null;
-    private final BlockValidator blockValidator;
+    private final AbbaValidator[] blockValidator;
 
     public Game(final AbbaCavingPlugin plugin, final String mapName) {
         this.plugin = plugin;
         this.mapName = mapName;
         this.world = this.loadMap();
 
-        this.blockValidator = new BlockValidator(this.plugin, this);
+        this.blockValidator = new AbbaValidator[]{};
 
         this.gameState(GameState.READY);
         this.counter(0);
@@ -150,7 +151,7 @@ public class Game {
             final int maxTries = this.mapSetting("random-teleport.max-tries");
 
             final RandomSearcher randomSearcher = randomTeleport.getRandomSearcher(player, this.world().getSpawnLocation(),
-                    minRadius, maxRadius); // Don't use our custom validator for now, it seems to cause problems.
+                    minRadius, maxRadius, this.blockValidator); // Don't use our custom validator for now, it seems to cause problems.
 
             randomSearcher.setMaxTries(maxTries);
             randomSearcher.setMinY(minY);

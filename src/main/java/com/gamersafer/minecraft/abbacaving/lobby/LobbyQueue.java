@@ -9,6 +9,7 @@ public class LobbyQueue {
 
     private final String mapName;
     private final int maxPlayers;
+    private final int requiredPlayers;
     private final List<UUID> playerQueue;
 
     private int counter = 0;
@@ -16,11 +17,12 @@ public class LobbyQueue {
     private boolean forceStart = false;
     private final List<CompletableFuture<?>> waitingFutures = new ArrayList<>();
 
-    public LobbyQueue(final String mapName, final int maxPlayers, final List<UUID> playerQueue) {
+    public LobbyQueue(final String mapName, final int maxPlayers, final List<UUID> playerQueue, final int required) {
         this.mapName = mapName;
         this.maxPlayers = maxPlayers;
         this.playerQueue = playerQueue;
         this.state = QueueState.WAITING;
+        this.requiredPlayers = required;
     }
 
     public boolean acceptingNewPlayers() {
@@ -95,5 +97,9 @@ public class LobbyQueue {
 
     public void clearWaitingFutures() {
         this.waitingFutures.clear();
+    }
+
+    public int getStartPlayerAmount() {
+        return this.requiredPlayers;
     }
 }

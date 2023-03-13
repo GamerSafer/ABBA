@@ -42,3 +42,4 @@
 * `%abbacaving_roundid_<mapName>_players%` - the current number of players in the map `<mapName>`
 * `%abbacaving_roundid_<mapName>_slots%`   - the current slots for the map `<mapName>`
 * `%abbacaving_roundid_<mapName>_counter%` - the current counter (start countdown, game time remaining) of the map `<mapName>`
+* `%abbacaving_roundid_<mapName>_required%`- the required player count in order to start the countdown for the map `<mapName>`

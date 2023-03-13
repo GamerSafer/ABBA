@@ -14,11 +14,11 @@ import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 
-public class BlockValidator extends LocationValidator {
+public class AbbaValidator extends LocationValidator {
 
     private final Set<Material> invalidBlocks = new HashSet<>();
 
-    public BlockValidator(final AbbaCavingPlugin plugin, final Game game) {
+    public AbbaValidator(final AbbaCavingPlugin plugin, final Game game) {
         super("abba_block");
 
         final List<String> materials = game.mapSetting("random-teleport.invalid-blocks");
