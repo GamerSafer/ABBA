@@ -20,6 +20,7 @@
 ### Game
 
 * `%abbacaving_current_score%`          - the current score of a player in the game
+* `%abbacaving_current_respawns%`       - the current amount of respawns that a player has
 * `%abbacaving_highest_score%`          - the highest score a player has achieved
 * `%abbacaving_current_ores_mined%`     - the total number of ores that a player has mined
 * `%abbacaving_total_ores_mined%`       - the total number of ores that a player has mined

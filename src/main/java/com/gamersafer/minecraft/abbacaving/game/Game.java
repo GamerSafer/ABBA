@@ -86,7 +86,7 @@ public class Game {
         this.mapName = mapName;
         this.world = this.loadMap();
 
-        this.blockValidator = new AbbaValidator[]{};
+        this.blockValidator = new AbbaValidator[]{new AbbaValidator(this.plugin, this)};
 
         this.gameState(GameState.READY);
         this.counter(0);
@@ -310,7 +310,7 @@ public class Game {
         }
 
         player.player().getInventory().addItem(this.PICKAXE, this.SWORD, this.BOW, this.SHOVEL,
-                this.BEEF, this.COBBLESTONE, this.BUCKET, this.TORCH, this.ARROW);
+                this.BEEF, this.COBBLESTONE, this.BUCKET, this.TORCH);
     }
 
     public GamePlayer player(final Player player) {
@@ -739,8 +739,6 @@ public class Game {
             .miniMessageName("<green><bold>Infinite Torch")
             .build();
 
-    private final ItemStack ARROW = new ItemStack(Material.ARROW);
-
     private final Map<String, ItemStack> hotbarItemCache = Map.of(
             "DIAMOND_PICKAXE", this.PICKAXE,
             "IRON_SWORD", this.SWORD,
@@ -749,14 +747,13 @@ public class Game {
             "COOKED_BEEF", this.BEEF,
             "COBBLESTONE", this.COBBLESTONE,
             "WATER_BUCKET", this.BUCKET,
-            "TORCH", this.TORCH,
-            "ARROW", this.ARROW
+            "TORCH", this.TORCH
     );
 
     public void startingInventory(final GamePlayer player) {
         final PlayerInventory inv = player.player().getInventory();
 
-        inv.setItemInOffHand(new ItemBuilder(Material.SHIELD).durability(168).build());
+        inv.setItemInOffHand(new ItemBuilder(Material.SHIELD)/*.durability(168)*/.build());
 
         inv.setHelmet(new ItemStack(Material.IRON_HELMET));
         inv.setChestplate(new ItemStack(Material.IRON_CHESTPLATE));

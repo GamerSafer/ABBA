@@ -19,6 +19,7 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -232,7 +233,13 @@ public class InventoryListener implements Listener {
             return;
         }
 
-        if (event.getWhoClicked().hasPermission("abbacaving.inventory")) {
+        HumanEntity clicker = event.getWhoClicked();
+        if (clicker.hasPermission("abbacaving.build")) {
+            return;
+        }
+
+        int slot = event.getSlot();
+        if (slot < 9 && clicker.hasPermission("abbacaving.hotbar")) {
             return;
         }
 
@@ -289,6 +296,11 @@ public class InventoryListener implements Listener {
     }
 
     private void saveLayoutButton(final Player player, final boolean isShiftClick) {
+        if (!player.hasPermission("abbacaving.hotbar")) {
+            this.plugin.message(player, this.plugin.configMessage("no-permission"));
+            return;
+        }
+
         final GamePlayer gamePlayer = this.plugin.gameTracker().findPlayerInGame(player);
         final Game game = this.plugin.gameTracker().findGame(player);
 
