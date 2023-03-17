@@ -4,15 +4,15 @@ import com.gamersafer.minecraft.abbacaving.AbbaCavingPlugin;
 import com.gamersafer.minecraft.abbacaving.game.Game;
 import de.themoep.randomteleport.searcher.RandomSearcher;
 import de.themoep.randomteleport.searcher.validators.LocationValidator;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
+
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 public class AbbaValidator extends LocationValidator {
 
@@ -41,13 +41,26 @@ public class AbbaValidator extends LocationValidator {
 
     @Override
     public boolean validate(final RandomSearcher randomSearcher, final Location location) {
-        final Block block = location.getBlock();
+        location.setY(randomSearcher.getMaxY());
+        Block block = location.getBlock();
+        while (block.getY() >= location.getWorld().getMinHeight() &&
+                !(
+                        block.isSolid() &&
+                        this.isBlockSafe(block.getRelative(BlockFace.UP)) &&
+                        this.isBlockSafe(block.getRelative(BlockFace.UP, 2))
+                )
+        ) {
+            block = block.getRelative(BlockFace.DOWN);
+        }
 
-        return this.isBlockSafe(block) && this.isBlockSafe(block.getRelative(BlockFace.UP)) && this.isBlockSafe(block.getRelative(BlockFace.UP, 2));
+        boolean result =  block.isSolid() && this.isBlockSafe(block.getRelative(BlockFace.UP)) && this.isBlockSafe(block.getRelative(BlockFace.UP, 2));
+        Location newLoc = block.getRelative(BlockFace.UP).getLocation();
+        location.setY(newLoc.getY());
+        return result;
     }
 
     private boolean isBlockSafe(final Block block) {
-        return block.isPassable() && !block.isLiquid() && !this.invalidBlocks.contains(block.getType());
+        return block.isEmpty() || (block.isPassable() && !block.isLiquid() && !this.invalidBlocks.contains(block.getType()));
     }
 
 

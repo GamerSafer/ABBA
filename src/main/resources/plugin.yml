@@ -46,6 +46,10 @@ commands:
     description: Modify the respawns of a player.
     permission: abbacaving.respawns
     permission-message: You are not allowed to edit respawns.
+  debug:
+    description: Generic debugging command
+    permission: abbacaving.debug
+    permission-message: You are not allowed to run debug commands.
 permissions:
   abbacaving.*:
     description: Gives access to all Abba Caving permissions.

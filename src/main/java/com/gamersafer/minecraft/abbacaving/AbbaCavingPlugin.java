@@ -3,6 +3,7 @@ package com.gamersafer.minecraft.abbacaving;
 import com.gamersafer.minecraft.abbacaving.commands.ACLookupCommand;
 import com.gamersafer.minecraft.abbacaving.commands.ACReloadCommand;
 import com.gamersafer.minecraft.abbacaving.commands.BroadcastNPCommand;
+import com.gamersafer.minecraft.abbacaving.commands.DebugCommand;
 import com.gamersafer.minecraft.abbacaving.commands.ForceStartCommand;
 import com.gamersafer.minecraft.abbacaving.commands.JoinCommand;
 import com.gamersafer.minecraft.abbacaving.commands.LeaveCommand;
@@ -118,6 +119,7 @@ public class AbbaCavingPlugin extends JavaPlugin {
         this.getCommand("stats").setTabCompleter(statsCommand);
 
         this.getCommand("respawns").setExecutor(new RespawnCountCommand(this));
+        this.getCommand("debug").setExecutor(new DebugCommand(this));
 
         for (final String mapName : this.configuredMapNames()) {
             this.maps.put(mapName, new Game(this, mapName));

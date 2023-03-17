@@ -20,6 +20,7 @@ import com.sk89q.worldedit.function.operation.Operations;
 import com.sk89q.worldedit.math.BlockVector3;
 import com.sk89q.worldedit.session.ClipboardHolder;
 import de.themoep.randomteleport.RandomTeleport;
+import de.themoep.randomteleport.ValidatorRegistry;
 import de.themoep.randomteleport.searcher.RandomSearcher;
 import de.themoep.randomteleport.searcher.options.NotFoundException;
 import java.io.File;
@@ -81,14 +82,14 @@ public class Game {
     private boolean gracePeriod;
     private GameState state;
     private EditSession editSession = null;
-    private final AbbaValidator[] blockValidator;
+    private final AbbaValidator blockValidator;
 
     public Game(final AbbaCavingPlugin plugin, final String mapName) {
         this.plugin = plugin;
         this.mapName = mapName;
         this.world = this.loadMap();
 
-        this.blockValidator = new AbbaValidator[]{new AbbaValidator(this.plugin, this)};
+        this.blockValidator = new AbbaValidator(this.plugin, this);
 
         this.gameState(GameState.READY);
         this.counter(0);
@@ -155,8 +156,11 @@ public class Game {
             final RandomSearcher randomSearcher = randomTeleport.getRandomSearcher(player, this.world().getSpawnLocation(),
                     minRadius, maxRadius, this.blockValidator); // Don't use our custom validator for now, it seems to cause problems.
 
+            ValidatorRegistry registry = randomSearcher.getValidators();
+            registry.getRaw().clear(); // Clear default validators
+            registry.add(this.blockValidator); // Add our own
             randomSearcher.setMaxTries(maxTries);
-            randomSearcher.setMinY(minY);
+            //randomSearcher.setMinY(minY); - Don't set this, ignored anyways
             randomSearcher.setMaxY(maxY);
 
             return randomSearcher.search();

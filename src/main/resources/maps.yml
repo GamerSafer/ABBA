@@ -10,7 +10,7 @@ default-settings:
     max-tries: 300
     min-radius: 100
     max-radius: 1000
-    min-y: 0
+    min-y: -64
     max-y: 100
     invalid-blocks:
       - WATER
