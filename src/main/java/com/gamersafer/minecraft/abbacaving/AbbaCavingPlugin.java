@@ -10,6 +10,7 @@ import com.gamersafer.minecraft.abbacaving.commands.NightVisionCommand;
 import com.gamersafer.minecraft.abbacaving.commands.PointsCommand;
 import com.gamersafer.minecraft.abbacaving.commands.RespawnCountCommand;
 import com.gamersafer.minecraft.abbacaving.commands.StatsCommand;
+import com.gamersafer.minecraft.abbacaving.datasource.DummyDataSource;
 import com.gamersafer.minecraft.abbacaving.datasource.PlayerDataSource;
 import com.gamersafer.minecraft.abbacaving.datasource.SQLDataSource;
 import com.gamersafer.minecraft.abbacaving.game.CaveLoot;
@@ -66,6 +67,7 @@ public class AbbaCavingPlugin extends JavaPlugin {
     @Override
     public void onEnable() {
         this.saveDefaultConfig();
+        this.mapsConfig = this.fileConfiguration("maps.yml");
         this.messagesConfig = this.fileConfiguration("messages.yml");
         this.pointsConfig = this.fileConfiguration("points.yml");
 
@@ -89,7 +91,7 @@ public class AbbaCavingPlugin extends JavaPlugin {
             new LobbyPlaceholders(this);
         }
 
-        this.dataSource = new SQLDataSource(this);
+        this.dataSource = new DummyDataSource();
         this.dataSource.init();
 
         final ACLookupCommand acLookupCommand = new ACLookupCommand(this);
