@@ -47,6 +47,12 @@ public class InventoryListener implements Listener {
 
         // TODO: info book
 
+        final GuiItem backButton = new GuiItem(new ItemBuilder(Material.FEATHER).name(Component.text("Return")).build(), event -> {
+            event.getWhoClicked().openInventory(event.getWhoClicked().getInventory());
+        });
+
+        contentPane.addItem(backButton, 8, 5);
+
         final GuiItem resetArmor = new GuiItem(new ItemBuilder(Material.IRON_CHESTPLATE)
                 .name(Component.text("Reset Armor Cosmetics")).build(), event -> {
             final GamePlayer gamePlayer = this.plugin.gameTracker().gamePlayer(event.getWhoClicked().getUniqueId());
@@ -74,6 +80,12 @@ public class InventoryListener implements Listener {
             final ChestGui armorGui = new ChestGui(5, "Armor Cosmetics");
 
             final StaticPane armorContentPane = this.setupCosmeticsGui(armorGui);
+
+            final GuiItem armorBackButton = new GuiItem(new ItemBuilder(Material.FEATHER).name(Component.text("Return")).build(), armorBackEvent -> {
+                this.cosmeticsGui.show(event.getWhoClicked());
+            });
+
+            armorContentPane.addItem(armorBackButton, 8, 4);
 
             final ConfigurationSection armorConfig = this.plugin.getConfig().getConfigurationSection("cosmetics.armor");
 
@@ -117,6 +129,12 @@ public class InventoryListener implements Listener {
             final ChestGui weaponGui = new ChestGui(5, "Weapon Cosmetics");
 
             final StaticPane weaponContentPane = this.setupCosmeticsGui(weaponGui);
+
+            final GuiItem weaponBackButton = new GuiItem(new ItemBuilder(Material.FEATHER).name(Component.text("Return")).build(), armorBackEvent -> {
+                this.cosmeticsGui.show(event.getWhoClicked());
+            });
+
+            weaponContentPane.addItem(weaponBackButton, 8, 4);
 
             final ConfigurationSection weapons = this.plugin.getConfig().getConfigurationSection("cosmetics.weapons");
 
