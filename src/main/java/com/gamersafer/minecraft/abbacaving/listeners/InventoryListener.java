@@ -4,18 +4,8 @@ import com.gamersafer.minecraft.abbacaving.AbbaCavingPlugin;
 import com.gamersafer.minecraft.abbacaving.game.CaveLoot;
 import com.gamersafer.minecraft.abbacaving.game.Game;
 import com.gamersafer.minecraft.abbacaving.game.GamePlayer;
-import com.gamersafer.minecraft.abbacaving.util.ItemBuilder;
 import com.gamersafer.minecraft.abbacaving.util.Sounds;
 import com.gamersafer.minecraft.abbacaving.util.Util;
-import com.github.stefvanschie.inventoryframework.gui.GuiItem;
-import com.github.stefvanschie.inventoryframework.gui.type.ChestGui;
-import com.github.stefvanschie.inventoryframework.pane.Pane;
-import com.github.stefvanschie.inventoryframework.pane.StaticPane;
-import java.util.Map;
-import java.util.Objects;
-import net.kyori.adventure.text.Component;
-import org.bukkit.Material;
-import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -27,168 +17,14 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 
+import java.util.Map;
+
 public class InventoryListener implements Listener {
 
     private final AbbaCavingPlugin plugin;
-    private final ChestGui cosmeticsGui;
 
     public InventoryListener(final AbbaCavingPlugin plugin) {
         this.plugin = plugin;
-        this.cosmeticsGui = new ChestGui(6, "Cosmetics");
-        this.setupGui();
-    }
-
-    public void showCosmeticsGUI(final Player player) {
-        this.cosmeticsGui.show(player);
-    }
-
-    private void setupGui() {
-        final StaticPane contentPane = this.setupCosmeticsGui(this.cosmeticsGui);
-
-        // TODO: info book
-
-        final GuiItem backButton = new GuiItem(new ItemBuilder(Material.FEATHER).name(Component.text("Return")).build(), event -> {
-            event.getWhoClicked().openInventory(event.getWhoClicked().getInventory());
-        });
-
-        contentPane.addItem(backButton, 8, 5);
-
-        final GuiItem resetArmor = new GuiItem(new ItemBuilder(Material.IRON_CHESTPLATE)
-                .name(Component.text("Reset Armor Cosmetics")).build(), event -> {
-            final GamePlayer gamePlayer = this.plugin.gameTracker().gamePlayer(event.getWhoClicked().getUniqueId());
-            gamePlayer.removeArmorCosmetics();
-            this.plugin.message(gamePlayer.player(), this.plugin.configMessage("cosmetic-reset-armor"));
-        });
-
-        contentPane.addItem(resetArmor, 2, 2);
-
-        contentPane.addItem(new GuiItem(new ItemStack(Material.STONE)), 4, 2);
-
-        final GuiItem resetWeapon = new GuiItem(new ItemBuilder(Material.STONE_SWORD)
-                .name(Component.text("Reset Tool Cosmetics")).build(), event -> {
-            final GamePlayer gamePlayer = this.plugin.gameTracker().gamePlayer(event.getWhoClicked().getUniqueId());
-            gamePlayer.removeToolCosmetics();
-            this.plugin.message(gamePlayer.player(), this.plugin.configMessage("cosmetic-reset-weapon"));
-        });
-
-        contentPane.addItem(resetWeapon, 6, 2);
-
-        final GuiItem armorCosmetics = new GuiItem(new ItemBuilder(Material.DIAMOND_CHESTPLATE)
-                .name(Component.text("Armor Cosmetics")).build(), event -> {
-            final GamePlayer gamePlayer = this.plugin.gameTracker().gamePlayer(event.getWhoClicked().getUniqueId());
-
-            final ChestGui armorGui = new ChestGui(5, "Armor Cosmetics");
-
-            final StaticPane armorContentPane = this.setupCosmeticsGui(armorGui);
-
-            final GuiItem armorBackButton = new GuiItem(new ItemBuilder(Material.FEATHER).name(Component.text("Return")).build(), armorBackEvent -> {
-                this.cosmeticsGui.show(event.getWhoClicked());
-            });
-
-            armorContentPane.addItem(armorBackButton, 8, 4);
-
-            final ConfigurationSection armorConfig = this.plugin.getConfig().getConfigurationSection("cosmetics.armor");
-
-            int x = 2;
-            final int y = 2;
-
-            for (final String key : armorConfig.getKeys(false)) {
-                final ConfigurationSection armor = armorConfig.getConfigurationSection(key);
-                final String material = armor.getString("material");
-
-                final String permission = Objects.requireNonNullElse(armor.getString("permission"), "abbacaving.armor." + key);
-
-                if (event.getWhoClicked().hasPermission(permission)) {
-                    final ItemStack cosmeticItem = GamePlayer.cosmeticById(key);
-
-                    if (cosmeticItem != null) {
-                        armorContentPane.addItem(new GuiItem(cosmeticItem, cosmeticClick -> {
-                            if (gamePlayer.hasCosmeticSelected(key)) {
-                                gamePlayer.removeSelectedCosmetic(key);
-                                this.plugin.message(gamePlayer.player(), this.plugin.configMessage("cosmetic-deselect"), Map.of("cosmetic", key));
-                            } else {
-                                gamePlayer.addSelectedCosmetic(key, material);
-                                this.plugin.message(gamePlayer.player(), this.plugin.configMessage("cosmetic-select"), Map.of("cosmetic", key));
-                            }
-                        }), x++, y);
-                    }
-                }
-            }
-
-            armorGui.show(event.getWhoClicked());
-        });
-
-        contentPane.addItem(armorCosmetics, 2, 3);
-
-        contentPane.addItem(new GuiItem(new ItemStack(Material.STONE)), 4, 3);
-
-        final GuiItem weaponCosmetics = new GuiItem(new ItemBuilder(Material.GOLDEN_SWORD)
-                .name(Component.text("Weapon Cosmetics")).build(), event -> {
-            final GamePlayer gamePlayer = this.plugin.gameTracker().gamePlayer(event.getWhoClicked().getUniqueId());
-
-            final ChestGui weaponGui = new ChestGui(5, "Weapon Cosmetics");
-
-            final StaticPane weaponContentPane = this.setupCosmeticsGui(weaponGui);
-
-            final GuiItem weaponBackButton = new GuiItem(new ItemBuilder(Material.FEATHER).name(Component.text("Return")).build(), armorBackEvent -> {
-                this.cosmeticsGui.show(event.getWhoClicked());
-            });
-
-            weaponContentPane.addItem(weaponBackButton, 8, 4);
-
-            final ConfigurationSection weapons = this.plugin.getConfig().getConfigurationSection("cosmetics.weapons");
-
-            int x = 2;
-            final int y = 2;
-
-            for (final String key : weapons.getKeys(false)) {
-                final ConfigurationSection weapon = weapons.getConfigurationSection(key);
-                final String material = weapon.getString("material");
-
-                final String permission = Objects.requireNonNullElse(weapon.getString("permission"), "abbacaving.weapon." + key);
-
-                if (event.getWhoClicked().hasPermission(permission)) {
-                    final ItemStack cosmeticItem = GamePlayer.cosmeticById(key);
-
-                    if (cosmeticItem != null) {
-                        weaponContentPane.addItem(new GuiItem(cosmeticItem, cosmeticClick -> {
-                            if (gamePlayer.hasCosmeticSelected(key)) {
-                                gamePlayer.removeSelectedCosmetic(key);
-                                this.plugin.message(gamePlayer.player(), this.plugin.configMessage("cosmetic-deselect"), Map.of("cosmetic", key));
-                            } else {
-                                gamePlayer.addSelectedCosmetic(key, material);
-                                this.plugin.message(gamePlayer.player(), this.plugin.configMessage("cosmetic-select"), Map.of("cosmetic", key));
-                            }
-                        }), x++, y);
-                    }
-                }
-            }
-
-            weaponGui.show(event.getWhoClicked());
-        });
-
-        contentPane.addItem(weaponCosmetics, 6, 3);
-
-        this.cosmeticsGui.addPane(contentPane);
-    }
-
-    private StaticPane setupCosmeticsGui(final ChestGui gui) {
-        final StaticPane outlinePane = new StaticPane(0, 0, 9, gui.getRows());
-        outlinePane.fillWith(new ItemStack(Material.GRAY_STAINED_GLASS_PANE));
-        outlinePane.setPriority(Pane.Priority.LOWEST);
-        gui.addPane(outlinePane);
-
-        final StaticPane inlinePane = new StaticPane(1, 1, 7, gui.getRows() - 2);
-        inlinePane.fillWith(new ItemStack(Material.GREEN_STAINED_GLASS_PANE));
-        inlinePane.setPriority(Pane.Priority.LOW);
-        gui.addPane(inlinePane);
-
-        final StaticPane contentPane = new StaticPane(0, 0, 9, gui.getRows());
-        contentPane.setPriority(Pane.Priority.HIGHEST);
-
-        gui.addPane(contentPane);
-
-        return contentPane;
     }
 
     @EventHandler
@@ -278,7 +114,7 @@ public class InventoryListener implements Listener {
 
     private boolean handleInventoryMenu(final InventoryClickEvent event) {
         if (!(event.getClickedInventory() instanceof PlayerInventory)) {
-            return true;
+            return false;
         }
 
         final Player player = (Player) event.getView().getPlayer();
@@ -286,7 +122,7 @@ public class InventoryListener implements Listener {
         // 19 21 23 25
         switch (event.getSlot()) {
             case 19 -> this.saveLayoutButton(player, event.isShiftClick());
-            case 21 -> this.openCosmeticsMenu(player);
+            case 21 -> this.plugin.getCosmeticGui().showCosmeticsGUI(player);
             case 23 -> this.showStats(player);
             case 25 -> this.returnToLobby(player);
         }
@@ -305,10 +141,12 @@ public class InventoryListener implements Listener {
 
         if (game != null && gamePlayer != null) {
             if (isShiftClick) {
-                game.applyDefaultHotbar(gamePlayer); // TODO: message "hotbar reset"
+                gamePlayer.hotbarLayout().clear();
+            } else {
+                gamePlayer.populateHotbar();
             }
 
-            game.saveHotbar(gamePlayer);
+            gamePlayer.saveHotbar();
             if (isShiftClick) {
                 this.plugin.message(player, this.plugin.configMessage("layout-default-saved"));
             } else {
@@ -319,10 +157,6 @@ public class InventoryListener implements Listener {
             this.plugin.message(player, "<red>Failed to save hotbar layout!");
         }
 
-    }
-
-    private void openCosmeticsMenu(final Player player) {
-        this.cosmeticsGui.show(player);
     }
 
     private void showStats(final Player player) {

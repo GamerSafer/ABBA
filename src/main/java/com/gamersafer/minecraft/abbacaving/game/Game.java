@@ -4,6 +4,9 @@ import com.gamersafer.minecraft.abbacaving.AbbaCavingPlugin;
 import com.gamersafer.minecraft.abbacaving.game.validators.AbbaValidator;
 import com.gamersafer.minecraft.abbacaving.lobby.LobbyQueue;
 import com.gamersafer.minecraft.abbacaving.lobby.QueueState;
+import com.gamersafer.minecraft.abbacaving.tools.ToolManager;
+import com.gamersafer.minecraft.abbacaving.tools.ToolType;
+import com.gamersafer.minecraft.abbacaving.tools.impl.SlottedHotbarTool;
 import com.gamersafer.minecraft.abbacaving.util.Components;
 import com.gamersafer.minecraft.abbacaving.util.ItemBuilder;
 import com.gamersafer.minecraft.abbacaving.util.OrderedMapBuilder;
@@ -84,52 +87,6 @@ public class Game {
     private GameState state;
     private EditSession editSession = null;
     private final AbbaValidator blockValidator;
-
-    private final ItemStack PICKAXE = new ItemBuilder(Material.DIAMOND_PICKAXE)
-            .unbreakable(true)
-            .enchantment(Enchantment.SILK_TOUCH, 1)
-            .miniMessageName("<green><bold>Starter Pickaxe")
-            .build();
-
-    private final ItemStack SWORD = new ItemBuilder(Material.IRON_SWORD)
-            .miniMessageName("<green><bold>Starter Sword")
-            .build();
-
-    private final ItemStack BOW = new ItemBuilder(Material.BOW)
-            .unbreakable(true)
-            .enchantment(Enchantment.ARROW_INFINITE, 1)
-            .miniMessageName("<green><bold>Infinite Bow")
-            .build();
-
-    private final ItemStack SHOVEL = new ItemBuilder(Material.IRON_SHOVEL)
-            .miniMessageName("<green><bold>Starter Shovel")
-            .build();
-
-    private final ItemStack BEEF = new ItemBuilder(Material.COOKED_BEEF)
-            .miniMessageName("<green><bold>Infinite Steak Supply")
-            .build();
-
-    private final ItemStack COBBLESTONE = new ItemBuilder(Material.COBBLESTONE)
-            .miniMessageName("<green><bold>Infinite Cobble")
-            .build();
-
-    private final ItemStack BUCKET = new ItemStack(Material.WATER_BUCKET);
-
-    private final ItemStack TORCH = new ItemBuilder(Material.TORCH)
-            .miniMessageName("<green><bold>Infinite Torch")
-            .build();
-
-
-    private final Map<String, ItemStack> defaultHotbarItems = new OrderedMapBuilder<String, ItemStack>()
-            .add("DIAMOND_PICKAXE", this.PICKAXE)
-            .add("IRON_SWORD", this.SWORD)
-            .add("BOW", this.BOW)
-            .add("IRON_SHOVEL", this.SHOVEL)
-            .add("COOKED_BEEF", this.BEEF)
-            .add("COBBLESTONE", this.COBBLESTONE)
-            .add("WATER_BUCKET", this.BUCKET)
-            .add("TORCH", this.TORCH)
-            .build();
 
     public Game(final AbbaCavingPlugin plugin, final String mapName) {
         this.plugin = plugin;
@@ -328,60 +285,6 @@ public class Game {
         return gp;
     }
 
-    public void saveHotbar(final GamePlayer player) {
-        final Map<Integer, String> hotbarSlots = new HashMap<>();
-
-        for (int i = 0; i <= 8; i++) {
-            final ItemStack slotItem = player.player().getInventory().getItem(i);
-
-            if (slotItem == null || slotItem.getType() == Material.AIR) {
-                continue;
-            }
-
-            hotbarSlots.put(i, slotItem.getType().toString());
-        }
-
-        player.hotbarLayout(hotbarSlots);
-        this.plugin.playerDataSource().savePlayerHotbar(player);
-    }
-
-    public void applyCustomHotbar(final GamePlayer player) {
-        for (final Map.Entry<Integer, String> entry : player.hotbarLayout().entrySet()) {
-            final ItemStack cosmeticItem = player.selectedWeaponCosmetic(entry.getValue());
-
-            if (cosmeticItem != null) {
-                player.player().getInventory().setItem(entry.getKey(), cosmeticItem);
-                continue;
-            }
-
-            player.player().getInventory().setItem(entry.getKey(), this.defaultHotbarItems.get(entry.getValue()));
-        }
-    }
-
-    public void applyDefaultHotbar(final GamePlayer player) {
-        for (int i = 0; i < 9; i++) {
-            player.player().getInventory().setItem(i, null);
-        }
-
-        int slotIndex = 0;
-
-        for (final Map.Entry<String, ItemStack> entry : this.defaultHotbarItems.entrySet()) {
-            final ItemStack cosmeticItem = player.selectedWeaponCosmetic(entry.getKey());
-
-            if (cosmeticItem != null) {
-                player.player().getInventory().setItem(slotIndex, cosmeticItem);
-                continue;
-            }
-
-            player.player().getInventory().setItem(slotIndex, entry.getValue());
-
-            slotIndex++;
-        }
-    }
-
-    private ItemStack defaultItem(final Material material) {
-        return this.defaultHotbarItems.get(material.name());
-    }
 
     public GamePlayer player(final Player player) {
         for (final GamePlayer gp : this.players.values()) {
@@ -776,36 +679,9 @@ public class Game {
     }
 
     public void startingInventory(final GamePlayer player) {
-        final PlayerInventory inv = player.player().getInventory();
-
-        final ItemStack cosmeticShield = player.selectedArmorCosmetic("SHIELD");
-
-        if (cosmeticShield != null) {
-            inv.setItemInOffHand(new ItemBuilder(cosmeticShield)/*.durability(168)*/.build());
-        } else {
-            inv.setItemInOffHand(new ItemBuilder(Material.SHIELD)/*.durability(168)*/.build());
-        }
-
-        final ItemStack cosmeticHelmet = player.selectedArmorCosmetic("IRON_HELMET");
-        inv.setHelmet(Objects.requireNonNullElseGet(cosmeticHelmet, () -> new ItemStack(Material.IRON_HELMET)));
-
-        final ItemStack cosmeticChestplate = player.selectedArmorCosmetic("IRON_CHESTPLATE");
-        inv.setChestplate(Objects.requireNonNullElseGet(cosmeticChestplate, () -> new ItemStack(Material.IRON_CHESTPLATE)));
-
-        final ItemStack cosmeticLeggings = player.selectedArmorCosmetic("IRON_LEGGINGS");
-        inv.setLeggings(Objects.requireNonNullElseGet(cosmeticLeggings, () -> new ItemStack(Material.IRON_LEGGINGS)));
-
-        final ItemStack cosmeticBoots = player.selectedArmorCosmetic("IRON_BOOTS");
-        inv.setBoots(Objects.requireNonNullElseGet(cosmeticBoots, () -> new ItemStack(Material.IRON_BOOTS)));
-
-        // Load existing hotbar layout
-        if (player.hasCustomHotbarLayout()) {
-            this.applyCustomHotbar(player);
-        } else {
-            this.applyDefaultHotbar(player);
-        }
-
+        ToolManager. apply(player);
     }
+
 
     public void preparePlayer(final Player player) {
         final int maxHealth = this.mapSetting("player-health");

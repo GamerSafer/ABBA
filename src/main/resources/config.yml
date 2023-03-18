@@ -16,10 +16,13 @@ lobby-spawn-location:
 min-score-to-broadcast-new-record: 50
 
 cosmetics:
-  weapons:
-    textaxe:
-      material: DIAMOND_PICKAXE
-      permission: abbacaving.weapon.testaxe # Removing this defaults to abbacaving.weapon.[key]
-  armor:
-    testplate:
-      material: GOLDEN_CHESTPLATE
+  axolotlsword:
+    item: "abba:axolotlsword"
+    tool: SWORD
+    permission: abbacaving.weapon.axolotlsword # Removing this defaults to abbacaving.cosmetic.[key]
+  spidershovel:
+    item: "abba:spidershovel"
+    tool: SHOVEL
+  testplate:
+    item: "abba:axolotl_chestplate"
+    tool: CHESTPLATE

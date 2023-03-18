@@ -2,8 +2,11 @@ package com.gamersafer.minecraft.abbacaving.datasource;
 
 import com.gamersafer.minecraft.abbacaving.AbbaCavingPlugin;
 import com.gamersafer.minecraft.abbacaving.game.GamePlayer;
+import com.gamersafer.minecraft.abbacaving.tools.CosmeticRegistry;
+import com.gamersafer.minecraft.abbacaving.tools.impl.SlottedHotbarTool;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
+
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -80,7 +83,7 @@ public class SQLDataSource implements PlayerDataSource {
 
                 try (final ResultSet rs = hotbarStatement.executeQuery()) {
                     while (rs.next()) {
-                        gp.hotbarLayout(rs.getInt("slot"), rs.getString("material"));
+                        gp.hotbarLayout(SlottedHotbarTool.getStored(rs.getString("material")), rs.getInt("slot"));
                     }
 
                     if (gp.hasCustomHotbarLayout()) {
@@ -95,7 +98,8 @@ public class SQLDataSource implements PlayerDataSource {
 
                 try (final ResultSet rs = cosmeticsStatement.executeQuery()) {
                     while (rs.next()) {
-                        gp.addSelectedCosmetic(rs.getString("cosmetic"));
+                        CosmeticRegistry.Cosmetic cosmetic = this.plugin.getCosmeticRegistry().get(rs.getString("cosmetic"));
+                        gp.addSelectedCosmetic(cosmetic.toolType(), cosmetic);
                     }
                 }
             }
@@ -129,14 +133,14 @@ public class SQLDataSource implements PlayerDataSource {
     @Override
     public void savePlayerHotbar(final GamePlayer gp) {
         try (final Connection conn = this.dataSource.getConnection()) {
-            for (final Map.Entry<Integer, String> entry : gp.hotbarLayout().entrySet()) {
+            for (final Map.Entry<SlottedHotbarTool, Integer> entry : gp.hotbarLayout().entrySet()) {
                 try (final PreparedStatement stmt = conn.prepareStatement(
                         "INSERT INTO abba_hotbar_layout (uuid, slot, material) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE slot = ?, material = ?;")) {
                     stmt.setString(1, gp.player().getUniqueId().toString());
-                    stmt.setInt(2, entry.getKey());
-                    stmt.setString(3, entry.getValue());
-                    stmt.setInt(4, entry.getKey());
-                    stmt.setString(5, entry.getValue());
+                    stmt.setInt(2, entry.getValue());
+                    stmt.setString(3, entry.getKey().getIdentifier());
+                    stmt.setInt(4, entry.getValue());
+                    stmt.setString(5, entry.getKey().getIdentifier());
 
                     stmt.executeUpdate();
                 } catch (final SQLException ex) {
@@ -153,11 +157,11 @@ public class SQLDataSource implements PlayerDataSource {
     @Override
     public void savePlayerCosmetics(final GamePlayer gp) {
         try (final Connection conn = this.dataSource.getConnection()) {
-            for (final String cosmetic : gp.selectedCosmetics()) {
+            for (final CosmeticRegistry.Cosmetic cosmetic : gp.selectedCosmetics()) {
                 try (final PreparedStatement stmt = conn.prepareStatement(
                         "INSERT INTO abba_cosmetics (uuid, cosmetic) VALUES (?, ?);")) {
                     stmt.setString(1, gp.player().getUniqueId().toString());
-                    stmt.setString(2, cosmetic);
+                    stmt.setString(2, cosmetic.identifier());
 
                     stmt.executeUpdate();
                 } catch (final SQLException ex) {

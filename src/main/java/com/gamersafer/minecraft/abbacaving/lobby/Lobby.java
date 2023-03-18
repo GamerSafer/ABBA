@@ -27,6 +27,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.scheduler.BukkitRunnable;
 import org.jetbrains.annotations.Nullable;
 import org.spigotmc.event.player.PlayerSpawnLocationEvent;
 
@@ -282,7 +283,15 @@ public class Lobby implements Listener {
     }
 
     public void sendToLobby(final HumanEntity player) {
-        player.teleport(this.lobbySpawn());
+        ((Player) player).spigot().respawn();
+        new BukkitRunnable(){
+
+            @Override
+            public void run() {
+                player.teleport(lobbySpawn());
+            }
+        }.runTaskLater(this.plugin, 10);
+
     }
 
     private Location lobbySpawn() {

@@ -19,6 +19,7 @@ import com.gamersafer.minecraft.abbacaving.game.CaveLoot;
 import com.gamersafer.minecraft.abbacaving.game.CaveOre;
 import com.gamersafer.minecraft.abbacaving.game.Game;
 import com.gamersafer.minecraft.abbacaving.game.GameTracker;
+import com.gamersafer.minecraft.abbacaving.guis.CosmeticGui;
 import com.gamersafer.minecraft.abbacaving.listeners.BlockBreakListener;
 import com.gamersafer.minecraft.abbacaving.listeners.BlockPlaceListener;
 import com.gamersafer.minecraft.abbacaving.listeners.EntityListener;
@@ -38,6 +39,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+
+import com.gamersafer.minecraft.abbacaving.tools.CosmeticRegistry;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.kyori.adventure.text.minimessage.tag.Tag;
@@ -66,6 +69,8 @@ public class AbbaCavingPlugin extends JavaPlugin {
     private FileConfiguration messagesConfig = new YamlConfiguration();
     private FileConfiguration pointsConfig = new YamlConfiguration();
     private final Map<String, Game> maps = new HashMap<>();
+    private CosmeticGui cosmeticGui;
+    private CosmeticRegistry cosmeticRegistry;
 
     private InventoryListener inventoryListener;
 
@@ -134,6 +139,7 @@ public class AbbaCavingPlugin extends JavaPlugin {
 
         this.gameTracker = new GameTracker(this);
         this.lobby = new Lobby(this);
+        this.cosmeticRegistry = new CosmeticRegistry(this);
     }
 
     @Override
@@ -143,10 +149,6 @@ public class AbbaCavingPlugin extends JavaPlugin {
         this.mapsConfig = this.fileConfiguration("maps.yml");
         this.messagesConfig = this.fileConfiguration("messages.yml");
         this.pointsConfig = this.fileConfiguration("points.yml");
-    }
-
-    public void showCosmeticsGUI(final Player player) {
-        this.inventoryListener.showCosmeticsGUI(player);
     }
 
     public Game game(final String mapName) {
@@ -179,6 +181,13 @@ public class AbbaCavingPlugin extends JavaPlugin {
 
     public GameTracker gameTracker() {
         return this.gameTracker;
+    }
+
+    public CosmeticGui getCosmeticGui() {
+        if (cosmeticGui == null) {
+            this.cosmeticGui = new CosmeticGui(this); // Lazy init for items adder
+        }
+        return cosmeticGui;
     }
 
     public Lobby lobby() {
@@ -347,4 +356,7 @@ public class AbbaCavingPlugin extends JavaPlugin {
         this.mapSpawns = new HashMap<>();
     }
 
+    public CosmeticRegistry getCosmeticRegistry() {
+        return this.cosmeticRegistry;
+    }
 }
