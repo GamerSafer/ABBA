@@ -44,3 +44,9 @@
 * `%abbacaving_roundid_<mapName>_slots%`   - the current slots for the map `<mapName>`
 * `%abbacaving_roundid_<mapName>_counter%` - the current counter (start countdown, game time remaining) of the map `<mapName>`
 * `%abbacaving_roundid_<mapName>_required%`- the required player count in order to start the countdown for the map `<mapName>`
+
+### Old Games
+
+* `%abbacaving_game_<gameid>_leaderboard_<num>_playername%`  - the name of a player on game `<gameid>` who placed `<num>`
+* `%abbacaving_game_<gameid>_leaderboard_<num>_playeruuid%`  - the uuid of a player on game `<gameid>` who placed `<num>`
+* `%abbacaving_game_<gameid>_leaderboard_<num>_score%`        - the score of a player on game `<gameid>` who placed `<num>`

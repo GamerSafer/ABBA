@@ -1,7 +1,9 @@
 package com.gamersafer.minecraft.abbacaving.datasource;
 
 import com.gamersafer.minecraft.abbacaving.AbbaCavingPlugin;
+import com.gamersafer.minecraft.abbacaving.game.Game;
 import com.gamersafer.minecraft.abbacaving.game.GamePlayer;
+import com.gamersafer.minecraft.abbacaving.game.PlayerWinEntry;
 import com.gamersafer.minecraft.abbacaving.tools.CosmeticRegistry;
 import com.gamersafer.minecraft.abbacaving.tools.impl.SlottedHotbarTool;
 import com.zaxxer.hikari.HikariConfig;
@@ -13,8 +15,9 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Map;
+import java.util.UUID;
 
-public class SQLDataSource implements PlayerDataSource {
+public class SQLDataSource implements DataSource {
 
     private final AbbaCavingPlugin plugin;
     private HikariDataSource dataSource;
@@ -52,6 +55,7 @@ public class SQLDataSource implements PlayerDataSource {
                 statement.execute("CREATE TABLE IF NOT EXISTS abba_hotbar_layout (uuid VARCHAR(50) NOT NULL, slot INT NOT NULL, material VARCHAR(50), CONSTRAINT layout_pk PRIMARY KEY(uuid, slot));");
                 statement.execute("CREATE TABLE IF NOT EXISTS abba_cosmetics (uuid VARCHAR(50) NOT NULL, cosmetic VARCHAR(50));");
                 statement.execute("CREATE TABLE IF NOT EXISTS abba_respawns (uuid VARCHAR(50) PRIMARY KEY, respawns INT);");
+                statement.execute("CREATE TABLE IF NOT EXISTS abba_round_leaderboard (round_id VARCHAR(50) NOT NULL, place INT NOT NULL, player VARCHAR(50) NOT NULL, score INT NOT NULL, PRIMARY KEY(round_id, place));");
             }
         } catch (final SQLException ex) {
             ex.printStackTrace();
@@ -171,6 +175,55 @@ public class SQLDataSource implements PlayerDataSource {
         } catch (final SQLException ex) {
             ex.printStackTrace();
         }
+    }
+
+    //CREATE TABLE IF NOT EXISTS abba_round_leaderboard (round_id VARCHAR(50) NOT NULL, place INT NOT NULL, player VARCHAR(50) NOT NULL, score INT NOT NULL, PRIMARY KEY(round_id, place));
+    @Override
+    public void saveFinishedGame(Game game) {
+        try (final Connection conn = this.dataSource.getConnection()) {
+            int entryNum = 0;
+            for (final Map.Entry<GamePlayer, Integer> entry : game.leaderboard().entrySet()) {
+                try (final PreparedStatement stmt = conn.prepareStatement(
+                        "INSERT INTO abba_round_leaderboard (round_id, place, player, score) VALUES (?, ?, ?, ?)")) {
+                    stmt.setString(1, game.gameId());
+                    stmt.setInt(2, entryNum);
+                    stmt.setString(3, entry.getKey().playerUUID().toString());
+                    stmt.setInt(4, entry.getValue());
+
+                    stmt.executeUpdate();
+                } catch (final SQLException ex) {
+                    ex.printStackTrace();
+                }
+                entryNum++;
+            }
+        } catch (final SQLException ex) {
+            ex.printStackTrace();
+        }
+    }
+
+    @Override
+    public PlayerWinEntry getWinEntry(String gameId, int place) {
+        try (final Connection conn = this.dataSource.getConnection()) {
+            // Load game stats
+            try (final PreparedStatement stmt = conn.prepareStatement("SELECT player, score FROM abba_round_leaderboard WHERE round_id = ? AND place = ?;")) {
+                stmt.setString(1, gameId);
+                stmt.setInt(2, place);
+
+                try (final ResultSet rs = stmt.executeQuery()) {
+                    if (rs.next()) {
+                        int points = rs.getInt("score");
+                        UUID player = UUID.fromString(rs.getString("player"));
+                        return new PlayerWinEntry(player, points);
+                    }
+
+                    return null;
+                }
+            }
+        } catch (final SQLException ex) {
+            ex.printStackTrace();
+        }
+
+        return null;
     }
 
     @Override

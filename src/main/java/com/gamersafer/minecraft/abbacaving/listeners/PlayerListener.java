@@ -2,7 +2,7 @@ package com.gamersafer.minecraft.abbacaving.listeners;
 
 import com.destroystokyo.paper.event.player.PlayerPostRespawnEvent;
 import com.gamersafer.minecraft.abbacaving.AbbaCavingPlugin;
-import com.gamersafer.minecraft.abbacaving.datasource.PlayerDataSource;
+import com.gamersafer.minecraft.abbacaving.datasource.DataSource;
 import com.gamersafer.minecraft.abbacaving.game.Game;
 import com.gamersafer.minecraft.abbacaving.game.GamePlayer;
 import com.gamersafer.minecraft.abbacaving.game.GameState;
@@ -143,7 +143,7 @@ public class PlayerListener implements Listener {
         }
 
         this.plugin.getServer().getScheduler().runTaskAsynchronously(this.plugin, () -> {
-            final PlayerDataSource dataSource = this.plugin.playerDataSource();
+            final DataSource dataSource = this.plugin.playerDataSource();
             dataSource.savePlayerStats(gp);
             dataSource.savePlayerRespawns(gp);
         });

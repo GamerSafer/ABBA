@@ -13,8 +13,7 @@ import com.gamersafer.minecraft.abbacaving.commands.PointsCommand;
 import com.gamersafer.minecraft.abbacaving.commands.RespawnCountCommand;
 import com.gamersafer.minecraft.abbacaving.commands.StatsCommand;
 import com.gamersafer.minecraft.abbacaving.datasource.DummyDataSource;
-import com.gamersafer.minecraft.abbacaving.datasource.PlayerDataSource;
-import com.gamersafer.minecraft.abbacaving.datasource.SQLDataSource;
+import com.gamersafer.minecraft.abbacaving.datasource.DataSource;
 import com.gamersafer.minecraft.abbacaving.game.CaveLoot;
 import com.gamersafer.minecraft.abbacaving.game.CaveOre;
 import com.gamersafer.minecraft.abbacaving.game.Game;
@@ -40,6 +39,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import com.gamersafer.minecraft.abbacaving.placeholders.OldGamesPlaceholders;
 import com.gamersafer.minecraft.abbacaving.tools.CosmeticRegistry;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
@@ -53,7 +53,6 @@ import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
-import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -64,7 +63,7 @@ public class AbbaCavingPlugin extends JavaPlugin {
     private GameTracker gameTracker;
     private Lobby lobby;
     private Map<String, List<Location>> mapSpawns;
-    private PlayerDataSource dataSource;
+    private DataSource dataSource;
     private FileConfiguration mapsConfig = new YamlConfiguration();
     private FileConfiguration messagesConfig = new YamlConfiguration();
     private FileConfiguration pointsConfig = new YamlConfiguration();
@@ -101,6 +100,7 @@ public class AbbaCavingPlugin extends JavaPlugin {
         if (Bukkit.getPluginManager().isPluginEnabled("PlaceholdersAPI")) {
             new GamePlaceholders(this);
             new LobbyPlaceholders(this);
+            new OldGamesPlaceholders(this);
         }
 
         this.dataSource = new DummyDataSource();
@@ -155,7 +155,7 @@ public class AbbaCavingPlugin extends JavaPlugin {
         return this.maps.get(mapName);
     }
 
-    public PlayerDataSource playerDataSource() {
+    public DataSource playerDataSource() {
         return this.dataSource;
     }
 

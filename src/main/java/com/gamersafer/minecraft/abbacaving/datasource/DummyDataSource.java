@@ -1,8 +1,10 @@
 package com.gamersafer.minecraft.abbacaving.datasource;
 
+import com.gamersafer.minecraft.abbacaving.game.Game;
 import com.gamersafer.minecraft.abbacaving.game.GamePlayer;
+import com.gamersafer.minecraft.abbacaving.game.PlayerWinEntry;
 
-public class DummyDataSource implements PlayerDataSource {
+public class DummyDataSource implements DataSource {
     @Override
     public void init() {
 
@@ -35,5 +37,15 @@ public class DummyDataSource implements PlayerDataSource {
     @Override
     public void savePlayerCosmetics(GamePlayer gp) {
 
+    }
+
+    @Override
+    public void saveFinishedGame(Game game) {
+
+    }
+
+    @Override
+    public PlayerWinEntry getWinEntry(String gameId, int place) {
+        return null;
     }
 }

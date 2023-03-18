@@ -1,8 +1,10 @@
 package com.gamersafer.minecraft.abbacaving.datasource;
 
+import com.gamersafer.minecraft.abbacaving.game.Game;
 import com.gamersafer.minecraft.abbacaving.game.GamePlayer;
+import com.gamersafer.minecraft.abbacaving.game.PlayerWinEntry;
 
-public interface PlayerDataSource {
+public interface DataSource {
 
     void init();
 
@@ -18,4 +20,9 @@ public interface PlayerDataSource {
 
     void savePlayerCosmetics(final GamePlayer gp);
 
+    void saveFinishedGame(Game game);
+
+    PlayerWinEntry getWinEntry(String gameId, int place);
+
 }
+
