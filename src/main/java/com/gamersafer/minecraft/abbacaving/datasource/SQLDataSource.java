@@ -151,43 +151,6 @@ public class SQLDataSource implements PlayerDataSource {
     }
 
     @Override
-    public void updatePlayerRespawns(GamePlayer gp) {
-        try (final Connection conn = this.dataSource.getConnection()) {
-            try (final PreparedStatement stmt = conn.prepareStatement("SELECT respawns FROM abba_respawns WHERE uuid = ?;")) {
-                stmt.setString(1, gp.player().getUniqueId().toString());
-
-                int respawns = 0;
-                try (final ResultSet rs = stmt.executeQuery()) {
-                    if (rs.next()) {
-                        respawns = rs.getInt("respawns");
-                        this.plugin.getLogger().info("Loaded " + gp.player().getName() + "'s respawns");
-                    } else {
-                        this.plugin.getLogger().info("No respawns found for player " + gp.player().getName());
-                    }
-                }
-                gp.setRespawns(respawns);
-            }
-        } catch (final SQLException ex) {
-            ex.printStackTrace();
-        }
-
-    }
-
-    @Override
-    public void savePlayerRespawns(GamePlayer gp) {
-        try (final Connection conn = this.dataSource.getConnection()) {
-            try (final PreparedStatement stmt = conn.prepareStatement(
-                    "INSERT INTO abba_respawns (uuid, points) VALUES (?, ?) ON DUPLICATE KEY UPDATE points = ?;")) {
-                stmt.setString(1, gp.playerUUID().toString());
-                stmt.setInt(2, gp.getRespawns());
-                stmt.executeUpdate();
-            }
-        } catch (final SQLException ex) {
-            ex.printStackTrace();
-        }
-    }
-
-    @Override
     public void savePlayerCosmetics(final GamePlayer gp) {
         try (final Connection conn = this.dataSource.getConnection()) {
             for (final String cosmetic : gp.selectedCosmetics()) {

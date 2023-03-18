@@ -3,6 +3,7 @@ package com.gamersafer.minecraft.abbacaving;
 import com.gamersafer.minecraft.abbacaving.commands.ACLookupCommand;
 import com.gamersafer.minecraft.abbacaving.commands.ACReloadCommand;
 import com.gamersafer.minecraft.abbacaving.commands.BroadcastNPCommand;
+import com.gamersafer.minecraft.abbacaving.commands.CosmeticsCommand;
 import com.gamersafer.minecraft.abbacaving.commands.DebugCommand;
 import com.gamersafer.minecraft.abbacaving.commands.ForceStartCommand;
 import com.gamersafer.minecraft.abbacaving.commands.JoinCommand;

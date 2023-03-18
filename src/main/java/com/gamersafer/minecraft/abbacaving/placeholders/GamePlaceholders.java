@@ -89,7 +89,7 @@ public class GamePlaceholders extends PlaceholderExpansion {
                 case "game_state":
                     return game.gameState().displayName();
                 case "current_respawns":
-                    return Integer.toString(gp.getRespawns());
+                    return Integer.toString(gp.respawns());
             }
         }
 

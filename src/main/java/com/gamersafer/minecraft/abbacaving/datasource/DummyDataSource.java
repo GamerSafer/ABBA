@@ -31,4 +31,9 @@ public class DummyDataSource implements PlayerDataSource {
     public void savePlayerRespawns(GamePlayer gp) {
 
     }
+
+    @Override
+    public void savePlayerCosmetics(GamePlayer gp) {
+
+    }
 }
