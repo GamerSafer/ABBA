@@ -29,6 +29,7 @@ dependencies {
     implementation 'com.github.stefvanschie.inventoryframework:IF:0.10.8'
 
     compileOnly "io.papermc.paper:paper-api:1.19.2-R0.1-SNAPSHOT"
+    compileOnly "com.github.LoneDev6:API-ItemsAdder:3.2.5"
     //compileOnly "net.luckperms:api:5.4"
     compileOnly "me.clip:placeholderapi:2.9.2"
     compileOnly "com.sk89q.worldedit:worldedit-bukkit:7.2.12"

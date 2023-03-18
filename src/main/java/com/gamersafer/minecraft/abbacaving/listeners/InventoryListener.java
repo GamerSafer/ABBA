@@ -11,12 +11,9 @@ import com.github.stefvanschie.inventoryframework.gui.GuiItem;
 import com.github.stefvanschie.inventoryframework.gui.type.ChestGui;
 import com.github.stefvanschie.inventoryframework.pane.Pane;
 import com.github.stefvanschie.inventoryframework.pane.StaticPane;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.HumanEntity;
@@ -29,7 +26,6 @@ import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
-import org.bukkit.inventory.meta.ItemMeta;
 
 public class InventoryListener implements Listener {
 
@@ -42,14 +38,26 @@ public class InventoryListener implements Listener {
         this.setupGui();
     }
 
+    public void showCosmeticsGUI(final Player player) {
+        this.cosmeticsGui.show(player);
+    }
+
     private void setupGui() {
         final StaticPane contentPane = this.setupCosmeticsGui(this.cosmeticsGui);
 
         // TODO: info book
 
+        final GuiItem backButton = new GuiItem(new ItemBuilder(Material.FEATHER).name(Component.text("Return")).build(), event -> {
+            event.getWhoClicked().openInventory(event.getWhoClicked().getInventory());
+        });
+
+        contentPane.addItem(backButton, 8, 5);
+
         final GuiItem resetArmor = new GuiItem(new ItemBuilder(Material.IRON_CHESTPLATE)
                 .name(Component.text("Reset Armor Cosmetics")).build(), event -> {
-            // TODO: reset armor
+            final GamePlayer gamePlayer = this.plugin.gameTracker().gamePlayer(event.getWhoClicked().getUniqueId());
+            gamePlayer.removeArmorCosmetics();
+            this.plugin.message(gamePlayer.player(), this.plugin.configMessage("cosmetic-reset-armor"));
         });
 
         contentPane.addItem(resetArmor, 2, 2);
@@ -57,17 +65,27 @@ public class InventoryListener implements Listener {
         contentPane.addItem(new GuiItem(new ItemStack(Material.STONE)), 4, 2);
 
         final GuiItem resetWeapon = new GuiItem(new ItemBuilder(Material.STONE_SWORD)
-                .name(Component.text("Reset Weapon Cosmetics")).build(), event -> {
-            // TODO: reset weapon
+                .name(Component.text("Reset Tool Cosmetics")).build(), event -> {
+            final GamePlayer gamePlayer = this.plugin.gameTracker().gamePlayer(event.getWhoClicked().getUniqueId());
+            gamePlayer.removeToolCosmetics();
+            this.plugin.message(gamePlayer.player(), this.plugin.configMessage("cosmetic-reset-weapon"));
         });
 
         contentPane.addItem(resetWeapon, 6, 2);
 
         final GuiItem armorCosmetics = new GuiItem(new ItemBuilder(Material.DIAMOND_CHESTPLATE)
                 .name(Component.text("Armor Cosmetics")).build(), event -> {
+            final GamePlayer gamePlayer = this.plugin.gameTracker().gamePlayer(event.getWhoClicked().getUniqueId());
+
             final ChestGui armorGui = new ChestGui(5, "Armor Cosmetics");
 
             final StaticPane armorContentPane = this.setupCosmeticsGui(armorGui);
+
+            final GuiItem armorBackButton = new GuiItem(new ItemBuilder(Material.FEATHER).name(Component.text("Return")).build(), armorBackEvent -> {
+                this.cosmeticsGui.show(event.getWhoClicked());
+            });
+
+            armorContentPane.addItem(armorBackButton, 8, 4);
 
             final ConfigurationSection armorConfig = this.plugin.getConfig().getConfigurationSection("cosmetics.armor");
 
@@ -76,35 +94,24 @@ public class InventoryListener implements Listener {
 
             for (final String key : armorConfig.getKeys(false)) {
                 final ConfigurationSection armor = armorConfig.getConfigurationSection(key);
+                final String material = armor.getString("material");
 
                 final String permission = Objects.requireNonNullElse(armor.getString("permission"), "abbacaving.armor." + key);
 
                 if (event.getWhoClicked().hasPermission(permission)) {
-                    final Material material = Material.getMaterial(armor.getString("material"));
-                    final Component displayName = MiniMessage.miniMessage().deserialize(armor.getString("display_name"));
-                    final ItemStack armorItem = new ItemStack(material);
-                    final List<Component> lore = new ArrayList<>();
+                    final ItemStack cosmeticItem = GamePlayer.cosmeticById(key);
 
-                    if (armor.contains("lore")) {
-                        for (final String loreEntry : armor.getStringList("lore")) {
-                            lore.add(MiniMessage.miniMessage().deserialize(loreEntry));
-                        }
+                    if (cosmeticItem != null) {
+                        armorContentPane.addItem(new GuiItem(cosmeticItem, cosmeticClick -> {
+                            if (gamePlayer.hasCosmeticSelected(key)) {
+                                gamePlayer.removeSelectedCosmetic(key);
+                                this.plugin.message(gamePlayer.player(), this.plugin.configMessage("cosmetic-deselect"), Map.of("cosmetic", key));
+                            } else {
+                                gamePlayer.addSelectedCosmetic(key, material);
+                                this.plugin.message(gamePlayer.player(), this.plugin.configMessage("cosmetic-select"), Map.of("cosmetic", key));
+                            }
+                        }), x++, y);
                     }
-
-                    armorItem.lore(lore);
-
-                    final ItemMeta itemMeta = armorItem.getItemMeta();
-                    itemMeta.displayName(displayName);
-
-                    if (armor.contains("custom_model_data")) {
-                        itemMeta.setCustomModelData(armor.getInt("custom_model_data"));
-                    }
-
-                    armorItem.setItemMeta(itemMeta);
-
-                    armorContentPane.addItem(new GuiItem(armorItem, cosmeticClick -> {
-                        // TODO: apply cosmetic
-                    }), x++, y);
                 }
             }
 
@@ -117,9 +124,17 @@ public class InventoryListener implements Listener {
 
         final GuiItem weaponCosmetics = new GuiItem(new ItemBuilder(Material.GOLDEN_SWORD)
                 .name(Component.text("Weapon Cosmetics")).build(), event -> {
+            final GamePlayer gamePlayer = this.plugin.gameTracker().gamePlayer(event.getWhoClicked().getUniqueId());
+
             final ChestGui weaponGui = new ChestGui(5, "Weapon Cosmetics");
 
             final StaticPane weaponContentPane = this.setupCosmeticsGui(weaponGui);
+
+            final GuiItem weaponBackButton = new GuiItem(new ItemBuilder(Material.FEATHER).name(Component.text("Return")).build(), armorBackEvent -> {
+                this.cosmeticsGui.show(event.getWhoClicked());
+            });
+
+            weaponContentPane.addItem(weaponBackButton, 8, 4);
 
             final ConfigurationSection weapons = this.plugin.getConfig().getConfigurationSection("cosmetics.weapons");
 
@@ -128,35 +143,24 @@ public class InventoryListener implements Listener {
 
             for (final String key : weapons.getKeys(false)) {
                 final ConfigurationSection weapon = weapons.getConfigurationSection(key);
+                final String material = weapon.getString("material");
 
                 final String permission = Objects.requireNonNullElse(weapon.getString("permission"), "abbacaving.weapon." + key);
 
                 if (event.getWhoClicked().hasPermission(permission)) {
-                    final Material material = Material.getMaterial(weapon.getString("material"));
-                    final Component displayName = MiniMessage.miniMessage().deserialize(weapon.getString("display_name"));
-                    final ItemStack weaponItem = new ItemStack(material);
-                    final List<Component> lore = new ArrayList<>();
+                    final ItemStack cosmeticItem = GamePlayer.cosmeticById(key);
 
-                    if (weapon.contains("lore")) {
-                        for (final String loreEntry : weapon.getStringList("lore")) {
-                            lore.add(MiniMessage.miniMessage().deserialize(loreEntry));
-                        }
+                    if (cosmeticItem != null) {
+                        weaponContentPane.addItem(new GuiItem(cosmeticItem, cosmeticClick -> {
+                            if (gamePlayer.hasCosmeticSelected(key)) {
+                                gamePlayer.removeSelectedCosmetic(key);
+                                this.plugin.message(gamePlayer.player(), this.plugin.configMessage("cosmetic-deselect"), Map.of("cosmetic", key));
+                            } else {
+                                gamePlayer.addSelectedCosmetic(key, material);
+                                this.plugin.message(gamePlayer.player(), this.plugin.configMessage("cosmetic-select"), Map.of("cosmetic", key));
+                            }
+                        }), x++, y);
                     }
-
-                    weaponItem.lore(lore);
-
-                    final ItemMeta itemMeta = weaponItem.getItemMeta();
-                    itemMeta.displayName(displayName);
-
-                    if (weapon.contains("custom_model_data")) {
-                        itemMeta.setCustomModelData(weapon.getInt("custom_model_data"));
-                    }
-
-                    weaponItem.setItemMeta(itemMeta);
-
-                    weaponContentPane.addItem(new GuiItem(weaponItem, cosmeticClick -> {
-                        // TODO: apply cosmetic
-                    }), x++, y);
                 }
             }
 

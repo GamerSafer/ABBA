@@ -2,15 +2,21 @@ package com.gamersafer.minecraft.abbacaving.game;
 
 import com.gamersafer.minecraft.abbacaving.AbbaCavingPlugin;
 import com.gamersafer.minecraft.abbacaving.util.Util;
+import dev.lone.itemsadder.api.CustomStack;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.UUID;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Sound;
+import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
 
 public class GamePlayer {
 
@@ -26,6 +32,7 @@ public class GamePlayer {
     private GameStats gameStats = null;
 
     private Map<Integer, String> hotbarLayout = new HashMap<>();
+    private final Map<String, String> selectedCosmetics = new HashMap<>();
 
     public GamePlayer(final AbbaCavingPlugin plugin, final UUID playerUUID) {
         this.plugin = plugin;
@@ -46,6 +53,127 @@ public class GamePlayer {
 
     public GameStats gameStats() {
         return this.gameStats;
+    }
+
+    public boolean hasCosmeticSelected(final String cosmetic) {
+        return this.selectedCosmetics.containsKey(cosmetic);
+    }
+
+    public void addSelectedCosmetic(final String cosmetic) {
+        final String material = this.materialForCosmetic(cosmetic);
+
+        this.addSelectedCosmetic(cosmetic, material);
+    }
+
+    public void addSelectedCosmetic(final String cosmetic, final String materialKey) {
+        this.selectedCosmetics.put(cosmetic, materialKey);
+
+        // remove other cosmetics with the same materialKey
+        this.selectedCosmetics.entrySet().removeIf(entry -> {
+            if (entry.getKey().equals(cosmetic)) {
+                return false;
+            }
+
+            return entry.getValue().equals(materialKey);
+        });
+    }
+
+    // There's a better way to do this, but this works for now.
+    private final List<String> TOOL_ITEMS = List.of("IRON_SWORD", "IRON_SHOVEL", "DIAMOND_PICKAXE");
+    private final List<String> ARMOR_ITEMS = List.of("IRON_HELMET", "IRON_CHESTPLATE", "IRON_LEGGINGS", "IRON_BOOTS");
+
+    public void removeToolCosmetics() {
+        this.selectedCosmetics.keySet().removeIf(this.TOOL_ITEMS::contains);
+    }
+
+    public void removeArmorCosmetics() {
+        this.selectedCosmetics.keySet().removeIf(this.ARMOR_ITEMS::contains);
+    }
+
+    public void removeSelectedCosmetic(final String cosmetic) {
+        this.selectedCosmetics.remove(cosmetic);
+    }
+
+    public void removeAllSelectedCosmetics() {
+        this.selectedCosmetics.clear();
+    }
+
+    public Set<String> selectedCosmetics() {
+        return Collections.unmodifiableSet(this.selectedCosmetics.keySet());
+    }
+
+    private String materialForCosmetic(final String cosmetic) {
+        final String weaponMaterial = this.plugin.getConfig().getString("cosmetics.weapon." + cosmetic + ".material");
+
+        if (weaponMaterial != null) {
+            return weaponMaterial;
+        }
+
+        final String armorMaterial = this.plugin.getConfig().getString("cosmetics.armor." + cosmetic + ".material");
+
+        if (armorMaterial != null) {
+            return armorMaterial;
+        }
+
+        return null;
+    }
+
+    public ItemStack selectedWeaponCosmetic(final String materialKey) {
+        final ConfigurationSection cosmetics = this.plugin.getConfig().getConfigurationSection("cosmetics.weapons");
+
+        for (final String key : cosmetics.getKeys(false)) {
+            final ConfigurationSection cosmetic = cosmetics.getConfigurationSection(key);
+            final String cosmeticMaterial = cosmetic.getString("material");
+
+            if (cosmeticMaterial == null || !cosmeticMaterial.equalsIgnoreCase(materialKey)) {
+                continue;
+            }
+
+            final String permission = Objects.requireNonNullElse(cosmetic.getString("permission"), "abbacaving.weapon." + key);
+
+            if (!this.player().hasPermission(permission)) {
+                continue;
+            }
+
+            if (this.hasCosmeticSelected(key)) {
+                return cosmeticById(key);
+            }
+        }
+
+        return null;
+    }
+
+    public ItemStack selectedArmorCosmetic(final String materialKey) {
+        final ConfigurationSection cosmetics = this.plugin.getConfig().getConfigurationSection("cosmetics.armor");
+
+        for (final String key : cosmetics.getKeys(false)) {
+            final ConfigurationSection cosmetic = cosmetics.getConfigurationSection(key);
+            final String cosmeticMaterial = cosmetic.getString("material");
+
+            if (cosmeticMaterial == null || !cosmeticMaterial.equalsIgnoreCase(materialKey)) {
+                continue;
+            }
+
+            if (!this.player().hasPermission(cosmetic.getString("permission"))) {
+                continue;
+            }
+
+            if (this.hasCosmeticSelected(key)) {
+                return cosmeticById(key);
+            }
+        }
+
+        return null;
+    }
+
+    public static ItemStack cosmeticById(final String id) {
+        final CustomStack customStack = CustomStack.getInstance(id);
+
+        if (customStack != null) {
+            return customStack.getItemStack();
+        }
+
+        return null;
     }
 
     public Map<Integer, String> hotbarLayout() {
@@ -88,11 +216,11 @@ public class GamePlayer {
         this.totalOresMined = oresMined;
     }
 
-    public int getRespawns() {
-        return respawns;
+    public int respawns() {
+        return this.respawns;
     }
 
-    public void setRespawns(int respawns) {
+    public void respawns(final int respawns) {
         this.respawns = respawns;
     }
 

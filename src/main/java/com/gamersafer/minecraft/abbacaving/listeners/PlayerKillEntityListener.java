@@ -13,12 +13,12 @@ public class PlayerKillEntityListener implements Listener {
 
     private final AbbaCavingPlugin cavingPlugin;
 
-    public PlayerKillEntityListener(AbbaCavingPlugin cavingPlugin) {
+    public PlayerKillEntityListener(final AbbaCavingPlugin cavingPlugin) {
         this.cavingPlugin = cavingPlugin;
     }
 
     @EventHandler
-    public void playerKillEntity(EntityDeathEvent event) {
+    public void playerKillEntity(final EntityDeathEvent event) {
         final Player player = event.getEntity().getKiller();
         if (player == null) {
             return;
@@ -30,11 +30,12 @@ public class PlayerKillEntityListener implements Listener {
             return;
         }
 
-        Game game = gp.gameStats().game();
+        final Game game = gp.gameStats().game();
         if (game.countMobKills()) {
             gp.gameStats().addScore(1, "Mob Kill");
             game.increasePlayerScore(gp, 1);
             Sounds.pling(player);
         }
     }
+
 }

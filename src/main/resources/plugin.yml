@@ -16,6 +16,9 @@ commands:
     description: Broadcast a message.
     permission: abbacaving.broadcast
     aliases: [ bcast ]
+  cosmetics:
+    description: Opens Cosmetics GUI
+    permission: abbacaving.cosmetics
   forcestart:
     description: Force starts the game.
     permission: abbacaving.forcestart

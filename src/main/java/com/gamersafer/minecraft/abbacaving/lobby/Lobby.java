@@ -3,6 +3,7 @@ package com.gamersafer.minecraft.abbacaving.lobby;
 import com.gamersafer.minecraft.abbacaving.AbbaCavingPlugin;
 import com.gamersafer.minecraft.abbacaving.game.Game;
 import com.gamersafer.minecraft.abbacaving.game.GameState;
+import com.gamersafer.minecraft.abbacaving.util.Sounds;
 import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -11,8 +12,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.logging.Level;
-
-import com.gamersafer.minecraft.abbacaving.util.Sounds;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.kyori.adventure.text.minimessage.tag.Tag;
