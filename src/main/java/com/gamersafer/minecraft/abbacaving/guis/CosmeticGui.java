@@ -36,7 +36,7 @@ public class CosmeticGui {
             }));
         }
 
-        this.cosmeticsGui = new SimpleListGui(items, Components.plainText("Cosmetics"));
+        this.cosmeticsGui = new SimpleListGui(items, Components.plainText("Cosmetics"), null);
     }
 
 
@@ -56,7 +56,9 @@ public class CosmeticGui {
             }));
         }
 
-        return new SimpleListGui(items, Components.plainText(species.name()));
+        return new SimpleListGui(items, Components.plainText(species.name()), (event) -> {
+            this.showCosmeticsGUI((Player) event.getWhoClicked());
+        });
     }
 
     public ChestGui createToolGui(ToolType type) {
@@ -88,11 +90,9 @@ public class CosmeticGui {
             }));
         }
 
-        SimpleListGui listGui = new SimpleListGui(items, Components.plainText("Cosmetics"));
-        ItemUtil.wrapGui(listGui.getInventoryComponent()).addItem(new GuiItem(ItemUtil.BACK, (event) -> {
+        return new SimpleListGui(items, Components.plainText("Cosmetics"), (event) -> {
             this.showCosmeticsGUI((Player) event.getWhoClicked());
-        }), listGui.getInventoryComponent().getLength() - 1, 0);
-        return listGui;
+        });
     }
 
 }

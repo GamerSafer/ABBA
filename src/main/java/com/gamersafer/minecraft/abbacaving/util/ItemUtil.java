@@ -9,6 +9,7 @@ import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Material;
 import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
+import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -60,14 +61,8 @@ public class ItemUtil {
         return pane;
     }
 
-    public static GuiItem back(Inventory inventory) {
-        if (inventory.getHolder() instanceof Gui gui) {
-            return new GuiItem(BACK, (event) -> {
-                gui.show(event.getWhoClicked());
-            });
-        } else {
-            return new GuiItem(new ItemStack(Material.BARRIER));
-        }
+    public static GuiItem back(Consumer<InventoryClickEvent> runnable) {
+        return new GuiItem(BACK, runnable::accept);
     }
 
     public static final ItemStack BACK = new ItemBuilder(Material.ARROW)
