@@ -27,7 +27,6 @@ import com.gamersafer.minecraft.abbacaving.listeners.PlayerKillEntityListener;
 import com.gamersafer.minecraft.abbacaving.listeners.PlayerListener;
 import com.gamersafer.minecraft.abbacaving.lobby.Lobby;
 import com.gamersafer.minecraft.abbacaving.placeholders.GamePlaceholders;
-import com.gamersafer.minecraft.abbacaving.placeholders.LobbyPlaceholders;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -39,7 +38,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import com.gamersafer.minecraft.abbacaving.placeholders.OldGamesPlaceholders;
 import com.gamersafer.minecraft.abbacaving.tools.CosmeticRegistry;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
@@ -99,8 +97,6 @@ public class AbbaCavingPlugin extends JavaPlugin {
 
         if (Bukkit.getPluginManager().isPluginEnabled("PlaceholderAPI")) {
             new GamePlaceholders(this).register();
-            new LobbyPlaceholders(this).register();
-            new OldGamesPlaceholders(this).register();
         }
 
         this.dataSource = new DummyDataSource();

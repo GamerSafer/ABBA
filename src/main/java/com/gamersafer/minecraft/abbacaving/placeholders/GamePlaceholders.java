@@ -1,13 +1,17 @@
 package com.gamersafer.minecraft.abbacaving.placeholders;
 
+import com.destroystokyo.paper.profile.PlayerProfile;
 import com.gamersafer.minecraft.abbacaving.AbbaCavingPlugin;
 import com.gamersafer.minecraft.abbacaving.game.Game;
 import com.gamersafer.minecraft.abbacaving.game.GamePlayer;
 import com.gamersafer.minecraft.abbacaving.game.GameState;
+import com.gamersafer.minecraft.abbacaving.game.PlayerWinEntry;
+import com.gamersafer.minecraft.abbacaving.lobby.LobbyQueue;
 import com.gamersafer.minecraft.abbacaving.util.Util;
 import java.util.ArrayList;
 import java.util.List;
 import me.clip.placeholderapi.expansion.PlaceholderExpansion;
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
 public class GamePlaceholders extends PlaceholderExpansion {
@@ -45,6 +49,62 @@ public class GamePlaceholders extends PlaceholderExpansion {
 
         final GamePlayer gp = this.plugin.gameTracker().findPlayerInGame(player);
         final Game game = this.plugin.gameTracker().findGame(player);
+
+        if ("online".equals(identifier)) {
+            return Integer.toString(Bukkit.getServer().getOnlinePlayers().size());
+        }
+
+        if (identifier.startsWith("map_")) {
+            final String trimmed = identifier.substring("map_".length());
+
+            if (!trimmed.contains("_")) {
+                return "";
+            }
+
+            final String mapName = trimmed.substring(0, trimmed.lastIndexOf("_"));
+            final String suffix = trimmed.substring(trimmed.lastIndexOf("_") + 1);
+
+            final LobbyQueue queue = this.plugin.lobby().lobbyQueue(mapName);
+
+            if (queue != null) {
+                return switch (suffix) {
+                    case "state" -> queue.state().displayName();
+                    case "players" -> Integer.toString(queue.playerQueue().size());
+                    case "slots" -> Integer.toString(queue.maxPlayers());
+                    case "counter" -> Integer.toString(queue.counter());
+                    case "required" -> Integer.toString(queue.getStartPlayerAmount());
+                    default -> "";
+                };
+            }
+
+        }
+        if (identifier.startsWith("game_")) {
+            String path = identifier.replace("game_", "");
+            String[] tokens = path.split("_");
+            String gameId = tokens[0];
+            if (tokens[1].equals("leaderboard")) {
+                int place = Integer.parseInt(tokens[2]);
+                PlayerWinEntry winEntry = this.plugin.playerDataSource().getWinEntry(gameId, place);
+                switch (tokens[2]) {
+                    case "playername" -> {
+                        PlayerProfile playerProfile = Bukkit.createProfile(winEntry.player());
+                        playerProfile.complete();
+
+                        return playerProfile.getName();
+                    }
+                    case "playeruuid" -> {
+                        return winEntry.player().toString();
+                    }
+                    case "score" -> {
+                        return Integer.toString(winEntry.score());
+                    }
+                }
+            }
+
+
+            return "";
+        }
+
 
         if (identifier.startsWith("leaderboard_score_")) {
             final int n = Integer.parseInt(identifier.replace("leaderboard_score_", ""));
