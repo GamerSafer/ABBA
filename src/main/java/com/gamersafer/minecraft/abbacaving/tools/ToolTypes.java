@@ -80,7 +80,7 @@ public interface ToolTypes {
                     .miniMessageName("<green><bold>Infinite Cobble")
                     .build()
 
-    ), 5);
+    ), 5, true);
 
     ToolType BUCKET = new SlottedHotbarTool(Keys.BUCKET, new DefaultedItemResolver(
             new CosmeticItemResolver(Keys.BUCKET),
@@ -94,7 +94,7 @@ public interface ToolTypes {
                     .miniMessageName("<green><bold>Infinite Torch")
                     .build()
 
-    ), 7);
+    ), 7, true);
 
     ToolType HELMET = new EquipmentTool(new DefaultedItemResolver(
             new CosmeticItemResolver(Keys.HELMET),

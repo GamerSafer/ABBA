@@ -27,6 +27,9 @@ public class CosmeticRegistry {
             List<Cosmetic> cosmeticList = this.cosmetics.computeIfAbsent(type, k -> new ArrayList<>());
 
             String item = cosmetic.getString("item");
+            if (item == null) {
+                item = key;
+            }
 
             Cosmetic newCosmetic = new Cosmetic(
                     item,

@@ -3,6 +3,8 @@ package com.gamersafer.minecraft.abbacaving.listeners;
 import com.gamersafer.minecraft.abbacaving.AbbaCavingPlugin;
 import com.gamersafer.minecraft.abbacaving.game.Game;
 import com.gamersafer.minecraft.abbacaving.game.GameState;
+import com.gamersafer.minecraft.abbacaving.tools.ToolType;
+import com.gamersafer.minecraft.abbacaving.tools.impl.SlottedHotbarTool;
 import org.bukkit.Material;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -45,7 +47,8 @@ public class BlockPlaceListener implements Listener {
         }
 
         final ItemStack item = event.getItemInHand();
-        if (item.getType() == Material.TORCH || item.getType() == Material.COBBLESTONE) {
+        SlottedHotbarTool toolType = SlottedHotbarTool.getStored(item);
+        if (toolType != null && toolType.isInfinite()) {
             item.setAmount(1);
             if (event.getPlayer().getInventory().getItemInMainHand().getType() == item.getType()) {
                 event.getPlayer().getInventory().setItemInMainHand(item);

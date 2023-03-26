@@ -3,6 +3,7 @@ package com.gamersafer.minecraft.abbacaving.guis;
 import com.gamersafer.minecraft.abbacaving.AbbaCavingPlugin;
 import com.gamersafer.minecraft.abbacaving.commands.ToolSpecies;
 import com.gamersafer.minecraft.abbacaving.game.GamePlayer;
+import com.gamersafer.minecraft.abbacaving.game.GameState;
 import com.gamersafer.minecraft.abbacaving.tools.CosmeticRegistry;
 import com.gamersafer.minecraft.abbacaving.tools.ToolType;
 import com.gamersafer.minecraft.abbacaving.util.Components;
@@ -69,6 +70,9 @@ public class CosmeticGui {
 
             plugin.message(gamePlayer.player(), plugin.configMessage("cosmetic-select"), Map.of("cosmetic", "default"));
             gamePlayer.removeSelectedCosmetic(type);
+            if (gamePlayer.gameStats().game().gameState() == GameState.RUNNING) {
+                plugin.message(gamePlayer.player(), plugin.configMessage("cosmetic-apply-after-game"));
+            }
         }));
 
         for (CosmeticRegistry.Cosmetic cosmetic : this.plugin.getCosmeticRegistry().get(type)) {
@@ -86,6 +90,10 @@ public class CosmeticGui {
                 if (old != cosmetic) {
                     gamePlayer.addSelectedCosmetic(type, cosmetic);
                     plugin.message(gamePlayer.player(), plugin.configMessage("cosmetic-select"), Map.of("cosmetic", cosmetic.identifier()));
+                }
+
+                if (gamePlayer.gameStats().game().gameState() == GameState.RUNNING) {
+                    plugin.message(gamePlayer.player(), plugin.configMessage("cosmetic-apply-after-game"));
                 }
             }));
         }

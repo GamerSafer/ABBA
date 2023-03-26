@@ -21,10 +21,17 @@ public class SlottedHotbarTool implements ToolType {
     private final ItemResolver resolver;
     private final int defaultSlot;
 
+    private final boolean isInfinite;
+
     public SlottedHotbarTool(String name, ItemResolver resolver, int slot) {
+        this(name, resolver, slot, false);
+    }
+
+    public SlottedHotbarTool(String name, ItemResolver resolver, int slot, boolean isInfinite) {
         this.identifier = name;
         this.resolver = resolver;
         this.defaultSlot = slot;
+        this.isInfinite = isInfinite;
         REGISTRY.put(name, this);
     }
 
@@ -69,5 +76,9 @@ public class SlottedHotbarTool implements ToolType {
 
     public String getIdentifier() {
         return identifier;
+    }
+
+    public boolean isInfinite() {
+        return this.isInfinite;
     }
 }

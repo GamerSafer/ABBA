@@ -19,7 +19,7 @@ default-settings:
   end-empty-games: true
   end-of-round:
     title: "<green>Round has ended!"
-    subtitle: "<aqua>Example subtitle."
+    subtitle: ""
     schematic:
       name: "AbbaEnd.schem"
       x: 0

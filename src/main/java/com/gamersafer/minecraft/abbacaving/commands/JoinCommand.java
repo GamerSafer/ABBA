@@ -87,7 +87,7 @@ public class JoinCommand implements CommandExecutor, TabCompleter {
             oldQueue.removePlayer(player.getUniqueId());
         }
 
-        queue.addPlayer(player.getUniqueId());
+        this.plugin.lobby().join(queue, player);
 
         this.plugin.message(sender, this.plugin.configMessage("join-lobby"), Map.of("map", queue.mapName()));
 
