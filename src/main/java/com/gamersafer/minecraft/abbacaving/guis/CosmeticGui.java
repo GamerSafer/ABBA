@@ -92,8 +92,10 @@ public class CosmeticGui {
                     plugin.message(gamePlayer.player(), plugin.configMessage("cosmetic-select"), Map.of("cosmetic", cosmetic.identifier()));
                 }
 
-                if (gamePlayer.gameStats().game().gameState() == GameState.RUNNING) {
-                    plugin.message(gamePlayer.player(), plugin.configMessage("cosmetic-apply-after-game"));
+                if (gamePlayer.gameStats() != null) {
+                    if (gamePlayer.gameStats().game().gameState() == GameState.RUNNING) {
+                        plugin.message(gamePlayer.player(), plugin.configMessage("cosmetic-apply-after-game"));
+                    }
                 }
             }));
         }
