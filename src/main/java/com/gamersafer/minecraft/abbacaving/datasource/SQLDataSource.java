@@ -244,7 +244,7 @@ public class SQLDataSource implements DataSource {
     public void savePlayerRespawns(final GamePlayer gp) {
         try (final Connection conn = this.dataSource.getConnection()) {
             try (final PreparedStatement stmt = conn.prepareStatement(
-                    "INSERT INTO abba_respawns (uuid, respawns) VALUES (?, ?) ON DUPLICATE KEY UPDATE points = ?;")) {
+                    "INSERT INTO abba_respawns (uuid, respawns) VALUES (?, ?) ON DUPLICATE KEY UPDATE respawns = ?;")) {
                 stmt.setString(1, gp.playerUUID().toString());
                 stmt.setInt(2, gp.respawns());
                 stmt.setInt(3, gp.respawns());
