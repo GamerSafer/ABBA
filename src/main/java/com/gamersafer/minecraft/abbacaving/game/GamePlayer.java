@@ -88,7 +88,11 @@ public class GamePlayer {
     }
 
     public void hotbarLayout(final SlottedHotbarTool material, final int slot) {
-        this.hotbarLayout.put(material, slot);
+        if (material == null) {
+            this.plugin.getLogger().warning("Ignoring null hotbar item " + material + " in slot " + slot);
+        } else {
+            this.hotbarLayout.put(material, slot);
+        }
     }
 
     public int wins() {

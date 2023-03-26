@@ -64,6 +64,7 @@ public class SlottedHotbarTool implements ToolType {
         ItemStack itemStack = this.resolver.get(player);
         itemStack.editMeta((meta) -> {
             meta.getPersistentDataContainer().set(KEY, PersistentDataType.STRING, this.identifier);
+            meta.setUnbreakable(true);
         });
 
         player.player().getInventory().setItem(slot, itemStack);
