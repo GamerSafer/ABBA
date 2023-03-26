@@ -25,7 +25,7 @@ public class CosmeticItemResolver implements ItemResolver {
         }
 
         ToolType toolType = ToolTypes.fromIdentifier(identifier);
-        CosmeticRegistry.Cosmetic cosmetic =  player.getSelectedCosmetic(toolType);
+        CosmeticRegistry.Cosmetic cosmetic = player.getSelectedCosmetic(toolType);
         if (cosmetic == null) {
             return null;
         }

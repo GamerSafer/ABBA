@@ -70,7 +70,7 @@ public class CosmeticGui {
 
             plugin.message(gamePlayer.player(), plugin.configMessage("cosmetic-select"), Map.of("cosmetic", "default"));
             gamePlayer.removeSelectedCosmetic(type);
-            if (gamePlayer.gameStats().game().gameState() == GameState.RUNNING) {
+            if (gamePlayer.gameStats() != null && gamePlayer.gameStats().game().gameState() == GameState.RUNNING) {
                 plugin.message(gamePlayer.player(), plugin.configMessage("cosmetic-apply-after-game"));
             }
         }));

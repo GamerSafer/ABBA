@@ -164,7 +164,7 @@ public class SQLDataSource implements DataSource {
             for (final CosmeticRegistry.Cosmetic cosmetic : gp.selectedCosmetics()) {
                 try (final PreparedStatement stmt = conn.prepareStatement(
                         "INSERT INTO abba_cosmetics (uuid, cosmetic) VALUES (?, ?);")) {
-                    stmt.setString(1, gp.player().getUniqueId().toString());
+                    stmt.setString(1, gp.playerUUID().toString());
                     stmt.setString(2, cosmetic.identifier());
 
                     stmt.executeUpdate();

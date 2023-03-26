@@ -84,8 +84,8 @@ public class GamePlaceholders extends PlaceholderExpansion {
             String gameId = tokens[0];
             if (tokens[1].equals("leaderboard")) {
                 int place = Integer.parseInt(tokens[2]);
-                PlayerWinEntry winEntry = this.plugin.playerDataSource().getWinEntry(gameId, place);
-                switch (tokens[2]) {
+                PlayerWinEntry winEntry = this.plugin.playerDataSource().getWinEntry(gameId, place + 1);
+                switch (tokens[3]) {
                     case "playername" -> {
                         PlayerProfile playerProfile = Bukkit.createProfile(winEntry.player());
                         playerProfile.complete();

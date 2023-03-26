@@ -81,4 +81,14 @@ public class SlottedHotbarTool implements ToolType {
     public boolean isInfinite() {
         return this.isInfinite;
     }
+
+    @Override
+    public String toString() {
+        return "SlottedHotbarTool{" +
+                "identifier='" + identifier + '\'' +
+                ", resolver=" + resolver +
+                ", defaultSlot=" + defaultSlot +
+                ", isInfinite=" + isInfinite +
+                '}';
+    }
 }

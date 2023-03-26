@@ -407,7 +407,7 @@ public class Game {
 
     public void stop() {
         this.plugin.getLogger().info("Game ended for map [" + this.mapName + "] and game ID [" + this.gameId + "]");
-
+        this.plugin.playerDataSource().saveFinishedGame(this);
         this.broadcast(this.plugin.configMessage("game-ended"));
 
         if (this.leaderboard.size() > 0) {

@@ -50,3 +50,5 @@
 * `%abbacaving_game_<gameid>_leaderboard_<num>_playername%`  - the name of a player on game `<gameid>` who placed `<num>`
 * `%abbacaving_game_<gameid>_leaderboard_<num>_playeruuid%`  - the uuid of a player on game `<gameid>` who placed `<num>`
 * `%abbacaving_game_<gameid>_leaderboard_<num>_score%`        - the score of a player on game `<gameid>` who placed `<num>`
+
+Note: Num starts at 1
