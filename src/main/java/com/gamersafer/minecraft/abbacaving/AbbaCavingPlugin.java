@@ -97,7 +97,7 @@ public class AbbaCavingPlugin extends JavaPlugin {
         this.getServer().getPluginManager().registerEvents(new PlayerListener(this), this);
         this.getServer().getPluginManager().registerEvents(new PlayerKillEntityListener(this), this);
 
-        if (Bukkit.getPluginManager().isPluginEnabled("PlaceholdersAPI")) {
+        if (Bukkit.getPluginManager().isPluginEnabled("PlaceholderAPI")) {
             new GamePlaceholders(this).register();
             new LobbyPlaceholders(this).register();
             new OldGamesPlaceholders(this).register();
