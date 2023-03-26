@@ -14,6 +14,7 @@ import com.gamersafer.minecraft.abbacaving.commands.RespawnCountCommand;
 import com.gamersafer.minecraft.abbacaving.commands.StatsCommand;
 import com.gamersafer.minecraft.abbacaving.datasource.DummyDataSource;
 import com.gamersafer.minecraft.abbacaving.datasource.DataSource;
+import com.gamersafer.minecraft.abbacaving.datasource.SQLDataSource;
 import com.gamersafer.minecraft.abbacaving.game.CaveLoot;
 import com.gamersafer.minecraft.abbacaving.game.CaveOre;
 import com.gamersafer.minecraft.abbacaving.game.Game;
@@ -99,7 +100,7 @@ public class AbbaCavingPlugin extends JavaPlugin {
             new GamePlaceholders(this).register();
         }
 
-        this.dataSource = new DummyDataSource();
+        this.dataSource = new SQLDataSource(this);
         this.dataSource.init();
 
         final ACLookupCommand acLookupCommand = new ACLookupCommand(this);
