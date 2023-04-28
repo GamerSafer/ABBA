@@ -11,7 +11,7 @@ import org.bukkit.inventory.ItemStack;
 public enum ToolSpecies {
 
     ARMOR(ToolTypes.HELMET, ToolTypes.CHESTPLATE, ToolTypes.LEGGINGS, ToolTypes.BOOTS, ToolTypes.SHIELD),
-    TOOL(ToolTypes.SHOVEL, ToolTypes.SWORD, ToolTypes.PICKAXE, ToolTypes.BUCKET, ToolTypes.BEEF, ToolTypes.BOW),
+    TOOL(ToolTypes.TORCH, ToolTypes.SHOVEL, ToolTypes.SWORD, ToolTypes.PICKAXE, ToolTypes.BUCKET, ToolTypes.BEEF, ToolTypes.BOW),
     BLOCK(ToolTypes.BLOCK);
 
     private final ToolType[] cosmeticTypes;
