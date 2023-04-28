@@ -9,21 +9,22 @@ import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 
 public enum ToolSpecies {
+
     ARMOR(ToolTypes.HELMET, ToolTypes.CHESTPLATE, ToolTypes.LEGGINGS, ToolTypes.BOOTS, ToolTypes.SHIELD),
     TOOL(ToolTypes.SHOVEL, ToolTypes.SWORD, ToolTypes.PICKAXE, ToolTypes.BUCKET, ToolTypes.BEEF, ToolTypes.BOW),
     BLOCK(ToolTypes.BLOCK);
 
     private final ToolType[] cosmeticTypes;
 
-    ToolSpecies(ToolType... cosmeticTypes) {
+    ToolSpecies(final ToolType... cosmeticTypes) {
         this.cosmeticTypes = cosmeticTypes;
     }
 
-    public ToolType[] getTypes() {
-        return cosmeticTypes;
+    public ToolType[] types() {
+        return this.cosmeticTypes;
     }
 
-    public static ItemStack display(ToolSpecies species) {
+    public static ItemStack display(final ToolSpecies species) {
         return switch (species) {
             case TOOL ->
                     new ItemBuilder(Material.IRON_PICKAXE).name(Components.plainText("Tools", NamedTextColor.GRAY)).build();
@@ -33,4 +34,5 @@ public enum ToolSpecies {
                     new ItemBuilder(Material.COBBLESTONE).name(Components.plainText("Block", NamedTextColor.GREEN)).build();
         };
     }
+
 }

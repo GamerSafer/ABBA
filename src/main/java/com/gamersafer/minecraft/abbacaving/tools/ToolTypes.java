@@ -29,7 +29,6 @@ public interface ToolTypes {
         String SHIELD = "SHIELD";
     }
 
-
     ToolType PICKAXE = new SlottedHotbarTool(Keys.PICKAXE, new DefaultedItemResolver(
             new CosmeticItemResolver(Keys.PICKAXE),
             new ItemBuilder(Material.DIAMOND_PICKAXE)
@@ -117,12 +116,10 @@ public interface ToolTypes {
             new ItemStack(Material.IRON_BOOTS)
     ), EquipmentSlot.FEET);
 
-
     ToolType SHIELD = new EquipmentTool(new DefaultedItemResolver(
             new CosmeticItemResolver(Keys.SHIELD),
             new ItemStack(Material.SHIELD)
     ), EquipmentSlot.OFF_HAND);
-
 
     static ToolType fromIdentifier(String identifier) {
         return ToolTypeRegistry.fromIdentifier(identifier);

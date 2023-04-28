@@ -3,14 +3,13 @@ package com.gamersafer.minecraft.abbacaving.tools.impl;
 import com.gamersafer.minecraft.abbacaving.game.GamePlayer;
 import com.gamersafer.minecraft.abbacaving.tools.ToolType;
 import com.gamersafer.minecraft.abbacaving.tools.impl.resolver.ItemResolver;
+import java.util.HashMap;
+import java.util.Map;
 import org.bukkit.NamespacedKey;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataType;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.HashMap;
-import java.util.Map;
 
 public class SlottedHotbarTool implements ToolType {
 
@@ -23,11 +22,11 @@ public class SlottedHotbarTool implements ToolType {
 
     private final boolean isInfinite;
 
-    public SlottedHotbarTool(String name, ItemResolver resolver, int slot) {
+    public SlottedHotbarTool(final String name, final ItemResolver resolver, final int slot) {
         this(name, resolver, slot, false);
     }
 
-    public SlottedHotbarTool(String name, ItemResolver resolver, int slot, boolean isInfinite) {
+    public SlottedHotbarTool(final String name, final ItemResolver resolver, final int slot, final boolean isInfinite) {
         this.identifier = name;
         this.resolver = resolver;
         this.defaultSlot = slot;
@@ -36,33 +35,33 @@ public class SlottedHotbarTool implements ToolType {
     }
 
     @Nullable
-    public static SlottedHotbarTool getStored(String identifier) {
+    public static SlottedHotbarTool stored(final String identifier) {
         return REGISTRY.get(identifier);
     }
 
     @Nullable
-    public static SlottedHotbarTool getStored(ItemStack slotItem) {
+    public static SlottedHotbarTool stored(final ItemStack slotItem) {
         if (slotItem == null) {
             return null;
         }
 
-        ItemMeta meta = slotItem.getItemMeta();
+        final ItemMeta meta = slotItem.getItemMeta();
         if (meta == null) {
             return null;
         }
-        String identifier = meta.getPersistentDataContainer().get(KEY, PersistentDataType.STRING);
-        return getStored(identifier);
+        final String identifier = meta.getPersistentDataContainer().get(KEY, PersistentDataType.STRING);
+        return stored(identifier);
     }
 
     @Override
-    public void apply(GamePlayer player) {
+    public void apply(final GamePlayer player) {
         Integer slot = player.hotbarLayout().get(this);
         if (slot == null) {
             slot = this.defaultSlot;
         }
 
-        ItemStack itemStack = this.resolver.get(player);
-        itemStack.editMeta((meta) -> {
+        final ItemStack itemStack = this.resolver.get(player);
+        itemStack.editMeta(meta -> {
             meta.getPersistentDataContainer().set(KEY, PersistentDataType.STRING, this.identifier);
             meta.setUnbreakable(true);
         });
@@ -71,12 +70,12 @@ public class SlottedHotbarTool implements ToolType {
     }
 
     @Override
-    public ItemStack getIcon() {
+    public ItemStack icon() {
         return this.resolver.get(null);
     }
 
-    public String getIdentifier() {
-        return identifier;
+    public String identifier() {
+        return this.identifier;
     }
 
     public boolean isInfinite() {
@@ -86,10 +85,11 @@ public class SlottedHotbarTool implements ToolType {
     @Override
     public String toString() {
         return "SlottedHotbarTool{" +
-                "identifier='" + identifier + '\'' +
-                ", resolver=" + resolver +
-                ", defaultSlot=" + defaultSlot +
-                ", isInfinite=" + isInfinite +
+                "identifier='" + this.identifier + '\'' +
+                ", resolver=" + this.resolver +
+                ", defaultSlot=" + this.defaultSlot +
+                ", isInfinite=" + this.isInfinite +
                 '}';
     }
+
 }

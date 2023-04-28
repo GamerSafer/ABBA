@@ -5,11 +5,8 @@ import com.gamersafer.minecraft.abbacaving.game.validators.AbbaValidator;
 import com.gamersafer.minecraft.abbacaving.lobby.LobbyQueue;
 import com.gamersafer.minecraft.abbacaving.lobby.QueueState;
 import com.gamersafer.minecraft.abbacaving.tools.ToolManager;
-import com.gamersafer.minecraft.abbacaving.tools.ToolType;
-import com.gamersafer.minecraft.abbacaving.tools.impl.SlottedHotbarTool;
 import com.gamersafer.minecraft.abbacaving.util.Components;
 import com.gamersafer.minecraft.abbacaving.util.ItemBuilder;
-import com.gamersafer.minecraft.abbacaving.util.OrderedMapBuilder;
 import com.gamersafer.minecraft.abbacaving.util.Util;
 import com.sk89q.worldedit.EditSession;
 import com.sk89q.worldedit.WorldEdit;
@@ -42,7 +39,6 @@ import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
-
 import net.coreprotect.CoreProtect;
 import net.coreprotect.CoreProtectAPI;
 import net.kyori.adventure.key.InvalidKeyException;
@@ -64,12 +60,10 @@ import org.bukkit.World;
 import org.bukkit.WorldCreator;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.configuration.ConfigurationSection;
-import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.plugin.Plugin;
 import org.intellij.lang.annotations.Subst;
 
@@ -160,7 +154,7 @@ public class Game {
             final RandomSearcher randomSearcher = randomTeleport.getRandomSearcher(player, this.world().getSpawnLocation(),
                     minRadius, maxRadius, this.blockValidator); // Don't use our custom validator for now, it seems to cause problems.
 
-            ValidatorRegistry registry = randomSearcher.getValidators();
+            final ValidatorRegistry registry = randomSearcher.getValidators();
             registry.getRaw().clear(); // Clear default validators
             registry.add(this.blockValidator); // Add our own
             randomSearcher.setMaxTries(maxTries);
@@ -284,7 +278,6 @@ public class Game {
 
         return gp;
     }
-
 
     public GamePlayer player(final Player player) {
         for (final GamePlayer gp : this.players.values()) {
@@ -681,7 +674,6 @@ public class Game {
     public void startingInventory(final GamePlayer player) {
         ToolManager. apply(player);
     }
-
 
     public void preparePlayer(final Player player) {
         final int maxHealth = this.mapSetting("player-health");

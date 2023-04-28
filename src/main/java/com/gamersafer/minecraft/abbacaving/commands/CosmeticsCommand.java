@@ -1,7 +1,6 @@
 package com.gamersafer.minecraft.abbacaving.commands;
 
 import com.gamersafer.minecraft.abbacaving.AbbaCavingPlugin;
-import com.gamersafer.minecraft.abbacaving.guis.CosmeticGui;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -22,7 +21,7 @@ public class CosmeticsCommand implements CommandExecutor {
             return true;
         }
 
-        this.plugin.getCosmeticGui().showCosmeticsGUI(player);
+        this.plugin.cosmeticGui().showCosmeticsGUI(player);
 
         return true;
     }

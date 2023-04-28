@@ -12,7 +12,6 @@ import com.gamersafer.minecraft.abbacaving.commands.NightVisionCommand;
 import com.gamersafer.minecraft.abbacaving.commands.PointsCommand;
 import com.gamersafer.minecraft.abbacaving.commands.RespawnCountCommand;
 import com.gamersafer.minecraft.abbacaving.commands.StatsCommand;
-import com.gamersafer.minecraft.abbacaving.datasource.DummyDataSource;
 import com.gamersafer.minecraft.abbacaving.datasource.DataSource;
 import com.gamersafer.minecraft.abbacaving.datasource.SQLDataSource;
 import com.gamersafer.minecraft.abbacaving.game.CaveLoot;
@@ -28,6 +27,7 @@ import com.gamersafer.minecraft.abbacaving.listeners.PlayerKillEntityListener;
 import com.gamersafer.minecraft.abbacaving.listeners.PlayerListener;
 import com.gamersafer.minecraft.abbacaving.lobby.Lobby;
 import com.gamersafer.minecraft.abbacaving.placeholders.GamePlaceholders;
+import com.gamersafer.minecraft.abbacaving.tools.CosmeticRegistry;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -38,8 +38,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-
-import com.gamersafer.minecraft.abbacaving.tools.CosmeticRegistry;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.kyori.adventure.text.minimessage.tag.Tag;
@@ -180,11 +178,11 @@ public class AbbaCavingPlugin extends JavaPlugin {
         return this.gameTracker;
     }
 
-    public CosmeticGui getCosmeticGui() {
-        if (cosmeticGui == null) {
+    public CosmeticGui cosmeticGui() {
+        if (this.cosmeticGui == null) {
             this.cosmeticGui = new CosmeticGui(this); // Lazy init for items adder
         }
-        return cosmeticGui;
+        return this.cosmeticGui;
     }
 
     public Lobby lobby() {
@@ -353,7 +351,8 @@ public class AbbaCavingPlugin extends JavaPlugin {
         this.mapSpawns = new HashMap<>();
     }
 
-    public CosmeticRegistry getCosmeticRegistry() {
+    public CosmeticRegistry cosmeticRegistry() {
         return this.cosmeticRegistry;
     }
+
 }

@@ -127,7 +127,7 @@ public class Lobby implements Listener {
     }
     
     private void handleQueueWaiting(final LobbyQueue queue) {
-        if (queue.playerQueue().size() >= queue.getStartPlayerAmount()) {
+        if (queue.playerQueue().size() >= queue.startPlayeramount()) {
             this.preStart(queue);
         } else {
             for (final UUID uuid : queue.playerQueue()) {
@@ -136,14 +136,14 @@ public class Lobby implements Listener {
                 if (player != null) {
                     player.sendActionBar(MiniMessage.miniMessage().deserialize(this.plugin.configMessage("lobby-count"),
                             TagResolver.resolver("current", Tag.inserting(Component.text(queue.playerQueue().size()))),
-                            TagResolver.resolver("max", Tag.inserting(Component.text(queue.getStartPlayerAmount())))));
+                            TagResolver.resolver("max", Tag.inserting(Component.text(queue.startPlayeramount())))));
                 }
             }
         }
     }
     
     private void handleQueueStarting(final LobbyQueue queue) {
-        if (!queue.forceStart() && queue.playerQueue().size() < queue.getStartPlayerAmount()) {
+        if (!queue.forceStart() && queue.playerQueue().size() < queue.startPlayeramount()) {
             this.cancelPreStart(queue);
             return;
         }
@@ -183,7 +183,7 @@ public class Lobby implements Listener {
         }
     }
 
-    public void join(LobbyQueue queue, Player player) {
+    public void join(final LobbyQueue queue, final Player player) {
         queue.addPlayer(player.getUniqueId());
         queue.addWaitingFuture(this.plugin.game(queue.mapName()).preparePlayerSpawn(player));
     }
@@ -280,11 +280,10 @@ public class Lobby implements Listener {
 
     public void sendToLobby(final HumanEntity player) {
         ((Player) player).spigot().respawn();
-        new BukkitRunnable(){
-
+        new BukkitRunnable() {
             @Override
             public void run() {
-                player.teleport(lobbySpawn());
+                player.teleport(Lobby.this.lobbySpawn());
             }
         }.runTaskLater(this.plugin, 10);
 

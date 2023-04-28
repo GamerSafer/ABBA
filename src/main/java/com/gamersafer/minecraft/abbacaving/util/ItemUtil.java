@@ -2,57 +2,53 @@ package com.gamersafer.minecraft.abbacaving.util;
 
 import com.github.stefvanschie.inventoryframework.gui.GuiItem;
 import com.github.stefvanschie.inventoryframework.gui.InventoryComponent;
-import com.github.stefvanschie.inventoryframework.gui.type.util.Gui;
 import com.github.stefvanschie.inventoryframework.pane.StaticPane;
-import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.format.NamedTextColor;
-import org.bukkit.Material;
-import org.bukkit.entity.Item;
-import org.bukkit.entity.Player;
-import org.bukkit.event.inventory.InventoryClickEvent;
-import org.bukkit.inventory.Inventory;
-import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.ItemMeta;
-
 import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.List;
 import java.util.function.Consumer;
+import org.bukkit.Material;
+import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
 
-public class ItemUtil {
+public final class ItemUtil {
 
-    public static ItemStack wrapEdit(ItemStack itemStack, Consumer<ItemMeta> meta) {
+    private ItemUtil() {
+
+    }
+
+    public static ItemStack wrapEdit(final ItemStack itemStack, final Consumer<ItemMeta> meta) {
         itemStack.editMeta(meta);
         return itemStack;
     }
 
     // Panes are annoying, wrap it
-    public static StaticPane wrapGui(InventoryComponent component) {
+    public static StaticPane wrapGui(final InventoryComponent component) {
         return wrapGui(component, component.getLength(), component.getHeight());
     }
 
-    public static StaticPane wrapGui(InventoryComponent component, int length, int height) {
-        StaticPane staticPane = new StaticPane(0, 0, length, height);
+    public static StaticPane wrapGui(final InventoryComponent component, final int length, final int height) {
+        final StaticPane staticPane = new StaticPane(0, 0, length, height);
         component.addPane(staticPane);
         return staticPane;
     }
 
-    public static StaticPane wrapGui(InventoryComponent component, int x, int y, int length, int height) {
-        StaticPane staticPane = new StaticPane(x, y, length, height);
+    public static StaticPane wrapGui(final InventoryComponent component, final int x, final int y, final int length, final int height) {
+        final StaticPane staticPane = new StaticPane(x, y, length, height);
         component.addPane(staticPane);
         return staticPane;
     }
 
-
-    public static StaticPane listItems(StaticPane pane, List<GuiItem> item) {
-        Deque<GuiItem> queue = new ArrayDeque<>(item);
+    public static StaticPane listItems(final StaticPane pane, final List<GuiItem> item) {
+        final Deque<GuiItem> queue = new ArrayDeque<>(item);
 
         for (int height = 0; height < pane.getHeight(); height++) {
             for (int length = 0; length < pane.getLength(); length++) {
                 if (queue.isEmpty()) {
                     return pane;
                 }
-                GuiItem popped = queue.pop();
+                final GuiItem popped = queue.pop();
 
                 pane.addItem(popped, length, height);
             }
@@ -61,7 +57,7 @@ public class ItemUtil {
         return pane;
     }
 
-    public static GuiItem back(Consumer<InventoryClickEvent> runnable) {
+    public static GuiItem back(final Consumer<InventoryClickEvent> runnable) {
         return new GuiItem(BACK, runnable::accept);
     }
 

@@ -6,17 +6,16 @@ import com.gamersafer.minecraft.abbacaving.tools.ToolManager;
 import com.gamersafer.minecraft.abbacaving.tools.ToolType;
 import com.gamersafer.minecraft.abbacaving.tools.impl.SlottedHotbarTool;
 import com.gamersafer.minecraft.abbacaving.util.Util;
-import net.kyori.adventure.text.Component;
-import org.bukkit.Bukkit;
-import org.bukkit.Location;
-import org.bukkit.Sound;
-import org.bukkit.entity.Player;
-
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
+import net.kyori.adventure.text.Component;
+import org.bukkit.Bukkit;
+import org.bukkit.Location;
+import org.bukkit.Sound;
+import org.bukkit.entity.Player;
 
 public class GamePlayer {
 
@@ -55,7 +54,7 @@ public class GamePlayer {
         return this.gameStats;
     }
 
-    public CosmeticRegistry.Cosmetic getSelectedCosmetic(final ToolType cosmetic) {
+    public CosmeticRegistry.Cosmetic selectedCosmetic(final ToolType cosmetic) {
         return this.selectedCosmetics.get(cosmetic);
     }
 
@@ -133,7 +132,7 @@ public class GamePlayer {
 
     public void populateHotbar() {
         final Map<SlottedHotbarTool, Integer> hotbarSlots = ToolManager.serializeHotbarTools(this);
-        hotbarLayout(hotbarSlots);
+        this.hotbarLayout(hotbarSlots);
     }
 
     public void saveHotbar() {

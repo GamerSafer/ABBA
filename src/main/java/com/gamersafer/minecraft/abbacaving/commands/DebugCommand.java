@@ -23,14 +23,14 @@ public class DebugCommand implements CommandExecutor {
             return true;
         }
 
-        Block block = player.getLocation().getBlock().getRelative(BlockFace.DOWN);
+        final Block block = player.getLocation().getBlock().getRelative(BlockFace.DOWN);
         if (args.length == 1) {
             System.out.println(block);
             System.out.println(block.isSolid());
             System.out.println(this.isBlockSafe(block.getRelative(BlockFace.UP)));
             System.out.println(this.isBlockSafe(block.getRelative(BlockFace.UP, 2)));
         } else {
-            this.plugin.gameTracker().gamePlayer(player).gameStats().game().randomLocation(player).thenAccept((loc) -> {
+            this.plugin.gameTracker().gamePlayer(player).gameStats().game().randomLocation(player).thenAccept(loc -> {
                 player.teleport(loc.toCenterLocation());
             });
         }
@@ -38,9 +38,8 @@ public class DebugCommand implements CommandExecutor {
         return true;
     }
 
-
     private boolean isBlockSafe(final Block block) {
-        return block.isEmpty() || (block.isPassable() && !block.isLiquid());
+        return block.isEmpty() || block.isPassable() && !block.isLiquid();
     }
 
 }

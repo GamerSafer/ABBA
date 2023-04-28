@@ -148,7 +148,12 @@ public class PlayerListener implements Listener {
             dataSource.savePlayerRespawns(gp);
         });
 
-        final Game game = gp.gameStats().game();
+        final GamePlayer.GameStats gameStats = gp.gameStats();
+        if (gameStats == null) {
+            return;
+        }
+
+        final Game game = gameStats.game();
         if (game == null || game.gameState() == GameState.DONE) {
             return;
         }

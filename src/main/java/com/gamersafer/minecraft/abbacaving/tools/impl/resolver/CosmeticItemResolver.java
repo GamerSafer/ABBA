@@ -14,18 +14,19 @@ public class CosmeticItemResolver implements ItemResolver {
 
     private final String identifier;
 
-    public CosmeticItemResolver(String identifier) {
+    public CosmeticItemResolver(final String identifier) {
         this.identifier = identifier;
     }
 
     @Override
-    public @Nullable ItemStack get(@Nullable GamePlayer player) {
+    public @Nullable ItemStack get(final @Nullable GamePlayer player) {
         if (player == null) {
             return null;
         }
 
-        ToolType toolType = ToolTypes.fromIdentifier(identifier);
-        CosmeticRegistry.Cosmetic cosmetic = player.getSelectedCosmetic(toolType);
+        final ToolType toolType = ToolTypes.fromIdentifier(this.identifier);
+        final CosmeticRegistry.Cosmetic cosmetic = player.selectedCosmetic(toolType);
+
         if (cosmetic == null) {
             return null;
         }

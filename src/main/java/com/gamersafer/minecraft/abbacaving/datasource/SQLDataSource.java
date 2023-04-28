@@ -8,7 +8,6 @@ import com.gamersafer.minecraft.abbacaving.tools.CosmeticRegistry;
 import com.gamersafer.minecraft.abbacaving.tools.impl.SlottedHotbarTool;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
-
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -84,7 +83,7 @@ public class SQLDataSource implements DataSource {
 
                 try (final ResultSet rs = hotbarStatement.executeQuery()) {
                     while (rs.next()) {
-                        gp.hotbarLayout(SlottedHotbarTool.getStored(rs.getString("material")), rs.getInt("slot"));
+                        gp.hotbarLayout(SlottedHotbarTool.stored(rs.getString("material")), rs.getInt("slot"));
                     }
                 }
             }
@@ -95,7 +94,7 @@ public class SQLDataSource implements DataSource {
 
                 try (final ResultSet rs = cosmeticsStatement.executeQuery()) {
                     while (rs.next()) {
-                        CosmeticRegistry.Cosmetic cosmetic = this.plugin.getCosmeticRegistry().get(rs.getString("cosmetic"));
+                        final CosmeticRegistry.Cosmetic cosmetic = this.plugin.cosmeticRegistry().get(rs.getString("cosmetic"));
                         gp.addSelectedCosmetic(cosmetic.toolType(), cosmetic);
                     }
                 }
@@ -137,9 +136,9 @@ public class SQLDataSource implements DataSource {
                         "INSERT INTO abba_hotbar_layout (uuid, slot, material) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE slot = ?, material = ?;")) {
                     stmt.setString(1, gp.playerUUID().toString());
                     stmt.setInt(2, entry.getValue());
-                    stmt.setString(3, entry.getKey().getIdentifier());
+                    stmt.setString(3, entry.getKey().identifier());
                     stmt.setInt(4, entry.getValue());
-                    stmt.setString(5, entry.getKey().getIdentifier());
+                    stmt.setString(5, entry.getKey().identifier());
 
                     stmt.executeUpdate();
                 } catch (final SQLException ex) {
@@ -173,7 +172,7 @@ public class SQLDataSource implements DataSource {
 
     //CREATE TABLE IF NOT EXISTS abba_round_leaderboard (round_id VARCHAR(50) NOT NULL, place INT NOT NULL, player VARCHAR(50) NOT NULL, score INT NOT NULL, PRIMARY KEY(round_id, place));
     @Override
-    public void saveFinishedGame(Game game) {
+    public void saveFinishedGame(final Game game) {
         try (final Connection conn = this.dataSource.getConnection()) {
             int entryNum = 0;
             for (final Map.Entry<GamePlayer, Integer> entry : game.leaderboard().entrySet()) {
@@ -196,7 +195,7 @@ public class SQLDataSource implements DataSource {
     }
 
     @Override
-    public PlayerWinEntry getWinEntry(String gameId, int place) {
+    public PlayerWinEntry winEntry(final String gameId, final int place) {
         try (final Connection conn = this.dataSource.getConnection()) {
             // Load game stats
             try (final PreparedStatement stmt = conn.prepareStatement("SELECT player, score FROM abba_round_leaderboard WHERE round_id = ? AND place = ?;")) {
@@ -205,8 +204,8 @@ public class SQLDataSource implements DataSource {
 
                 try (final ResultSet rs = stmt.executeQuery()) {
                     if (rs.next()) {
-                        int points = rs.getInt("score");
-                        UUID player = UUID.fromString(rs.getString("player"));
+                        final int points = rs.getInt("score");
+                        final UUID player = UUID.fromString(rs.getString("player"));
                         return new PlayerWinEntry(player, points);
                     }
 

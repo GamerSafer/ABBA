@@ -6,6 +6,7 @@ import com.gamersafer.minecraft.abbacaving.game.Game;
 import com.gamersafer.minecraft.abbacaving.game.GamePlayer;
 import com.gamersafer.minecraft.abbacaving.util.Sounds;
 import com.gamersafer.minecraft.abbacaving.util.Util;
+import java.util.Map;
 import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -16,8 +17,6 @@ import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
-
-import java.util.Map;
 
 public class InventoryListener implements Listener {
 
@@ -73,7 +72,7 @@ public class InventoryListener implements Listener {
             return;
         }
 
-        HumanEntity clicker = event.getWhoClicked();
+        final HumanEntity clicker = event.getWhoClicked();
         if (clicker.hasPermission("abbacaving.build")) {
             return;
         }
@@ -122,7 +121,7 @@ public class InventoryListener implements Listener {
         // 19 21 23 25
         switch (event.getSlot()) {
             case 19 -> this.saveLayoutButton(player, event.isShiftClick());
-            case 21 -> this.plugin.getCosmeticGui().showCosmeticsGUI(player);
+            case 21 -> this.plugin.cosmeticGui().showCosmeticsGUI(player);
             case 23 -> this.showStats(player);
             case 25 -> this.returnToLobby(player);
         }

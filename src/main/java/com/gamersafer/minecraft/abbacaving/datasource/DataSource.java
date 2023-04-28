@@ -22,7 +22,7 @@ public interface DataSource {
 
     void saveFinishedGame(Game game);
 
-    PlayerWinEntry getWinEntry(String gameId, int place);
+    PlayerWinEntry winEntry(String gameId, int place);
 
 }
 

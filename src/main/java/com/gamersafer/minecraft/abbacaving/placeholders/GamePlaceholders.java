@@ -72,22 +72,23 @@ public class GamePlaceholders extends PlaceholderExpansion {
                     case "players" -> Integer.toString(queue.playerQueue().size());
                     case "slots" -> Integer.toString(queue.maxPlayers());
                     case "counter" -> Integer.toString(queue.counter());
-                    case "required" -> Integer.toString(queue.getStartPlayerAmount());
+                    case "required" -> Integer.toString(queue.startPlayeramount());
                     default -> "";
                 };
             }
 
         }
         if (identifier.startsWith("game_")) {
-            String path = identifier.replace("game_", "");
-            String[] tokens = path.split("_");
-            String gameId = tokens[0];
+            final String path = identifier.replace("game_", "");
+            final String[] tokens = path.split("_");
+            final String gameId = tokens[0];
             if (tokens[1].equals("leaderboard")) {
-                int place = Integer.parseInt(tokens[2]);
-                PlayerWinEntry winEntry = this.plugin.playerDataSource().getWinEntry(gameId, place + 1);
+                final int place = Integer.parseInt(tokens[2]);
+                final PlayerWinEntry winEntry = this.plugin.playerDataSource().winEntry(gameId, place + 1);
                 switch (tokens[3]) {
+
                     case "playername" -> {
-                        PlayerProfile playerProfile = Bukkit.createProfile(winEntry.player());
+                        final PlayerProfile playerProfile = Bukkit.createProfile(winEntry.player());
                         playerProfile.complete();
 
                         return playerProfile.getName();
@@ -101,10 +102,8 @@ public class GamePlaceholders extends PlaceholderExpansion {
                 }
             }
 
-
             return "";
         }
-
 
         if (identifier.startsWith("leaderboard_score_")) {
             final int n = Integer.parseInt(identifier.replace("leaderboard_score_", ""));

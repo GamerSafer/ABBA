@@ -4,15 +4,14 @@ import com.gamersafer.minecraft.abbacaving.AbbaCavingPlugin;
 import com.gamersafer.minecraft.abbacaving.game.Game;
 import de.themoep.randomteleport.searcher.RandomSearcher;
 import de.themoep.randomteleport.searcher.validators.LocationValidator;
-import org.bukkit.Location;
-import org.bukkit.Material;
-import org.bukkit.block.Block;
-import org.bukkit.block.BlockFace;
-
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import org.bukkit.Location;
+import org.bukkit.Material;
+import org.bukkit.block.Block;
+import org.bukkit.block.BlockFace;
 
 public class AbbaValidator extends LocationValidator {
 
@@ -53,15 +52,14 @@ public class AbbaValidator extends LocationValidator {
             block = block.getRelative(BlockFace.DOWN);
         }
 
-        boolean result =  block.isSolid() && this.isBlockSafe(block.getRelative(BlockFace.UP)) && this.isBlockSafe(block.getRelative(BlockFace.UP, 2));
-        Location newLoc = block.getRelative(BlockFace.UP).getLocation();
+        final boolean result = block.isSolid() && this.isBlockSafe(block.getRelative(BlockFace.UP)) && this.isBlockSafe(block.getRelative(BlockFace.UP, 2));
+        final Location newLoc = block.getRelative(BlockFace.UP).getLocation();
         location.setY(newLoc.getY());
         return result;
     }
 
     private boolean isBlockSafe(final Block block) {
-        return block.isEmpty() || (block.isPassable() && !block.isLiquid() && !this.invalidBlocks.contains(block.getType()));
+        return block.isEmpty() || block.isPassable() && !block.isLiquid() && !this.invalidBlocks.contains(block.getType());
     }
-
 
 }

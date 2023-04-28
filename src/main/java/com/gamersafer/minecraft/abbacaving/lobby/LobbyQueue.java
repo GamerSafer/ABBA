@@ -81,12 +81,12 @@ public class LobbyQueue {
         this.forceStart = forceStart;
     }
 
-    public void addWaitingFuture(CompletableFuture<?> future) {
+    public void addWaitingFuture(final CompletableFuture<?> future) {
         this.waitingFutures.add(future);
     }
 
     public boolean isWaitingForFutures() {
-        for (CompletableFuture<?> future : this.waitingFutures) {
+        for (final CompletableFuture<?> future : this.waitingFutures) {
             if (!future.isDone()) {
                 return true;
             }
@@ -99,7 +99,8 @@ public class LobbyQueue {
         this.waitingFutures.clear();
     }
 
-    public int getStartPlayerAmount() {
+    public int startPlayeramount() {
         return this.requiredPlayers;
     }
+
 }

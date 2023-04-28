@@ -7,5 +7,6 @@ public interface ToolType {
 
     void apply(GamePlayer player);
 
-    ItemStack getIcon();
+    ItemStack icon();
+
 }

@@ -5,13 +5,18 @@ import net.kyori.adventure.text.format.Style;
 import net.kyori.adventure.text.format.TextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 
-public class Components {
+public final class Components {
 
-    public static Component plainText(String text) {
+    private Components() {
+
+    }
+
+    public static Component plainText(final String text) {
         return Component.text(text, Style.style(TextDecoration.ITALIC.withState(TextDecoration.State.FALSE)));
     }
 
-    public static Component plainText(String text, TextColor color) {
+    public static Component plainText(final String text, final TextColor color) {
         return Component.text(text, Style.style(TextDecoration.ITALIC.withState(TextDecoration.State.FALSE), color));
     }
+
 }

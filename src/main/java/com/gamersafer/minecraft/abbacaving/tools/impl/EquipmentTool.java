@@ -11,18 +11,19 @@ public class EquipmentTool implements ToolType {
     private final ItemResolver resolver;
     private final EquipmentSlot slot;
 
-    public EquipmentTool(ItemResolver resolver, EquipmentSlot slot) {
+    public EquipmentTool(final ItemResolver resolver, final EquipmentSlot slot) {
         this.resolver = resolver;
         this.slot = slot;
     }
 
     @Override
-    public void apply(GamePlayer player) {
-        player.player().getInventory().setItem(slot, this.resolver.get(player));
+    public void apply(final GamePlayer player) {
+        player.player().getInventory().setItem(this.slot, this.resolver.get(player));
     }
 
     @Override
-    public ItemStack getIcon() {
+    public ItemStack icon() {
         return this.resolver.get(null);
     }
+
 }
