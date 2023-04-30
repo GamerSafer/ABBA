@@ -105,6 +105,30 @@ public class GamePlaceholders extends PlaceholderExpansion {
             return "";
         }
 
+
+        if (identifier.startsWith("global_leaderboard_score_")) {
+            final String path = identifier.replace("global_leaderboard_score_", "");
+            final String[] tokens = path.split("_");
+            final int place = Integer.parseInt(tokens[0]);
+
+            final PlayerWinEntry winEntry = this.plugin.playerDataSource().globalWinEntry(place);
+            switch (tokens[1]) {
+
+                case "playername" -> {
+                    final PlayerProfile playerProfile = Bukkit.createProfile(winEntry.player());
+                    playerProfile.complete();
+
+                    return playerProfile.getName();
+                }
+                case "playeruuid" -> {
+                    return winEntry.player().toString();
+                }
+                case "score" -> {
+                    return Integer.toString(winEntry.score());
+                }
+            }
+        }
+
         if (identifier.startsWith("leaderboard_score_")) {
             final int n = Integer.parseInt(identifier.replace("leaderboard_score_", ""));
 

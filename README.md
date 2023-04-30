@@ -49,6 +49,13 @@
 
 * `%abbacaving_game_<gameid>_leaderboard_<num>_playername%`  - the name of a player on game `<gameid>` who placed `<num>`
 * `%abbacaving_game_<gameid>_leaderboard_<num>_playeruuid%`  - the uuid of a player on game `<gameid>` who placed `<num>`
-* `%abbacaving_game_<gameid>_leaderboard_<num>_score%`        - the score of a player on game `<gameid>` who placed `<num>`
+* `%abbacaving_game_<gameid>_leaderboard_<num>_score%`       - the score of a player on game `<gameid>` who placed `<num>`
+
+Note: Num starts at 1
+
+### All games
+* `%abbacaving_global_leaderboard_score_<num>_playername%`  - the name of a player who is `<num>` overall
+* `%abbacaving_global_leaderboard_score_<num>_playeruuid%`  - the uuid of a player who is `<num>` overall
+* `%abbacaving_global_leaderboard_score_<num>_score%`       - the score of a player who is `<num>` overall
 
 Note: Num starts at 1

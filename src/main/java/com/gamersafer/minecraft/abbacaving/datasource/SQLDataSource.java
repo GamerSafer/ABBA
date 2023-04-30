@@ -220,6 +220,31 @@ public class SQLDataSource implements DataSource {
     }
 
     @Override
+    public PlayerWinEntry globalWinEntry(int place) {
+        try (final Connection conn = this.dataSource.getConnection()) {
+            // Load game stats
+            try (final PreparedStatement stmt = conn.prepareStatement("SELECT player, score\n" +
+                    "FROM abba_round_leaderboard GROUP BY player ORDER BY score DESC LIMIT 1 OFFSET ?;")) {
+                stmt.setInt(1, place - 1);
+
+                try (final ResultSet rs = stmt.executeQuery()) {
+                    if (rs.next()) {
+                        final int points = rs.getInt("score");
+                        final UUID player = UUID.fromString(rs.getString("player"));
+                        return new PlayerWinEntry(player, points);
+                    }
+
+                    return null;
+                }
+            }
+        } catch (final SQLException ex) {
+            ex.printStackTrace();
+        }
+
+        return null;
+    }
+
+    @Override
     public void updatePlayerRespawns(final GamePlayer gp) {
         try (final Connection conn = this.dataSource.getConnection()) {
             try (final PreparedStatement stmt = conn.prepareStatement("SELECT respawns FROM abba_respawns WHERE uuid = ?;")) {

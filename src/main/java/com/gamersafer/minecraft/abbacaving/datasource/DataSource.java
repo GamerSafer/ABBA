@@ -24,5 +24,7 @@ public interface DataSource {
 
     PlayerWinEntry winEntry(String gameId, int place);
 
+    PlayerWinEntry globalWinEntry(int place);
+
 }
 
