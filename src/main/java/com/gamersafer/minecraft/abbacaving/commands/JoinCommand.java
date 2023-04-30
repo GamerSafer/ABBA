@@ -71,7 +71,7 @@ public class JoinCommand implements CommandExecutor, TabCompleter {
             return false;
         }
 
-        if (queue.state() == QueueState.LOCKED) {
+        if (queue.state() == QueueState.LOCKED || queue.counter() <= 5) { // Dont let player join in last 5 seconds
             this.plugin.message(sender, this.plugin.configMessage("join-running-map"));
             return false;
         }

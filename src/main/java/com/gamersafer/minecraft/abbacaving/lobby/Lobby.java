@@ -160,7 +160,7 @@ public class Lobby implements Listener {
             }
         }
 
-        if (queue.counter() == 0) {
+        if (queue.counter() <= 0) {
             if (queue.isWaitingForFutures()) {
                 this.plugin.getLogger().log(Level.INFO, "Waiting for tasks to complete...");
             } else {
