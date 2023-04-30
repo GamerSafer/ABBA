@@ -29,7 +29,7 @@ public class RespawnCountCommand implements CommandExecutor, TabCompleter {
     public boolean onCommand(@NotNull final CommandSender sender, @NotNull final Command command, @NotNull final String label, @NotNull final String[] args) {
         final GamePlayer gamePlayer;
 
-        if (args.length == 1) {
+        if (args.length >= 1) {
             final Player target = Bukkit.getPlayer(args[0]);
             if (target == null) {
                 this.plugin.message(sender, this.plugin.configMessage("not-online"), Map.of("player", args[0]));
