@@ -7,6 +7,7 @@ import com.gamersafer.minecraft.abbacaving.util.Sounds;
 import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -34,7 +35,7 @@ import org.spigotmc.event.player.PlayerSpawnLocationEvent;
 public class Lobby implements Listener {
 
     private final AbbaCavingPlugin plugin;
-    private final Map<String, LobbyQueue> lobbyQueues = new HashMap<>();
+    private final Map<String, LobbyQueue> lobbyQueues = new LinkedHashMap<>();
 
     public Lobby(final AbbaCavingPlugin plugin) {
         this.plugin = plugin;

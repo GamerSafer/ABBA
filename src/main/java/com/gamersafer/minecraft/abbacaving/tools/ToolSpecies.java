@@ -1,7 +1,5 @@
-package com.gamersafer.minecraft.abbacaving.commands;
+package com.gamersafer.minecraft.abbacaving.tools;
 
-import com.gamersafer.minecraft.abbacaving.tools.ToolType;
-import com.gamersafer.minecraft.abbacaving.tools.ToolTypes;
 import com.gamersafer.minecraft.abbacaving.util.Components;
 import com.gamersafer.minecraft.abbacaving.util.ItemBuilder;
 import net.kyori.adventure.text.format.NamedTextColor;

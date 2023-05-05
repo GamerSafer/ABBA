@@ -10,8 +10,6 @@ import org.jetbrains.annotations.Nullable;
 
 public class CosmeticItemResolver implements ItemResolver {
 
-    private static final AbbaCavingPlugin INSTANCE = AbbaCavingPlugin.getPlugin(AbbaCavingPlugin.class);
-
     private final String identifier;
 
     public CosmeticItemResolver(final String identifier) {

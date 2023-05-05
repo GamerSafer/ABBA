@@ -1,7 +1,7 @@
 package com.gamersafer.minecraft.abbacaving.guis;
 
 import com.gamersafer.minecraft.abbacaving.AbbaCavingPlugin;
-import com.gamersafer.minecraft.abbacaving.commands.ToolSpecies;
+import com.gamersafer.minecraft.abbacaving.tools.ToolSpecies;
 import com.gamersafer.minecraft.abbacaving.game.GamePlayer;
 import com.gamersafer.minecraft.abbacaving.game.GameState;
 import com.gamersafer.minecraft.abbacaving.tools.CosmeticRegistry;
