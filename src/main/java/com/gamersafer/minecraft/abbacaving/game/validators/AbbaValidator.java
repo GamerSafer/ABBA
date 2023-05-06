@@ -12,6 +12,8 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
+import org.bukkit.block.data.BlockData;
+import org.bukkit.block.data.Waterlogged;
 
 public class AbbaValidator extends LocationValidator {
 
@@ -59,7 +61,17 @@ public class AbbaValidator extends LocationValidator {
     }
 
     private boolean isBlockSafe(final Block block) {
-        return block.isEmpty() || block.isPassable() && !block.isLiquid() && !this.invalidBlocks.contains(block.getType());
+        return block.isEmpty() || block.isPassable() && !block.isLiquid() && !this.invalidBlocks.contains(block.getType()) && this.isNotWaterLogged(block);
+    }
+
+    public boolean isNotWaterLogged(Block block) {
+        BlockData data = block.getBlockData();
+
+        if (data instanceof Waterlogged waterlogged) {
+            return !waterlogged.isWaterlogged();
+        } else {
+            return true;
+        }
     }
 
 }

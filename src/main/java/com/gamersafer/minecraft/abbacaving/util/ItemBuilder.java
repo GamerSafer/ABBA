@@ -73,9 +73,11 @@ public class ItemBuilder {
      * @return this builder for chaining
      * @since 1.0
      */
-    public ItemBuilder name(final Component name) {
+    public ItemBuilder name(Component name) {
         final ItemMeta meta = this.is.getItemMeta();
-        meta.displayName(name.style(Style.style(TextDecoration.ITALIC.withState(TextDecoration.State.FALSE))));
+        Style style = name.style().merge(Style.style(TextDecoration.ITALIC.withState(TextDecoration.State.FALSE)));
+        name = name.style(style);
+        meta.displayName(name);
         this.is.setItemMeta(meta);
 
         return this;

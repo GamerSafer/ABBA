@@ -78,7 +78,8 @@ public class InventoryListener implements Listener {
         }
 
         final HumanEntity clicker = event.getWhoClicked();
-        if (clicker.hasPermission("abbacaving.build")) {
+        // Only if player is not in a game
+        if (clicker.hasPermission("abbacaving.build") && this.plugin.gameTracker().findGame((Player) clicker) == null) {
             return;
         }
 
