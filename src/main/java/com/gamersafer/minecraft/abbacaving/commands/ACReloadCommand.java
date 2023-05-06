@@ -1,6 +1,7 @@
 package com.gamersafer.minecraft.abbacaving.commands;
 
 import com.gamersafer.minecraft.abbacaving.AbbaCavingPlugin;
+import com.gamersafer.minecraft.abbacaving.util.Messages;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -17,7 +18,7 @@ public class ACReloadCommand implements CommandExecutor {
     @Override
     public boolean onCommand(@NotNull final CommandSender sender, @NotNull final Command command, @NotNull final String label, @NotNull final String[] args) {
         this.plugin.reloadConfig();
-        this.plugin.message(sender, this.plugin.configMessage("reloaded-config"));
+        Messages.message(sender, this.plugin.configMessage("reloaded-config"));
         return true;
     }
 

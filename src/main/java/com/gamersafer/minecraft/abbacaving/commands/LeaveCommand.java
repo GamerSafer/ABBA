@@ -5,6 +5,7 @@ import com.gamersafer.minecraft.abbacaving.game.Game;
 import com.gamersafer.minecraft.abbacaving.lobby.LobbyQueue;
 import java.util.Map;
 
+import com.gamersafer.minecraft.abbacaving.util.Messages;
 import com.gamersafer.minecraft.abbacaving.util.Sounds;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
@@ -29,7 +30,7 @@ public class LeaveCommand implements CommandExecutor {
             player = Bukkit.getPlayer(args[0]);
 
             if (player == null) {
-                this.plugin.message(sender, this.plugin.configMessage("not-online"), Map.of("player", args[0]));
+                Messages.message(sender, this.plugin.configMessage("not-online"), Map.of("player", args[0]));
                 return true;
             }
         } else {
@@ -45,9 +46,9 @@ public class LeaveCommand implements CommandExecutor {
 
             if (queue != null) {
                 queue.removePlayer(player.getUniqueId());
-                this.plugin.message(player, this.plugin.configMessage("leave-lobby"), Map.of("map", queue.mapName()));
+                Messages.message(player, this.plugin.configMessage("leave-lobby"), Map.of("map", queue.mapName()));
             } else {
-                this.plugin.message(sender, this.plugin.configMessage("not-in-queue"));
+                Messages.message(sender, this.plugin.configMessage("not-in-queue"));
             }
         } else {
             final Game game = this.plugin.gameTracker().findGame(player);

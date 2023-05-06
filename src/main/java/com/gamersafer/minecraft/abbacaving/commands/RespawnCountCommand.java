@@ -2,6 +2,7 @@ package com.gamersafer.minecraft.abbacaving.commands;
 
 import com.gamersafer.minecraft.abbacaving.AbbaCavingPlugin;
 import com.gamersafer.minecraft.abbacaving.player.GamePlayer;
+import com.gamersafer.minecraft.abbacaving.util.Messages;
 import com.gamersafer.minecraft.abbacaving.util.Util;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -32,7 +33,7 @@ public class RespawnCountCommand implements CommandExecutor, TabCompleter {
         if (args.length >= 1) {
             final Player target = Bukkit.getPlayer(args[0]);
             if (target == null) {
-                this.plugin.message(sender, this.plugin.configMessage("not-online"), Map.of("player", args[0]));
+                Messages.message(sender, this.plugin.configMessage("not-online"), Map.of("player", args[0]));
                 return false;
             }
 
@@ -54,10 +55,10 @@ public class RespawnCountCommand implements CommandExecutor, TabCompleter {
                 amount = Integer.parseInt(args[1]);
             }
             gamePlayer.data().setRespawns(amount);
-            this.plugin.message(sender, this.plugin.configMessage("player-respawns-set"), Map.of("amount", Util.addCommas(amount)));
+            Messages.message(sender, this.plugin.configMessage("player-respawns-set"), Map.of("amount", Util.addCommas(amount)));
             gamePlayer.data().saveRespawns();
         } else {
-            this.plugin.message(sender, this.plugin.configMessage("player-respawns"), Map.of("amount", Util.addCommas(gamePlayer.data().respawns())));
+            Messages.message(sender, this.plugin.configMessage("player-respawns"), Map.of("amount", Util.addCommas(gamePlayer.data().respawns())));
         }
 
         return true;

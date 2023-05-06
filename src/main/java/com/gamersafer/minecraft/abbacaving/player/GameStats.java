@@ -2,6 +2,7 @@ package com.gamersafer.minecraft.abbacaving.player;
 
 import com.gamersafer.minecraft.abbacaving.AbbaCavingPlugin;
 import com.gamersafer.minecraft.abbacaving.game.Game;
+import com.gamersafer.minecraft.abbacaving.util.Messages;
 import com.gamersafer.minecraft.abbacaving.util.Util;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Location;
@@ -99,7 +100,7 @@ public final class GameStats {
         this.gamePlayer.player().setExp(exp >= 1f ? 0 : exp);
 
         this.gamePlayer.player().playSound(this.gamePlayer.player().getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1f, 1f);
-        this.plugin.message(this.gamePlayer.player(), this.plugin.configMessage("gained-points"), Map.of(
+        Messages.message(this.gamePlayer.player(), this.plugin.configMessage("gained-points"), Map.of(
                 "amount", Integer.toString(amount),
                 "reward", rewardName,
                 "optional-s", amount != 1 ? "s" : ""
@@ -111,7 +112,7 @@ public final class GameStats {
             if (!this.surpassedHighestScore) {
                 this.surpassedHighestScore = true;
                 if (highestScore >= this.plugin.getConfig().getInt("min-score-to-broadcast-new-record")) {
-                    this.plugin.broadcast(this.plugin.configMessage("new-high-score"), Map.of(
+                    Messages.broadcast(this.plugin.configMessage("new-high-score"), Map.of(
                             "player", this.gamePlayer.player().displayName(),
                             "score", Component.text(Util.addCommas(highestScore))
                     ));

@@ -3,11 +3,11 @@ package com.gamersafer.minecraft.abbacaving.lobby;
 import com.gamersafer.minecraft.abbacaving.AbbaCavingPlugin;
 import com.gamersafer.minecraft.abbacaving.game.Game;
 import com.gamersafer.minecraft.abbacaving.game.GameState;
+import com.gamersafer.minecraft.abbacaving.util.Messages;
 import com.gamersafer.minecraft.abbacaving.util.Sounds;
 import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -23,7 +23,6 @@ import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.configuration.ConfigurationSection;
-import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -192,7 +191,7 @@ public class Lobby implements Listener {
                     final Player player = Bukkit.getPlayer(uuid);
 
                     if (player != null) {
-                        this.plugin.message(player, this.plugin.configMessage("game-starting"),
+                        Messages.message(player, this.plugin.configMessage("game-starting"),
                                 TagResolver.resolver("seconds", Tag.inserting(Component.text(queue.counter()))),
                                 TagResolver.resolver("optional-s", Tag.inserting(Component.text(queue.counter() != 1 ? "s" : ""))));
                         Sounds.pling(player);
@@ -236,7 +235,7 @@ public class Lobby implements Listener {
             final Player player = Bukkit.getPlayer(playerId);
 
             if (player != null) {
-                this.plugin.message(player, this.plugin.configMessage("preparing-map"));
+                Messages.message(player, this.plugin.configMessage("preparing-map"));
             }
         }
 
@@ -297,14 +296,15 @@ public class Lobby implements Listener {
         return this.plugin.mapSettings("default-settings").getInt("maximum-players-per-round");
     }
 
-    public void sendToLobby(final HumanEntity player) {
-        ((Player) player).spigot().respawn();
+    public void sendToLobby( Player player) {
+        player.spigot().respawn();
         new BukkitRunnable() {
             @Override
             public void run() {
                 player.teleport(Lobby.this.lobbySpawn());
             }
         }.runTaskLater(this.plugin, 10);
+        this.plugin.lobby().resetPlayer(player);
 
     }
 

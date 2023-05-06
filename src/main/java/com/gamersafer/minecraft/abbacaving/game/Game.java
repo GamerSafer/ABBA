@@ -8,7 +8,9 @@ import com.gamersafer.minecraft.abbacaving.player.GamePlayer;
 import com.gamersafer.minecraft.abbacaving.tools.ToolManager;
 import com.gamersafer.minecraft.abbacaving.util.Components;
 import com.gamersafer.minecraft.abbacaving.util.ItemBuilder;
+import com.gamersafer.minecraft.abbacaving.util.Messages;
 import com.gamersafer.minecraft.abbacaving.util.Sounds;
+import com.gamersafer.minecraft.abbacaving.util.Stats;
 import com.gamersafer.minecraft.abbacaving.util.Util;
 import com.google.common.collect.Collections2;
 import com.sk89q.worldedit.EditSession;
@@ -262,7 +264,6 @@ public class Game {
         this.players.remove(player.getName());
         this.leaderboard.remove(gp);
         this.updateLeaderboard();
-        this.plugin.lobby().resetPlayer(player);
 
         if (quit) {
             this.broadcast(this.plugin.configMessage("player-left"), Map.of(
@@ -270,7 +271,7 @@ public class Game {
                     "score", Component.text(gp.gameStats().score())
             ));
 
-            this.plugin.message(player, this.plugin.configMessage("leave-game"), Map.of(
+            Messages.message(player, this.plugin.configMessage("leave-game"), Map.of(
                     "map", this.mapName(),
                     "score", Integer.toString(gp.gameStats().score())
             ));
@@ -482,7 +483,6 @@ public class Game {
         final Title mainTitle = Title.title(title, subtitle);
 
         for (final GamePlayer gp : this.players.values()) {
-            this.preparePlayer(gp.player());
             gp.player().showTitle(mainTitle);
         }
 
@@ -505,6 +505,9 @@ public class Game {
 
         this.spawnPlatform();
         this.teleportPlayersToPlatform();
+        for (final GamePlayer gp : this.players.values()) {
+            Stats.dumpGameStats(gp);
+        }
 
         final int postGameGracePeriod = this.mapSetting("game-end-grace-period-seconds");
 

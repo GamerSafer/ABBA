@@ -1,6 +1,7 @@
 package com.gamersafer.minecraft.abbacaving.commands;
 
 import com.gamersafer.minecraft.abbacaving.AbbaCavingPlugin;
+import com.gamersafer.minecraft.abbacaving.util.Messages;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -24,14 +25,14 @@ public class NightVisionCommand implements CommandExecutor {
         }
 
         if (!player.hasPermission("abbacaving.nightvision")) {
-            this.plugin.message(sender, this.plugin.configMessage("no-permission"));
+            Messages.message(sender, this.plugin.configMessage("no-permission"));
             return false;
         }
 
         if (player.hasPotionEffect(PotionEffectType.NIGHT_VISION)) {
             player.removePotionEffect(PotionEffectType.NIGHT_VISION);
         } else {
-            player.addPotionEffect(new PotionEffect(PotionEffectType.NIGHT_VISION, Integer.MAX_VALUE, 1));
+            player.addPotionEffect(new PotionEffect(PotionEffectType.NIGHT_VISION, -1, 1));
         }
 
         return true;

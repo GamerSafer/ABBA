@@ -7,6 +7,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+
+import com.gamersafer.minecraft.abbacaving.util.Messages;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.feature.pagination.Pagination;
 import net.kyori.adventure.text.format.NamedTextColor;
@@ -50,14 +52,14 @@ public class ACLookupCommand implements CommandExecutor, TabCompleter, Paginatio
         final Game game = this.plugin.gameTracker().gameByMapName(args[0]);
 
         if (game == null) {
-            this.plugin.message(sender, this.plugin.configMessage("no-scores"));
+            Messages.message(sender, this.plugin.configMessage("no-scores"));
             return true;
         }
 
         final List<GamePlayer> sortedScores = new ArrayList<>(game.leaderboard().keySet());
 
         if (sortedScores.isEmpty()) {
-            this.plugin.message(sender, this.plugin.configMessage("no-scores"));
+            Messages.message(sender, this.plugin.configMessage("no-scores"));
             return true;
         }
 

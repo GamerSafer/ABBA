@@ -7,7 +7,9 @@ import com.gamersafer.minecraft.abbacaving.player.GamePlayer;
 import com.gamersafer.minecraft.abbacaving.player.GameStats;
 import com.gamersafer.minecraft.abbacaving.player.PlayerData;
 import com.gamersafer.minecraft.abbacaving.tools.ToolManager;
+import com.gamersafer.minecraft.abbacaving.util.Messages;
 import com.gamersafer.minecraft.abbacaving.util.Sounds;
+import com.gamersafer.minecraft.abbacaving.util.Stats;
 import com.gamersafer.minecraft.abbacaving.util.Util;
 import java.util.Map;
 import org.bukkit.entity.HumanEntity;
@@ -134,7 +136,7 @@ public class InventoryListener implements Listener {
 
     private void saveLayoutButton(final Player player, final boolean isShiftClick) {
         if (!player.hasPermission("abbacaving.hotbar")) {
-            this.plugin.message(player, this.plugin.configMessage("no-permission"));
+            Messages.message(player, this.plugin.configMessage("no-permission"));
             return;
         }
 
@@ -150,13 +152,13 @@ public class InventoryListener implements Listener {
 
             gamePlayer.data().saveHotbar();
             if (isShiftClick) {
-                this.plugin.message(player, this.plugin.configMessage("layout-default-saved"));
+                Messages.message(player, this.plugin.configMessage("layout-default-saved"));
             } else {
-                this.plugin.message(player, this.plugin.configMessage("layout-saved"));
+                Messages.message(player, this.plugin.configMessage("layout-saved"));
             }
             Sounds.pling(player);
         } else {
-            this.plugin.message(player, "<red>Failed to save hotbar layout!");
+            Messages.message(player, "<red>Failed to save hotbar layout!");
         }
 
     }
@@ -164,21 +166,8 @@ public class InventoryListener implements Listener {
     private void showStats(final Player player) {
         player.closeInventory();
         Sounds.pling(player);
-        final GamePlayer gamePlayer = this.plugin.gameTracker().gamePlayer(player);
-        final Game game = gamePlayer.gameStats().game();
-        PlayerData data = gamePlayer.data();
 
-        this.plugin.message(player, this.plugin.configMessage("stats-own"));
-        this.plugin.message(player, "");
-        this.plugin.message(player, this.plugin.configMessage("stats-all-time"));
-        this.plugin.message(player, this.plugin.configMessage("stats-wins"), Map.of("wins", Util.addCommas(data.wins())));
-        this.plugin.message(player, this.plugin.configMessage("stats-score"), Map.of("score", Util.addCommas(data.highestScore())));
-        this.plugin.message(player, this.plugin.configMessage("stats-ores"), Map.of("ores", Util.addCommas(data.totalOresMined())));
-        this.plugin.message(player, "");
-        this.plugin.message(player, this.plugin.configMessage("stats-in-game"));
-        this.plugin.message(player, this.plugin.configMessage("stats-in-game-map"), Map.of("map", game.mapName()));
-        this.plugin.message(player, this.plugin.configMessage("stats-in-game-score"), Map.of("score", Integer.toString(gamePlayer.gameStats().score())));
-        this.plugin.message(player, this.plugin.configMessage("stats-in-game-ores"), Map.of("ores", Integer.toString(gamePlayer.gameStats().currentOresMined())));
+        Stats.dumpGameStats(this.plugin.getPlayerCache().getLoaded(player.getUniqueId()));
     }
 
     private void returnToLobby(final Player player) {

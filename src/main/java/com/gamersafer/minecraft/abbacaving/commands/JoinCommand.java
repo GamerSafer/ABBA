@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ThreadLocalRandom;
 
+import com.gamersafer.minecraft.abbacaving.util.Messages;
 import com.gamersafer.minecraft.abbacaving.util.Sounds;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
@@ -35,7 +36,7 @@ public class JoinCommand implements CommandExecutor, TabCompleter {
             final LobbyQueue lobbyQueue = this.plugin.lobby().pickFirstQueue();
 
             if (lobbyQueue == null) {
-                this.plugin.message(sender, this.plugin.configMessage("no-open-queues"));
+                Messages.message(sender, this.plugin.configMessage("no-open-queues"));
                 return true;
             }
 
@@ -44,7 +45,7 @@ public class JoinCommand implements CommandExecutor, TabCompleter {
             final String input = args[0];
 
             if (this.plugin.mapSettings(input) == null) {
-                this.plugin.message(sender, this.plugin.configMessage("join-invalid-map"));
+                Messages.message(sender, this.plugin.configMessage("join-invalid-map"));
                 return false;
             }
 
@@ -57,7 +58,7 @@ public class JoinCommand implements CommandExecutor, TabCompleter {
             player = Bukkit.getPlayer(args[1]);
 
             if (player == null) {
-                this.plugin.message(sender, this.plugin.configMessage("not-online"), Map.of("player", args[1]));
+                Messages.message(sender, this.plugin.configMessage("not-online"), Map.of("player", args[1]));
                 return true;
             }
         } else {
@@ -69,17 +70,17 @@ public class JoinCommand implements CommandExecutor, TabCompleter {
         }
 
         if (queue == null) {
-            this.plugin.message(sender, this.plugin.configMessage("join-invalid-map"));
+            Messages.message(sender, this.plugin.configMessage("join-invalid-map"));
             return false;
         }
 
         if (queue.state() == QueueState.LOCKED) {
-            this.plugin.message(sender, this.plugin.configMessage("join-running-map"));
+            Messages.message(sender, this.plugin.configMessage("join-running-map"));
             return false;
         }
 
         if (!queue.acceptingNewPlayers() && !player.hasPermission("abbacaving.join.full")) {
-            this.plugin.message(sender, this.plugin.configMessage("join-full"));
+            Messages.message(sender, this.plugin.configMessage("join-full"));
             return false;
         }
 
@@ -92,7 +93,7 @@ public class JoinCommand implements CommandExecutor, TabCompleter {
         this.plugin.lobby().join(queue, player);
         Sounds.pling(player);
 
-        this.plugin.message(sender, this.plugin.configMessage("join-lobby"), Map.of("map", queue.mapName()));
+        Messages.message(sender, this.plugin.configMessage("join-lobby"), Map.of("map", queue.mapName()));
 
         return true;
     }

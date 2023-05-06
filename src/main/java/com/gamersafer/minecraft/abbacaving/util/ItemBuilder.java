@@ -3,6 +3,8 @@ package com.gamersafer.minecraft.abbacaving.util;
 import java.util.ArrayList;
 import java.util.List;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.Style;
+import net.kyori.adventure.text.format.TextDecoration;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.bukkit.Bukkit;
 import org.bukkit.Color;
@@ -73,7 +75,7 @@ public class ItemBuilder {
      */
     public ItemBuilder name(final Component name) {
         final ItemMeta meta = this.is.getItemMeta();
-        meta.displayName(name);
+        meta.displayName(name.style(Style.style(TextDecoration.ITALIC.withState(TextDecoration.State.FALSE))));
         this.is.setItemMeta(meta);
 
         return this;

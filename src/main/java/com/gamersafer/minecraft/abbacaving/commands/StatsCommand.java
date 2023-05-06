@@ -1,9 +1,10 @@
 package com.gamersafer.minecraft.abbacaving.commands;
 
 import com.gamersafer.minecraft.abbacaving.AbbaCavingPlugin;
-import com.gamersafer.minecraft.abbacaving.game.Game;
 import com.gamersafer.minecraft.abbacaving.player.GamePlayer;
 import com.gamersafer.minecraft.abbacaving.player.PlayerData;
+import com.gamersafer.minecraft.abbacaving.util.Messages;
+import com.gamersafer.minecraft.abbacaving.util.Stats;
 import com.gamersafer.minecraft.abbacaving.util.Util;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -35,37 +36,30 @@ public class StatsCommand implements CommandExecutor, TabCompleter {
         if (args.length == 1) {
             final Player target = Bukkit.getPlayer(args[0]);
             if (target == null) {
-                this.plugin.message(sender, this.plugin.configMessage("not-online"), Map.of("player", args[0]));
+                Messages.message(sender, this.plugin.configMessage("not-online"), Map.of("player", args[0]));
                 return false;
             }
 
             gamePlayer = this.plugin.gameTracker().gamePlayer(target);
-            this.plugin.message(player, this.plugin.configMessage("stats-other"), Map.of("player", target.getName().toUpperCase()));
+            Messages.message(player, this.plugin.configMessage("stats-other"), Map.of("player", target.getName().toUpperCase()));
         } else {
             gamePlayer = this.plugin.gameTracker().gamePlayer(player);
-            this.plugin.message(player, this.plugin.configMessage("stats-own"));
+            Messages.message(player, this.plugin.configMessage("stats-own"));
         }
 
         PlayerData data = gamePlayer.data();
-        this.plugin.message(player, "");
-        this.plugin.message(player, this.plugin.configMessage("stats-all-time"));
-        this.plugin.message(player, this.plugin.configMessage("stats-wins"), Map.of("wins", Util.addCommas(data.wins())));
-        this.plugin.message(player, this.plugin.configMessage("stats-score"), Map.of("score", Util.addCommas(data.highestScore())));
-        this.plugin.message(player, this.plugin.configMessage("stats-ores"), Map.of("ores", Util.addCommas(data.totalOresMined())));
+        Messages.message(player, "");
+        Messages.message(player, this.plugin.configMessage("stats-all-time"));
+        Messages.message(player, this.plugin.configMessage("stats-wins"), Map.of("wins", Util.addCommas(data.wins())));
+        Messages.message(player, this.plugin.configMessage("stats-score"), Map.of("score", Util.addCommas(data.highestScore())));
+        Messages.message(player, this.plugin.configMessage("stats-ores"), Map.of("ores", Util.addCommas(data.totalOresMined())));
 
         if (gamePlayer.gameStats() == null) {
             return true;
         }
 
-        final Game game = gamePlayer.gameStats().game();
 
-        if (game.player(gamePlayer.player()) != null) {
-            this.plugin.message(player, "");
-            this.plugin.message(player, this.plugin.configMessage("stats-in-game"));
-            this.plugin.message(player, this.plugin.configMessage("stats-in-game-map"), Map.of("map", game.mapName()));
-            this.plugin.message(player, this.plugin.configMessage("stats-in-game-score"), Map.of("score", Integer.toString(gamePlayer.gameStats().score())));
-            this.plugin.message(player, this.plugin.configMessage("stats-in-game-ores"), Map.of("ores", Integer.toString(gamePlayer.gameStats().currentOresMined())));
-        }
+        Stats.dumpGameStats(gamePlayer);
 
         return true;
     }

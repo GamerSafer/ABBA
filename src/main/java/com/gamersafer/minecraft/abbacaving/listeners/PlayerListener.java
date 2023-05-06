@@ -7,6 +7,7 @@ import com.gamersafer.minecraft.abbacaving.player.GamePlayer;
 import com.gamersafer.minecraft.abbacaving.game.GameState;
 import com.gamersafer.minecraft.abbacaving.player.GameStats;
 import com.gamersafer.minecraft.abbacaving.util.ItemBuilder;
+import com.gamersafer.minecraft.abbacaving.util.Messages;
 import com.gamersafer.minecraft.abbacaving.util.Util;
 import com.github.stefvanschie.inventoryframework.adventuresupport.ComponentHolder;
 import com.github.stefvanschie.inventoryframework.gui.GuiItem;
@@ -75,7 +76,7 @@ public class PlayerListener implements Listener {
             final Player clicker = (Player) onClick.getWhoClicked();
             if (!clicker.hasPermission("abbacaving.spectate")) {
                 clicker.closeInventory();
-                this.plugin.message(clicker, this.plugin.configMessage("no-permission"));
+                Messages.message(clicker, this.plugin.configMessage("no-permission"));
                 return;
             }
 
@@ -91,7 +92,7 @@ public class PlayerListener implements Listener {
         final ItemStack noItem = new ItemBuilder(Material.REDSTONE_BLOCK).name(Component.text("No, return to lobby.")).build();
         final GuiItem noButton = new GuiItem(noItem, onClick -> {
             onClick.getWhoClicked().closeInventory();
-            this.plugin.lobby().sendToLobby(onClick.getWhoClicked());
+            this.plugin.lobby().sendToLobby((Player) onClick.getWhoClicked());
         });
         buttonPane.addItem(noButton, 6, 1);
 
@@ -281,7 +282,7 @@ public class PlayerListener implements Listener {
     public void onPlayerBucketFill(final PlayerBucketFillEvent event) {
         if (event.getItemStack().getType() == Material.LAVA_BUCKET) {
             event.setCancelled(true);
-            this.plugin.message(event.getPlayer(), "<gray>You cannot fill your bucket with <red>Lava<gray>.");
+            Messages.message(event.getPlayer(), "<gray>You cannot fill your bucket with <red>Lava<gray>.");
         }
     }
 

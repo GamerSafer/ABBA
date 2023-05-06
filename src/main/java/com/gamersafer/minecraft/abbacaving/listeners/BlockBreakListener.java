@@ -5,6 +5,7 @@ import com.gamersafer.minecraft.abbacaving.game.CaveOre;
 import com.gamersafer.minecraft.abbacaving.game.Game;
 import com.gamersafer.minecraft.abbacaving.player.GamePlayer;
 import com.gamersafer.minecraft.abbacaving.game.GameState;
+import com.gamersafer.minecraft.abbacaving.util.Messages;
 import com.gamersafer.minecraft.abbacaving.util.Sounds;
 import net.kyori.adventure.text.minimessage.tag.Tag;
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
@@ -57,7 +58,7 @@ public class BlockBreakListener implements Listener {
                 game.increasePlayerScore(gp, ore.value());
                 Sounds.pling(player);
             } else {
-                this.plugin.message(player, this.plugin.configMessage("ore-not-worth-points"),
+                Messages.message(player, this.plugin.configMessage("ore-not-worth-points"),
                         TagResolver.resolver("ore", Tag.preProcessParsed(ore.name())));
             }
         }

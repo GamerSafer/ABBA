@@ -248,66 +248,6 @@ public class AbbaCavingPlugin extends JavaPlugin {
         return this.mapsConfig.getConfigurationSection("default-settings");
     }
 
-    public void broadcast(String message) {
-        if (message == null) {
-            message = "";
-        }
-
-        Bukkit.getServer().sendMessage(MiniMessage.miniMessage().deserialize(message));
-        this.getLogger().info("Broadcast: \"" + message + "\"");
-    }
-
-    public void broadcast(String message, final Map<String, Component> placeholders) {
-        if (message == null) {
-            message = "";
-        }
-
-        final List<TagResolver> resolvers = new ArrayList<>();
-
-        for (final Map.Entry<String, Component> entry : placeholders.entrySet()) {
-            resolvers.add(TagResolver.resolver(entry.getKey(), Tag.inserting(entry.getValue())));
-        }
-
-        this.broadcast(message, resolvers.toArray(new TagResolver[]{}));
-    }
-
-    public void broadcast(final String message, final TagResolver... placeholders) {
-        Bukkit.getServer().sendMessage(MiniMessage.miniMessage().deserialize(message, placeholders));
-    }
-
-    public void message(final CommandSender sender, String message) {
-        if (message == null) {
-            message = "";
-        }
-
-        sender.sendMessage(MiniMessage.miniMessage().deserialize(message));
-    }
-
-    public void message(final CommandSender sender, String message, final Map<String, String> placeholders) {
-        if (message == null) {
-            message = "";
-        }
-
-        final List<TagResolver> resolvers = new ArrayList<>();
-
-        for (final Map.Entry<String, String> entry : placeholders.entrySet()) {
-            resolvers.add(TagResolver.resolver(entry.getKey(), Tag.inserting(Component.text(entry.getValue()))));
-        }
-
-        this.message(sender, message, resolvers.toArray(new TagResolver[]{}));
-    }
-
-    public void message(final CommandSender sender, String message, final TagResolver... placeholders) {
-        if (message == null) {
-            message = "";
-        }
-
-        final TagResolver name = TagResolver.resolver("name", Tag.inserting(Component.text(sender.getName())));
-        final TagResolver resolvers = TagResolver.resolver(TagResolver.resolver(placeholders), name);
-
-        sender.sendMessage(MiniMessage.miniMessage().deserialize(message, resolvers));
-    }
-
     public Set<CaveOre> ores() {
         return this.ores;
     }

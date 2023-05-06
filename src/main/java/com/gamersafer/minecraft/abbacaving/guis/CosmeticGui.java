@@ -7,6 +7,7 @@ import com.gamersafer.minecraft.abbacaving.game.GameState;
 import com.gamersafer.minecraft.abbacaving.tools.CosmeticRegistry;
 import com.gamersafer.minecraft.abbacaving.tools.ToolType;
 import com.gamersafer.minecraft.abbacaving.util.Components;
+import com.gamersafer.minecraft.abbacaving.util.Messages;
 import com.gamersafer.minecraft.abbacaving.util.Sounds;
 import com.github.stefvanschie.inventoryframework.gui.GuiItem;
 import com.github.stefvanschie.inventoryframework.gui.type.ChestGui;
@@ -64,10 +65,10 @@ public class CosmeticGui {
         items.add(new GuiItem(type.icon(), event -> {
             final GamePlayer gamePlayer = this.plugin.gameTracker().gamePlayer(event.getWhoClicked().getUniqueId());
 
-            this.plugin.message(gamePlayer.player(), this.plugin.configMessage("cosmetic-select"), Map.of("cosmetic", "default"));
+            Messages.message(gamePlayer.player(), this.plugin.configMessage("cosmetic-select"), Map.of("cosmetic", "default"));
             gamePlayer.data().removeSelectedCosmetic(type);
             if (gamePlayer.gameStats() != null && gamePlayer.gameStats().game().gameState() == GameState.RUNNING) {
-                this.plugin.message(gamePlayer.player(), this.plugin.configMessage("cosmetic-apply-after-game"));
+                Messages.message(gamePlayer.player(), this.plugin.configMessage("cosmetic-apply-after-game"));
             }
         }));
 
@@ -75,22 +76,22 @@ public class CosmeticGui {
             items.add(new GuiItem(cosmetic.itemStack(), inventoryClickEvent -> {
                 final GamePlayer gamePlayer = this.plugin.gameTracker().gamePlayer(inventoryClickEvent.getWhoClicked().getUniqueId());
                 if (!gamePlayer.player().hasPermission(cosmetic.permission())) {
-                    this.plugin.message(gamePlayer.player(), this.plugin.configMessage("no-permission"));
+                    Messages.message(gamePlayer.player(), this.plugin.configMessage("no-permission"));
                     return;
                 }
 
                 final CosmeticRegistry.Cosmetic old = gamePlayer.data().removeSelectedCosmetic(cosmetic.toolType());
                 if (old != null) {
-                    this.plugin.message(gamePlayer.player(), this.plugin.configMessage("cosmetic-deselect"), Map.of("cosmetic", old.identifier()));
+                    Messages.message(gamePlayer.player(), this.plugin.configMessage("cosmetic-deselect"), Map.of("cosmetic", old.identifier()));
                 }
                 if (old != cosmetic) {
                     gamePlayer.data().addSelectedCosmetic(type, cosmetic);
-                    this.plugin.message(gamePlayer.player(), this.plugin.configMessage("cosmetic-select"), Map.of("cosmetic", cosmetic.identifier()));
+                    Messages.message(gamePlayer.player(), this.plugin.configMessage("cosmetic-select"), Map.of("cosmetic", cosmetic.identifier()));
                 }
 
                 if (gamePlayer.gameStats() != null) {
                     if (gamePlayer.gameStats().game().gameState() == GameState.RUNNING) {
-                        this.plugin.message(gamePlayer.player(), this.plugin.configMessage("cosmetic-apply-after-game"));
+                        Messages.message(gamePlayer.player(), this.plugin.configMessage("cosmetic-apply-after-game"));
                     }
                 }
             }));
