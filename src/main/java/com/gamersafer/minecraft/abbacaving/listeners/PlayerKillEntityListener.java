@@ -2,7 +2,7 @@ package com.gamersafer.minecraft.abbacaving.listeners;
 
 import com.gamersafer.minecraft.abbacaving.AbbaCavingPlugin;
 import com.gamersafer.minecraft.abbacaving.game.Game;
-import com.gamersafer.minecraft.abbacaving.game.GamePlayer;
+import com.gamersafer.minecraft.abbacaving.player.GamePlayer;
 import com.gamersafer.minecraft.abbacaving.util.Sounds;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;

@@ -1,6 +1,6 @@
 package com.gamersafer.minecraft.abbacaving.tools.impl.resolver;
 
-import com.gamersafer.minecraft.abbacaving.game.GamePlayer;
+import com.gamersafer.minecraft.abbacaving.player.GamePlayer;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.Nullable;
 

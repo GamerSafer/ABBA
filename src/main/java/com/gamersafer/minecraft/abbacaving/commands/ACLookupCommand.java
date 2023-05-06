@@ -2,7 +2,7 @@ package com.gamersafer.minecraft.abbacaving.commands;
 
 import com.gamersafer.minecraft.abbacaving.AbbaCavingPlugin;
 import com.gamersafer.minecraft.abbacaving.game.Game;
-import com.gamersafer.minecraft.abbacaving.game.GamePlayer;
+import com.gamersafer.minecraft.abbacaving.player.GamePlayer;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;

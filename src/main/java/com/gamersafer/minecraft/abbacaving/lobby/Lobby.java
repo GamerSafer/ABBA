@@ -6,6 +6,7 @@ import com.gamersafer.minecraft.abbacaving.game.GameState;
 import com.gamersafer.minecraft.abbacaving.util.Sounds;
 import java.security.SecureRandom;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
@@ -45,6 +46,23 @@ public class Lobby implements Listener {
         for (final String mapName : this.plugin.configuredMapNames()) {
             this.lobbyQueues.put(mapName, new LobbyQueue(mapName, this.maxPlayers(mapName), new LinkedList<>(), this.playersRequiredToStart(mapName)));
         }
+    }
+
+    public LobbyQueue pickFirstQueue() {
+        Collection<LobbyQueue> queues = lobbyQueues.values();
+        LobbyQueue firstEmpty = null;
+        for (LobbyQueue queue : queues) {
+            if (firstEmpty == null && queue.state() != QueueState.LOCKED && queue.acceptingNewPlayers()) {
+                firstEmpty = queue;
+            }
+
+            // Pick any queues open that are not empty
+            if (queue.state() != QueueState.LOCKED && queue.acceptingNewPlayers() && !queue.playerQueue().isEmpty()) {
+                return queue;
+            }
+        }
+
+        return firstEmpty;
     }
 
     public boolean playerInLobby(final Player player) {

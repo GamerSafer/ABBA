@@ -2,7 +2,8 @@ package com.gamersafer.minecraft.abbacaving.commands;
 
 import com.gamersafer.minecraft.abbacaving.AbbaCavingPlugin;
 import com.gamersafer.minecraft.abbacaving.game.Game;
-import com.gamersafer.minecraft.abbacaving.game.GamePlayer;
+import com.gamersafer.minecraft.abbacaving.player.GamePlayer;
+import com.gamersafer.minecraft.abbacaving.player.PlayerData;
 import com.gamersafer.minecraft.abbacaving.util.Util;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -45,11 +46,12 @@ public class StatsCommand implements CommandExecutor, TabCompleter {
             this.plugin.message(player, this.plugin.configMessage("stats-own"));
         }
 
+        PlayerData data = gamePlayer.data();
         this.plugin.message(player, "");
         this.plugin.message(player, this.plugin.configMessage("stats-all-time"));
-        this.plugin.message(player, this.plugin.configMessage("stats-wins"), Map.of("wins", Util.addCommas(gamePlayer.wins())));
-        this.plugin.message(player, this.plugin.configMessage("stats-score"), Map.of("score", Util.addCommas(gamePlayer.highestScore())));
-        this.plugin.message(player, this.plugin.configMessage("stats-ores"), Map.of("ores", Util.addCommas(gamePlayer.totalOresMined())));
+        this.plugin.message(player, this.plugin.configMessage("stats-wins"), Map.of("wins", Util.addCommas(data.wins())));
+        this.plugin.message(player, this.plugin.configMessage("stats-score"), Map.of("score", Util.addCommas(data.highestScore())));
+        this.plugin.message(player, this.plugin.configMessage("stats-ores"), Map.of("ores", Util.addCommas(data.totalOresMined())));
 
         if (gamePlayer.gameStats() == null) {
             return true;

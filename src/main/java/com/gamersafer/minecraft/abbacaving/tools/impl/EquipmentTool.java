@@ -1,6 +1,6 @@
 package com.gamersafer.minecraft.abbacaving.tools.impl;
 
-import com.gamersafer.minecraft.abbacaving.game.GamePlayer;
+import com.gamersafer.minecraft.abbacaving.player.GamePlayer;
 import com.gamersafer.minecraft.abbacaving.tools.ToolType;
 import com.gamersafer.minecraft.abbacaving.tools.impl.resolver.ItemResolver;
 import org.bukkit.inventory.EquipmentSlot;

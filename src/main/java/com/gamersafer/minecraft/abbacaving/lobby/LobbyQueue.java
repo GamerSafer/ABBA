@@ -26,6 +26,11 @@ public class LobbyQueue {
     }
 
     public boolean acceptingNewPlayers() {
+        // Dont let player join in last 5 seconds
+        if (this.state == QueueState.STARTING && this.counter <= 5) {
+            return false;
+        }
+
         return this.playerQueue.size() < this.maxPlayers;
     }
 

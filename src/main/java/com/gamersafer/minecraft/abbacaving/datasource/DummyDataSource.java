@@ -1,8 +1,11 @@
 package com.gamersafer.minecraft.abbacaving.datasource;
 
 import com.gamersafer.minecraft.abbacaving.game.Game;
-import com.gamersafer.minecraft.abbacaving.game.GamePlayer;
+import com.gamersafer.minecraft.abbacaving.player.GamePlayer;
 import com.gamersafer.minecraft.abbacaving.game.PlayerWinEntry;
+import com.gamersafer.minecraft.abbacaving.player.PlayerData;
+
+import java.util.UUID;
 
 public class DummyDataSource implements DataSource {
 
@@ -12,33 +15,30 @@ public class DummyDataSource implements DataSource {
     }
 
     @Override
-    public void loadPlayerStats(final GamePlayer gp) {
+    public PlayerData loadPlayerData(UUID uuid) {
+        return new PlayerData(uuid);
     }
 
     @Override
-    public void savePlayerStats(final GamePlayer gp) {
-
-    }
-
-    @Override
-    public void savePlayerHotbar(final GamePlayer gp) {
+    public void savePlayerStats(PlayerData stats) {
 
     }
 
     @Override
-    public void updatePlayerRespawns(final GamePlayer gp) {
+    public void savePlayerHotbar(PlayerData stats) {
 
     }
 
     @Override
-    public void savePlayerRespawns(final GamePlayer gp) {
+    public void savePlayerRespawns(PlayerData stats) {
 
     }
 
     @Override
-    public void savePlayerCosmetics(final GamePlayer gp) {
+    public void savePlayerCosmetics(PlayerData stats) {
 
     }
+
 
     @Override
     public void saveFinishedGame(final Game game) {

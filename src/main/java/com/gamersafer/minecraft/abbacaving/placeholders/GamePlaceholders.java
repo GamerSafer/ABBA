@@ -3,16 +3,18 @@ package com.gamersafer.minecraft.abbacaving.placeholders;
 import com.destroystokyo.paper.profile.PlayerProfile;
 import com.gamersafer.minecraft.abbacaving.AbbaCavingPlugin;
 import com.gamersafer.minecraft.abbacaving.game.Game;
-import com.gamersafer.minecraft.abbacaving.game.GamePlayer;
 import com.gamersafer.minecraft.abbacaving.game.GameState;
 import com.gamersafer.minecraft.abbacaving.game.PlayerWinEntry;
 import com.gamersafer.minecraft.abbacaving.lobby.LobbyQueue;
+import com.gamersafer.minecraft.abbacaving.player.GamePlayer;
+import com.gamersafer.minecraft.abbacaving.player.GameStats;
 import com.gamersafer.minecraft.abbacaving.util.Util;
-import java.util.ArrayList;
-import java.util.List;
 import me.clip.placeholderapi.expansion.PlaceholderExpansion;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class GamePlaceholders extends PlaceholderExpansion {
 
@@ -47,7 +49,7 @@ public class GamePlaceholders extends PlaceholderExpansion {
     public String onPlaceholderRequest(final Player player, final String identifier) {
         this.plugin.getLogger().info("PlaceholderAPI request: " + player.getName() + ", " + identifier);
 
-        final GamePlayer gp = this.plugin.gameTracker().findPlayerInGame(player);
+        final GamePlayer gp = this.plugin.getPlayerCache().getLoaded(player.getUniqueId());
         final Game game = this.plugin.gameTracker().findGame(player);
 
         if ("online".equals(identifier)) {
@@ -85,6 +87,10 @@ public class GamePlaceholders extends PlaceholderExpansion {
             if (tokens[1].equals("leaderboard")) {
                 final int place = Integer.parseInt(tokens[2]);
                 final PlayerWinEntry winEntry = this.plugin.playerDataSource().winEntry(gameId, place + 1);
+                if (winEntry == null) {
+                    return "";
+                }
+
                 switch (tokens[3]) {
 
                     case "playername" -> {
@@ -112,6 +118,10 @@ public class GamePlaceholders extends PlaceholderExpansion {
             final int place = Integer.parseInt(tokens[0]);
 
             final PlayerWinEntry winEntry = this.plugin.playerDataSource().globalWinEntry(place);
+            if (winEntry == null) {
+                return "";
+            }
+
             switch (tokens[1]) {
 
                 case "playername" -> {
@@ -129,50 +139,67 @@ public class GamePlaceholders extends PlaceholderExpansion {
             }
         }
 
-        if (identifier.startsWith("leaderboard_score_")) {
-            final int n = Integer.parseInt(identifier.replace("leaderboard_score_", ""));
-
-            if (game.gameState() == GameState.RUNNING) {
+        if (game.gameState() == GameState.RUNNING) {
+            if (identifier.startsWith("leaderboard_score_")) {
+                final int n = Integer.parseInt(identifier.replace("leaderboard_score_", ""));
                 final List<GamePlayer> sorted = new ArrayList<>(game.leaderboard().keySet());
                 if (n >= sorted.size()) return "N/A";
                 return Util.addCommas(game.leaderboard().get(sorted.get(n)));
-            }
-            return "";
-        } else if (identifier.startsWith("leaderboard_player_")) {
-            final int n = Integer.parseInt(identifier.replace("leaderboard_player_", ""));
-
-            if (game.gameState() == GameState.RUNNING) {
+            } else if (identifier.startsWith("leaderboard_player_")) {
+                final int n = Integer.parseInt(identifier.replace("leaderboard_player_", ""));
                 final List<GamePlayer> sorted = new ArrayList<>(game.leaderboard().keySet());
                 if (n >= sorted.size()) return "N/A";
                 return sorted.get(n).player().getName();
             }
-            return "";
         }
 
-        if (gp != null) {
+        GameStats stats = gp.gameStats();
+        // Game stats only
+        if (stats != null) {
             switch (identifier) {
-                case "current_score":
-                    return Util.addCommas(gp.gameStats().score());
-                case "highest_score":
-                    return Util.addCommas(gp.highestScore());
-                case "current_ores_mined":
-                    return Util.addCommas(gp.gameStats().currentOresMined());
-                case "total_ores_mined":
-                    return Util.addCommas(gp.totalOresMined());
-                case "wins":
-                    return Util.addCommas(gp.wins());
-                case "game_players":
+                case "current_score" -> {
+                    return Util.addCommas(stats.score());
+                }
+                case "current_ores_mined" -> {
+                    return Util.addCommas(stats.currentOresMined());
+                }
+            }
+        }
+
+        // Game only
+        if (game != null) {
+            switch (identifier) {
+                case "game_players" -> {
                     return Integer.toString(game.players().size());
-                case "game_maxplayers":
+                }
+                case "game_maxplayers" -> {
                     return Integer.toString(game.maxPlayersPerRound());
-                case "map_name":
+                }
+                case "map_name" -> {
                     return game.mapName();
-                case "game_id":
+                }
+                case "game_id" -> {
                     return game.gameId();
-                case "game_state":
+                }
+                case "game_state" -> {
                     return game.gameState().displayName();
-                case "current_respawns":
-                    return Integer.toString(gp.respawns());
+                }
+            }
+        }
+
+        // Data only
+        switch (identifier) {
+            case "highest_score" -> {
+                return Util.addCommas(gp.data().highestScore());
+            }
+            case "total_ores_mined" -> {
+                return Util.addCommas(gp.data().totalOresMined());
+            }
+            case "wins" -> {
+                return Util.addCommas(gp.data().wins());
+            }
+            case "current_respawns" -> {
+                return Integer.toString(gp.data().respawns());
             }
         }
 

@@ -2,10 +2,10 @@ package com.gamersafer.minecraft.abbacaving.listeners;
 
 import com.destroystokyo.paper.event.player.PlayerPostRespawnEvent;
 import com.gamersafer.minecraft.abbacaving.AbbaCavingPlugin;
-import com.gamersafer.minecraft.abbacaving.datasource.DataSource;
 import com.gamersafer.minecraft.abbacaving.game.Game;
-import com.gamersafer.minecraft.abbacaving.game.GamePlayer;
+import com.gamersafer.minecraft.abbacaving.player.GamePlayer;
 import com.gamersafer.minecraft.abbacaving.game.GameState;
+import com.gamersafer.minecraft.abbacaving.player.GameStats;
 import com.gamersafer.minecraft.abbacaving.util.ItemBuilder;
 import com.gamersafer.minecraft.abbacaving.util.Util;
 import com.github.stefvanschie.inventoryframework.adventuresupport.ComponentHolder;
@@ -30,6 +30,7 @@ import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityTargetEvent;
 import org.bukkit.event.entity.FoodLevelChangeEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
+import org.bukkit.event.player.AsyncPlayerPreLoginEvent;
 import org.bukkit.event.player.PlayerBucketFillEvent;
 import org.bukkit.event.player.PlayerChangedWorldEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
@@ -98,9 +99,10 @@ public class PlayerListener implements Listener {
     }
 
     @EventHandler
-    public void onPlayerJoin(final PlayerJoinEvent event) {
-        final GamePlayer gp = this.plugin.gameTracker().gamePlayer(event.getPlayer());
-        this.plugin.getServer().getScheduler().runTaskAsynchronously(this.plugin, () -> this.plugin.playerDataSource().loadPlayerStats(gp));
+    public void onPlayerJoin(final AsyncPlayerPreLoginEvent event) {
+        if (event.getLoginResult() == AsyncPlayerPreLoginEvent.Result.ALLOWED) {
+            this.plugin.getPlayerCache().preload(event.getUniqueId());
+        }
     }
 
     @EventHandler
@@ -142,13 +144,11 @@ public class PlayerListener implements Listener {
             return;
         }
 
-        this.plugin.getServer().getScheduler().runTaskAsynchronously(this.plugin, () -> {
-            final DataSource dataSource = this.plugin.playerDataSource();
-            dataSource.savePlayerStats(gp);
-            dataSource.savePlayerRespawns(gp);
+        this.plugin.getPlayerCache().unloadAndCompleteAsync(gp.playerUUID(), (stats) -> {
+            gp.data().saveAll();
         });
 
-        final GamePlayer.GameStats gameStats = gp.gameStats();
+        final GameStats gameStats = gp.gameStats();
         if (gameStats == null) {
             return;
         }
@@ -219,14 +219,14 @@ public class PlayerListener implements Listener {
             ));
         }
 
-        if (hasPermission && !hasRespawned && gamePlayer.respawns() > 0) {
+        if (hasPermission && !hasRespawned && gamePlayer.data().respawns() > 0) {
             gamePlayer.gameStats().respawnLocation(event.getPlayer().getLocation());
             gamePlayer.gameStats().hasRespawned(true);
             gamePlayer.gameStats().showRespawnGui(true);
             gamePlayer.gameStats().score(0);
             game.updateLeaderboard();
             game.startingInventory(gamePlayer);
-            gamePlayer.negateRespawn();
+            gamePlayer.data().negateRespawn();
 
             return;
         }

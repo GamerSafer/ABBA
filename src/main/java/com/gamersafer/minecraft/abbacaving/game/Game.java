@@ -4,10 +4,13 @@ import com.gamersafer.minecraft.abbacaving.AbbaCavingPlugin;
 import com.gamersafer.minecraft.abbacaving.game.validators.AbbaValidator;
 import com.gamersafer.minecraft.abbacaving.lobby.LobbyQueue;
 import com.gamersafer.minecraft.abbacaving.lobby.QueueState;
+import com.gamersafer.minecraft.abbacaving.player.GamePlayer;
 import com.gamersafer.minecraft.abbacaving.tools.ToolManager;
 import com.gamersafer.minecraft.abbacaving.util.Components;
 import com.gamersafer.minecraft.abbacaving.util.ItemBuilder;
+import com.gamersafer.minecraft.abbacaving.util.Sounds;
 import com.gamersafer.minecraft.abbacaving.util.Util;
+import com.google.common.collect.Collections2;
 import com.sk89q.worldedit.EditSession;
 import com.sk89q.worldedit.WorldEdit;
 import com.sk89q.worldedit.WorldEditException;
@@ -24,23 +27,9 @@ import de.themoep.randomteleport.RandomTeleport;
 import de.themoep.randomteleport.ValidatorRegistry;
 import de.themoep.randomteleport.searcher.RandomSearcher;
 import de.themoep.randomteleport.searcher.options.NotFoundException;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Objects;
-import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
-import java.util.stream.Collectors;
 import net.coreprotect.CoreProtect;
 import net.coreprotect.CoreProtectAPI;
+import net.kyori.adventure.audience.ForwardingAudience;
 import net.kyori.adventure.key.InvalidKeyException;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.sound.Sound;
@@ -67,6 +56,22 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.Plugin;
 import org.intellij.lang.annotations.Subst;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Objects;
+import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
+import java.util.stream.Collectors;
+
 public class Game {
 
     private final AbbaCavingPlugin plugin;
@@ -81,6 +86,8 @@ public class Game {
     private GameState state;
     private EditSession editSession = null;
     private final AbbaValidator blockValidator;
+
+    private final ForwardingAudience globalAudience = () -> Collections2.transform(players.values(), GamePlayer::player);
 
     public Game(final AbbaCavingPlugin plugin, final String mapName) {
         this.plugin = plugin;
@@ -105,11 +112,6 @@ public class Game {
         return (T) this.plugin.mapSettings("default-settings").get(key);
     }
 
-    private void broadcastActionBar(final Component component) {
-        for (final GamePlayer gp : this.players.values()) {
-            gp.player().sendActionBar(component);
-        }
-    }
 
     private void playSound(final Sound sound) {
         for (final GamePlayer gp : this.players.values()) {
@@ -134,9 +136,7 @@ public class Game {
     public void broadcast(final String format, final TagResolver... resolvers) {
         final Component message = MiniMessage.miniMessage().deserialize(format, resolvers);
 
-        for (final GamePlayer gp : this.players.values()) {
-            gp.player().sendMessage(message);
-        }
+        this.globalAudience.sendMessage(message);
     }
 
     public CompletableFuture<Location> randomLocation(final Player player) {
@@ -275,6 +275,7 @@ public class Game {
                     "score", Integer.toString(gp.gameStats().score())
             ));
         }
+        gp.purgeGameStats();
 
         return gp;
     }
@@ -321,20 +322,22 @@ public class Game {
                 if (this.gracePeriod) {
                     final int gracePeriodRemaining = this.counter - (gameDurationSeconds - gracePeriodSeconds);
 
-                    this.broadcastActionBar(MiniMessage.miniMessage().deserialize(this.plugin.configMessage("game-grace-period"),
+                    this.globalAudience.sendActionBar(MiniMessage.miniMessage().deserialize(this.plugin.configMessage("game-grace-period"),
                             TagResolver.resolver("seconds", Tag.inserting(Component.text(gracePeriodRemaining))),
                             TagResolver.resolver("optional-s", Tag.inserting(Component.text(gracePeriodRemaining != 1 ? "s" : "")))));
                 } else {
-                    this.broadcastActionBar(MiniMessage.miniMessage().deserialize(this.plugin.configMessage("game-ending-ab"),
+                    this.globalAudience.sendActionBar(MiniMessage.miniMessage().deserialize(this.plugin.configMessage("game-ending-ab"),
                             TagResolver.resolver("counter", Tag.inserting(Component.text(this.counter)))));
                 }
             } else if (this.counter == 0) {
-                this.broadcastActionBar(MiniMessage.miniMessage().deserialize(this.plugin.configMessage("game-over")));
+                this.globalAudience.sendActionBar(MiniMessage.miniMessage().deserialize(this.plugin.configMessage("game-over")));
             }
 
             if (this.counter == gameDurationSeconds - gracePeriodSeconds) {
                 this.gracePeriod = false;
                 this.broadcast(this.plugin.configMessage("grace-period-ended"));
+
+                Sounds.goatHorn(this.globalAudience);
             } else if ((this.counter % 60 == 0 || this.counter == 30 || this.counter == 15
                     || this.counter == 10 || this.counter <= 5) && this.counter != 0) {
                 final int minutes = this.counter / 60;
@@ -344,14 +347,14 @@ public class Game {
                             "time-type", Component.text(minutes == 1 ? "minute" : "minutes")
                     ));
 
-                    this.playSound(Sound.sound(Key.key("ui.button.click"), Sound.Source.NEUTRAL, 1f, 1f));
+                    Sounds.pling(this.globalAudience);
                 } else if (this.counter <= 30) {
                     this.broadcast(this.plugin.configMessage("game-ending"), Map.of(
                             "amount", Component.text(this.counter),
                             "time-type", Component.text(this.counter == 1 ? "second" : "seconds")
                     ));
 
-                    this.playSound(Sound.sound(Key.key("ui.button.click"), Sound.Source.NEUTRAL, 1f, 1f));
+                    Sounds.pling(this.globalAudience);
                 }
             } else if (this.counter == 0) {
                 this.stop();
@@ -410,14 +413,14 @@ public class Game {
                             .collect(Collectors.toMap(
                                     Entry::getKey,
                                     Entry::getValue,
-                                    (x, y)-> {
+                                    (x, y) -> {
                                         throw new AssertionError();
                                     },
                                     LinkedHashMap::new
                             ));
 
             final Entry<GamePlayer, Integer> winner = sortedLeaderboards.entrySet().iterator().next();
-            winner.getKey().wins(winner.getKey().wins() + 1);
+            winner.getKey().data().incrementWins();
 
             this.broadcast(this.plugin.configMessage("game-win"), Map.of(
                     "player", winner.getKey().player().displayName(),
@@ -455,9 +458,7 @@ public class Game {
 
                     final Sound mainSound = Sound.sound(key, source, (float) pitch, (float) volume);
 
-                    for (final GamePlayer gp : this.players.values()) {
-                        gp.player().playSound(mainSound);
-                    }
+                    this.globalAudience.playSound(mainSound);
                 }
             } catch (final InvalidKeyException exception) {
                 this.plugin.getLogger().warning("Invalid key for game.end-of-round.sound.key");
@@ -672,7 +673,7 @@ public class Game {
     }
 
     public void startingInventory(final GamePlayer player) {
-        ToolManager. apply(player);
+        ToolManager.apply(player);
     }
 
     public void preparePlayer(final Player player) {

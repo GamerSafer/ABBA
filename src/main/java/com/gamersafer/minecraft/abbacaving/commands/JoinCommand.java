@@ -8,6 +8,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ThreadLocalRandom;
+
+import com.gamersafer.minecraft.abbacaving.util.Sounds;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -30,14 +32,14 @@ public class JoinCommand implements CommandExecutor, TabCompleter {
         final LobbyQueue queue;
 
         if (args.length == 0 || args[0].equalsIgnoreCase("random")) {
-            final List<LobbyQueue> queues = this.plugin.lobby().activeQueues();
+            final LobbyQueue lobbyQueue = this.plugin.lobby().pickFirstQueue();
 
-            if (queues.isEmpty()) {
+            if (lobbyQueue == null) {
                 this.plugin.message(sender, this.plugin.configMessage("no-open-queues"));
                 return true;
             }
 
-            queue = queues.get(ThreadLocalRandom.current().nextInt(queues.size()));
+            queue = lobbyQueue;
         } else {
             final String input = args[0];
 
@@ -71,7 +73,7 @@ public class JoinCommand implements CommandExecutor, TabCompleter {
             return false;
         }
 
-        if (queue.state() == QueueState.LOCKED || (queue.state() == QueueState.STARTING && queue.counter() <= 5)) { // Dont let player join in last 5 seconds
+        if (queue.state() == QueueState.LOCKED) {
             this.plugin.message(sender, this.plugin.configMessage("join-running-map"));
             return false;
         }
@@ -88,6 +90,7 @@ public class JoinCommand implements CommandExecutor, TabCompleter {
         }
 
         this.plugin.lobby().join(queue, player);
+        Sounds.pling(player);
 
         this.plugin.message(sender, this.plugin.configMessage("join-lobby"), Map.of("map", queue.mapName()));
 

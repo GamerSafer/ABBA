@@ -1,7 +1,6 @@
 package com.gamersafer.minecraft.abbacaving.tools.impl.resolver;
 
-import com.gamersafer.minecraft.abbacaving.AbbaCavingPlugin;
-import com.gamersafer.minecraft.abbacaving.game.GamePlayer;
+import com.gamersafer.minecraft.abbacaving.player.GamePlayer;
 import com.gamersafer.minecraft.abbacaving.tools.CosmeticRegistry;
 import com.gamersafer.minecraft.abbacaving.tools.ToolType;
 import com.gamersafer.minecraft.abbacaving.tools.ToolTypes;
@@ -23,7 +22,7 @@ public class CosmeticItemResolver implements ItemResolver {
         }
 
         final ToolType toolType = ToolTypes.fromIdentifier(this.identifier);
-        final CosmeticRegistry.Cosmetic cosmetic = player.selectedCosmetic(toolType);
+        final CosmeticRegistry.Cosmetic cosmetic = player.data().getCosmetics().get(toolType);
 
         if (cosmetic == null) {
             return null;

@@ -2,7 +2,7 @@ package com.gamersafer.minecraft.abbacaving.guis;
 
 import com.gamersafer.minecraft.abbacaving.AbbaCavingPlugin;
 import com.gamersafer.minecraft.abbacaving.tools.ToolSpecies;
-import com.gamersafer.minecraft.abbacaving.game.GamePlayer;
+import com.gamersafer.minecraft.abbacaving.player.GamePlayer;
 import com.gamersafer.minecraft.abbacaving.game.GameState;
 import com.gamersafer.minecraft.abbacaving.tools.CosmeticRegistry;
 import com.gamersafer.minecraft.abbacaving.tools.ToolType;
@@ -65,7 +65,7 @@ public class CosmeticGui {
             final GamePlayer gamePlayer = this.plugin.gameTracker().gamePlayer(event.getWhoClicked().getUniqueId());
 
             this.plugin.message(gamePlayer.player(), this.plugin.configMessage("cosmetic-select"), Map.of("cosmetic", "default"));
-            gamePlayer.removeSelectedCosmetic(type);
+            gamePlayer.data().removeSelectedCosmetic(type);
             if (gamePlayer.gameStats() != null && gamePlayer.gameStats().game().gameState() == GameState.RUNNING) {
                 this.plugin.message(gamePlayer.player(), this.plugin.configMessage("cosmetic-apply-after-game"));
             }
@@ -79,12 +79,12 @@ public class CosmeticGui {
                     return;
                 }
 
-                final CosmeticRegistry.Cosmetic old = gamePlayer.removeSelectedCosmetic(cosmetic.toolType());
+                final CosmeticRegistry.Cosmetic old = gamePlayer.data().removeSelectedCosmetic(cosmetic.toolType());
                 if (old != null) {
                     this.plugin.message(gamePlayer.player(), this.plugin.configMessage("cosmetic-deselect"), Map.of("cosmetic", old.identifier()));
                 }
                 if (old != cosmetic) {
-                    gamePlayer.addSelectedCosmetic(type, cosmetic);
+                    gamePlayer.data().addSelectedCosmetic(type, cosmetic);
                     this.plugin.message(gamePlayer.player(), this.plugin.configMessage("cosmetic-select"), Map.of("cosmetic", cosmetic.identifier()));
                 }
 

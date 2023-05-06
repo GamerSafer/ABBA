@@ -23,6 +23,14 @@ public class DebugCommand implements CommandExecutor {
             return true;
         }
 
+        if (args.length == 1 && args[0].equals("stop")) {
+            this.plugin.gameTracker().findGame(player).stop();
+        }
+
+//        if (args.length == 1 && args[0].equals("startNow")) {
+//            this.plugin.p
+//        }
+
         final Block block = player.getLocation().getBlock().getRelative(BlockFace.DOWN);
         if (args.length == 1) {
             System.out.println(block);

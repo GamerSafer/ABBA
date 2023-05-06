@@ -3,7 +3,10 @@ package com.gamersafer.minecraft.abbacaving.listeners;
 import com.gamersafer.minecraft.abbacaving.AbbaCavingPlugin;
 import com.gamersafer.minecraft.abbacaving.game.CaveLoot;
 import com.gamersafer.minecraft.abbacaving.game.Game;
-import com.gamersafer.minecraft.abbacaving.game.GamePlayer;
+import com.gamersafer.minecraft.abbacaving.player.GamePlayer;
+import com.gamersafer.minecraft.abbacaving.player.GameStats;
+import com.gamersafer.minecraft.abbacaving.player.PlayerData;
+import com.gamersafer.minecraft.abbacaving.tools.ToolManager;
 import com.gamersafer.minecraft.abbacaving.util.Sounds;
 import com.gamersafer.minecraft.abbacaving.util.Util;
 import java.util.Map;
@@ -140,12 +143,12 @@ public class InventoryListener implements Listener {
 
         if (game != null && gamePlayer != null) {
             if (isShiftClick) {
-                gamePlayer.hotbarLayout().clear();
+                gamePlayer.data().getHotbarLayout().clear();
             } else {
-                gamePlayer.populateHotbar();
+                gamePlayer.data().setHotbarLayout(ToolManager.serializeHotbarTools(player));
             }
 
-            gamePlayer.saveHotbar();
+            gamePlayer.data().saveHotbar();
             if (isShiftClick) {
                 this.plugin.message(player, this.plugin.configMessage("layout-default-saved"));
             } else {
@@ -163,13 +166,14 @@ public class InventoryListener implements Listener {
         Sounds.pling(player);
         final GamePlayer gamePlayer = this.plugin.gameTracker().gamePlayer(player);
         final Game game = gamePlayer.gameStats().game();
+        PlayerData data = gamePlayer.data();
 
         this.plugin.message(player, this.plugin.configMessage("stats-own"));
         this.plugin.message(player, "");
         this.plugin.message(player, this.plugin.configMessage("stats-all-time"));
-        this.plugin.message(player, this.plugin.configMessage("stats-wins"), Map.of("wins", Util.addCommas(gamePlayer.wins())));
-        this.plugin.message(player, this.plugin.configMessage("stats-score"), Map.of("score", Util.addCommas(gamePlayer.highestScore())));
-        this.plugin.message(player, this.plugin.configMessage("stats-ores"), Map.of("ores", Util.addCommas(gamePlayer.totalOresMined())));
+        this.plugin.message(player, this.plugin.configMessage("stats-wins"), Map.of("wins", Util.addCommas(data.wins())));
+        this.plugin.message(player, this.plugin.configMessage("stats-score"), Map.of("score", Util.addCommas(data.highestScore())));
+        this.plugin.message(player, this.plugin.configMessage("stats-ores"), Map.of("ores", Util.addCommas(data.totalOresMined())));
         this.plugin.message(player, "");
         this.plugin.message(player, this.plugin.configMessage("stats-in-game"));
         this.plugin.message(player, this.plugin.configMessage("stats-in-game-map"), Map.of("map", game.mapName()));

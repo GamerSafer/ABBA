@@ -4,6 +4,8 @@ import com.gamersafer.minecraft.abbacaving.AbbaCavingPlugin;
 import com.gamersafer.minecraft.abbacaving.game.Game;
 import com.gamersafer.minecraft.abbacaving.lobby.LobbyQueue;
 import java.util.Map;
+
+import com.gamersafer.minecraft.abbacaving.util.Sounds;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -56,6 +58,7 @@ public class LeaveCommand implements CommandExecutor {
             }
         }
 
+        Sounds.pling(player);
         return true;
     }
 

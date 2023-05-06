@@ -1,24 +1,25 @@
 package com.gamersafer.minecraft.abbacaving.datasource;
 
 import com.gamersafer.minecraft.abbacaving.game.Game;
-import com.gamersafer.minecraft.abbacaving.game.GamePlayer;
+import com.gamersafer.minecraft.abbacaving.player.GamePlayer;
 import com.gamersafer.minecraft.abbacaving.game.PlayerWinEntry;
+import com.gamersafer.minecraft.abbacaving.player.PlayerData;
+
+import java.util.UUID;
 
 public interface DataSource {
 
     void init();
 
-    void loadPlayerStats(final GamePlayer gp);
+    PlayerData loadPlayerData(UUID uuid);
 
-    void savePlayerStats(final GamePlayer gp);
+    void savePlayerStats(PlayerData stats);
 
-    void savePlayerHotbar(final GamePlayer gp);
+    void savePlayerHotbar(PlayerData stats);
 
-    void updatePlayerRespawns(final GamePlayer gp);
+    void savePlayerRespawns(PlayerData stats);
 
-    void savePlayerRespawns(final GamePlayer gp);
-
-    void savePlayerCosmetics(final GamePlayer gp);
+    void savePlayerCosmetics(PlayerData stats);
 
     void saveFinishedGame(Game game);
 

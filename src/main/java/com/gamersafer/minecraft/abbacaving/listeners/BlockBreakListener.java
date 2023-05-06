@@ -3,7 +3,7 @@ package com.gamersafer.minecraft.abbacaving.listeners;
 import com.gamersafer.minecraft.abbacaving.AbbaCavingPlugin;
 import com.gamersafer.minecraft.abbacaving.game.CaveOre;
 import com.gamersafer.minecraft.abbacaving.game.Game;
-import com.gamersafer.minecraft.abbacaving.game.GamePlayer;
+import com.gamersafer.minecraft.abbacaving.player.GamePlayer;
 import com.gamersafer.minecraft.abbacaving.game.GameState;
 import com.gamersafer.minecraft.abbacaving.util.Sounds;
 import net.kyori.adventure.text.minimessage.tag.Tag;
@@ -52,7 +52,7 @@ public class BlockBreakListener implements Listener {
 
             if (ore.value() > 0) {
                 gp.gameStats().currentOresMined(gp.gameStats().currentOresMined() + 1);
-                gp.totalOresMined(gp.totalOresMined() + 1);
+                gp.data().incrementMinedOres();
                 gp.gameStats().addScore(ore.value(), ore.name());
                 game.increasePlayerScore(gp, ore.value());
                 Sounds.pling(player);

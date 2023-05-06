@@ -13,7 +13,7 @@ import com.gamersafer.minecraft.abbacaving.commands.PointsCommand;
 import com.gamersafer.minecraft.abbacaving.commands.RespawnCountCommand;
 import com.gamersafer.minecraft.abbacaving.commands.StatsCommand;
 import com.gamersafer.minecraft.abbacaving.datasource.DataSource;
-import com.gamersafer.minecraft.abbacaving.datasource.SQLDataSource;
+import com.gamersafer.minecraft.abbacaving.datasource.DummyDataSource;
 import com.gamersafer.minecraft.abbacaving.game.CaveLoot;
 import com.gamersafer.minecraft.abbacaving.game.CaveOre;
 import com.gamersafer.minecraft.abbacaving.game.Game;
@@ -27,6 +27,7 @@ import com.gamersafer.minecraft.abbacaving.listeners.PlayerKillEntityListener;
 import com.gamersafer.minecraft.abbacaving.listeners.PlayerListener;
 import com.gamersafer.minecraft.abbacaving.lobby.Lobby;
 import com.gamersafer.minecraft.abbacaving.placeholders.GamePlaceholders;
+import com.gamersafer.minecraft.abbacaving.player.PlayerCache;
 import com.gamersafer.minecraft.abbacaving.tools.CosmeticRegistry;
 import java.io.File;
 import java.io.IOException;
@@ -55,6 +56,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 public class AbbaCavingPlugin extends JavaPlugin {
 
+    private final PlayerCache cache = new PlayerCache(this);
     private Set<CaveOre> ores;
     private Set<CaveLoot> loot;
     private GameTracker gameTracker;
@@ -98,7 +100,7 @@ public class AbbaCavingPlugin extends JavaPlugin {
             new GamePlaceholders(this).register();
         }
 
-        this.dataSource = new SQLDataSource(this);
+        this.dataSource = new DummyDataSource();
         this.dataSource.init();
 
         final ACLookupCommand acLookupCommand = new ACLookupCommand(this);
@@ -355,4 +357,7 @@ public class AbbaCavingPlugin extends JavaPlugin {
         return this.cosmeticRegistry;
     }
 
+    public PlayerCache getPlayerCache() {
+        return cache;
+    }
 }

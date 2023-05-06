@@ -2,17 +2,21 @@ package com.gamersafer.minecraft.abbacaving.datasource;
 
 import com.gamersafer.minecraft.abbacaving.AbbaCavingPlugin;
 import com.gamersafer.minecraft.abbacaving.game.Game;
-import com.gamersafer.minecraft.abbacaving.game.GamePlayer;
 import com.gamersafer.minecraft.abbacaving.game.PlayerWinEntry;
+import com.gamersafer.minecraft.abbacaving.player.GamePlayer;
+import com.gamersafer.minecraft.abbacaving.player.PlayerData;
 import com.gamersafer.minecraft.abbacaving.tools.CosmeticRegistry;
+import com.gamersafer.minecraft.abbacaving.tools.ToolType;
 import com.gamersafer.minecraft.abbacaving.tools.impl.SlottedHotbarTool;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
+
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
@@ -62,79 +66,96 @@ public class SQLDataSource implements DataSource {
     }
 
     @Override
-    public void loadPlayerStats(final GamePlayer gp) {
+    public PlayerData loadPlayerData(UUID uuid) {
+        int wins = 0;
+        int highestScore = 0;
+        int oresMined = 0;
+        int respawns = 0;
+        Map<SlottedHotbarTool, Integer> tools = new HashMap<>();
+        Map<ToolType, CosmeticRegistry.Cosmetic> cosmetics = new HashMap<>();
+
         try (final Connection conn = this.dataSource.getConnection()) {
             // Load game stats
             try (final PreparedStatement stmt = conn.prepareStatement("SELECT wins, highest_score, ores_mined FROM abba_caving_stats WHERE uuid = ?;")) {
-                stmt.setString(1, gp.playerUUID().toString());
+                stmt.setString(1, uuid.toString());
 
                 try (final ResultSet rs = stmt.executeQuery()) {
                     if (rs.next()) {
-                        gp.wins(rs.getInt("wins"));
-                        gp.highestScore(rs.getInt("highest_score"));
-                        gp.totalOresMined(rs.getInt("ores_mined"));
+                        wins = rs.getInt("wins");
+                        highestScore = rs.getInt("highest_score");
+                        oresMined = rs.getInt("ores_mined");
                     }
                 }
             }
 
             // Load hotbar layout
             try (final PreparedStatement hotbarStatement = conn.prepareStatement("SELECT * FROM abba_hotbar_layout WHERE uuid = ?;")) {
-                hotbarStatement.setString(1, gp.playerUUID().toString());
+                hotbarStatement.setString(1, uuid.toString());
 
                 try (final ResultSet rs = hotbarStatement.executeQuery()) {
                     while (rs.next()) {
-                        gp.hotbarLayout(SlottedHotbarTool.stored(rs.getString("material")), rs.getInt("slot"));
+                        tools.put(SlottedHotbarTool.stored(rs.getString("material")), rs.getInt("slot"));
                     }
                 }
             }
 
             // Load selected cosmetics
             try (final PreparedStatement cosmeticsStatement = conn.prepareStatement("SELECT * FROM abba_cosmetics WHERE uuid = ?;")) {
-                cosmeticsStatement.setString(1, gp.playerUUID().toString());
+                cosmeticsStatement.setString(1, uuid.toString());
 
                 try (final ResultSet rs = cosmeticsStatement.executeQuery()) {
                     while (rs.next()) {
                         final CosmeticRegistry.Cosmetic cosmetic = this.plugin.cosmeticRegistry().get(rs.getString("cosmetic"));
-                        gp.addSelectedCosmetic(cosmetic.toolType(), cosmetic);
+                        cosmetics.put(cosmetic.toolType(), cosmetic);
                     }
                 }
             }
 
-            this.updatePlayerRespawns(gp);
+            try (final PreparedStatement stmt = conn.prepareStatement("SELECT respawns FROM abba_respawns WHERE uuid = ?;")) {
+                stmt.setString(1, uuid.toString());
+
+                try (final ResultSet rs = stmt.executeQuery()) {
+                    if (rs.next()) {
+                        respawns = rs.getInt("respawns");
+                    }
+                }
+            }
+
+            return new PlayerData(uuid, wins, highestScore, oresMined, respawns, tools, cosmetics);
         } catch (final SQLException ex) {
-            ex.printStackTrace();
+            throw new RuntimeException(ex);
         }
     }
 
     @Override
-    public void savePlayerStats(final GamePlayer gp) {
+    public void savePlayerStats(PlayerData stats) {
         try (final Connection conn = this.dataSource.getConnection()) {
             try (final PreparedStatement stmt = conn.prepareStatement(
-                    "INSERT INTO abba_caving_stats (uuid, wins, highest_score, ores_mined) VALUES (?, ?, ?, ?) ON DUPLICATE KEY UPDATE wins = ?, highest_score = ?, ores_mined = ?;")) {
-                stmt.setString(1, gp.playerUUID().toString());
-                stmt.setInt(2, gp.wins());
-                stmt.setInt(3, gp.highestScore());
-                stmt.setInt(4, gp.totalOresMined());
-                stmt.setInt(5, gp.wins());
-                stmt.setInt(6, gp.highestScore());
-                stmt.setInt(7, gp.totalOresMined());
+                    "INSERT INTO abba_caving_stats (uuid, wins, highest_score, ores_mined) VALUES (?, ?, ?, ?) " +
+                            "ON DUPLICATE KEY UPDATE wins = ?, highest_score = ?, ores_mined = ?;")) {
+
+                stmt.setString(1, stats.getOwner().toString());
+                stmt.setInt(2, stats.wins());
+                stmt.setInt(3, stats.highestScore());
+                stmt.setInt(4, stats.totalOresMined());
+                stmt.setInt(5, stats.wins());
+                stmt.setInt(6, stats.highestScore());
+                stmt.setInt(7, stats.totalOresMined());
                 stmt.executeUpdate();
             }
         } catch (final SQLException ex) {
             ex.printStackTrace();
         }
 
-        this.savePlayerCosmetics(gp);
-        this.savePlayerHotbar(gp);
     }
 
     @Override
-    public void savePlayerHotbar(final GamePlayer gp) {
+    public void savePlayerHotbar(PlayerData stats) {
         try (final Connection conn = this.dataSource.getConnection()) {
-            for (final Map.Entry<SlottedHotbarTool, Integer> entry : gp.hotbarLayout().entrySet()) {
+            for (final Map.Entry<SlottedHotbarTool, Integer> entry : stats.getHotbarLayout().entrySet()) {
                 try (final PreparedStatement stmt = conn.prepareStatement(
                         "INSERT INTO abba_hotbar_layout (uuid, slot, material) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE slot = ?, material = ?;")) {
-                    stmt.setString(1, gp.playerUUID().toString());
+                    stmt.setString(1, stats.getOwner().toString());
                     stmt.setInt(2, entry.getValue());
                     stmt.setString(3, entry.getKey().identifier());
                     stmt.setInt(4, entry.getValue());
@@ -148,16 +169,30 @@ public class SQLDataSource implements DataSource {
         } catch (final SQLException ex) {
             ex.printStackTrace();
         }
-
     }
 
     @Override
-    public void savePlayerCosmetics(final GamePlayer gp) {
+    public void savePlayerRespawns(PlayerData stats) {
         try (final Connection conn = this.dataSource.getConnection()) {
-            for (final CosmeticRegistry.Cosmetic cosmetic : gp.selectedCosmetics()) {
+            try (final PreparedStatement stmt = conn.prepareStatement(
+                    "INSERT INTO abba_respawns (uuid, respawns) VALUES (?, ?) ON DUPLICATE KEY UPDATE respawns = ?;")) {
+                stmt.setString(1, stats.getOwner().toString());
+                stmt.setInt(2, stats.respawns());
+                stmt.setInt(3, stats.respawns());
+                stmt.executeUpdate();
+            }
+        } catch (final SQLException ex) {
+            ex.printStackTrace();
+        }
+    }
+
+    @Override
+    public void savePlayerCosmetics(PlayerData stats) {
+        try (final Connection conn = this.dataSource.getConnection()) {
+            for (final CosmeticRegistry.Cosmetic cosmetic : stats.getCosmetics().values()) {
                 try (final PreparedStatement stmt = conn.prepareStatement(
                         "INSERT INTO abba_cosmetics (uuid, cosmetic) VALUES (?, ?);")) {
-                    stmt.setString(1, gp.playerUUID().toString());
+                    stmt.setString(1, stats.getOwner().toString());
                     stmt.setString(2, cosmetic.identifier());
 
                     stmt.executeUpdate();
@@ -244,39 +279,5 @@ public class SQLDataSource implements DataSource {
         return null;
     }
 
-    @Override
-    public void updatePlayerRespawns(final GamePlayer gp) {
-        try (final Connection conn = this.dataSource.getConnection()) {
-            try (final PreparedStatement stmt = conn.prepareStatement("SELECT respawns FROM abba_respawns WHERE uuid = ?;")) {
-                stmt.setString(1, gp.playerUUID().toString());
-
-                int respawns = 0;
-                try (final ResultSet rs = stmt.executeQuery()) {
-                    if (rs.next()) {
-                        respawns = rs.getInt("respawns");
-                    }
-                }
-                gp.respawns(respawns);
-            }
-        } catch (final SQLException ex) {
-            ex.printStackTrace();
-        }
-
-    }
-
-    @Override
-    public void savePlayerRespawns(final GamePlayer gp) {
-        try (final Connection conn = this.dataSource.getConnection()) {
-            try (final PreparedStatement stmt = conn.prepareStatement(
-                    "INSERT INTO abba_respawns (uuid, respawns) VALUES (?, ?) ON DUPLICATE KEY UPDATE respawns = ?;")) {
-                stmt.setString(1, gp.playerUUID().toString());
-                stmt.setInt(2, gp.respawns());
-                stmt.setInt(3, gp.respawns());
-                stmt.executeUpdate();
-            }
-        } catch (final SQLException ex) {
-            ex.printStackTrace();
-        }
-    }
 
 }

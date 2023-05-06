@@ -1,7 +1,7 @@
 package com.gamersafer.minecraft.abbacaving.commands;
 
 import com.gamersafer.minecraft.abbacaving.AbbaCavingPlugin;
-import com.gamersafer.minecraft.abbacaving.game.GamePlayer;
+import com.gamersafer.minecraft.abbacaving.player.GamePlayer;
 import com.gamersafer.minecraft.abbacaving.util.Util;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -49,16 +49,15 @@ public class RespawnCountCommand implements CommandExecutor, TabCompleter {
         if (args.length >= 2) {
             final int amount;
             if (args[1].equals("add")) {
-                amount = gamePlayer.respawns() + Integer.parseInt(args[2]);
+                amount = gamePlayer.data().respawns() + Integer.parseInt(args[2]);
             } else {
                 amount = Integer.parseInt(args[1]);
             }
-
-            gamePlayer.respawns(amount);
-            this.plugin.message(sender, this.plugin.configMessage("player-respawns-set"), Map.of("amount", Util.addCommas(gamePlayer.respawns())));
-            this.plugin.playerDataSource().savePlayerRespawns(gamePlayer);
+            gamePlayer.data().setRespawns(amount);
+            this.plugin.message(sender, this.plugin.configMessage("player-respawns-set"), Map.of("amount", Util.addCommas(amount)));
+            gamePlayer.data().saveRespawns();
         } else {
-            this.plugin.message(sender, this.plugin.configMessage("player-respawns"), Map.of("amount", Util.addCommas(gamePlayer.respawns())));
+            this.plugin.message(sender, this.plugin.configMessage("player-respawns"), Map.of("amount", Util.addCommas(gamePlayer.data().respawns())));
         }
 
         return true;

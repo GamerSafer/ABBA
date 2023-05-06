@@ -1,6 +1,6 @@
 package com.gamersafer.minecraft.abbacaving.tools.impl;
 
-import com.gamersafer.minecraft.abbacaving.game.GamePlayer;
+import com.gamersafer.minecraft.abbacaving.player.GamePlayer;
 import com.gamersafer.minecraft.abbacaving.tools.ToolType;
 import com.gamersafer.minecraft.abbacaving.tools.impl.resolver.ItemResolver;
 import java.util.HashMap;
@@ -55,7 +55,7 @@ public class SlottedHotbarTool implements ToolType {
 
     @Override
     public void apply(final GamePlayer player) {
-        Integer slot = player.hotbarLayout().get(this);
+        Integer slot = player.data().getHotbarLayout().get(this);
         if (slot == null) {
             slot = this.defaultSlot;
         }

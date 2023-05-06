@@ -6,6 +6,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+
+import com.gamersafer.minecraft.abbacaving.player.GamePlayer;
 import org.bukkit.GameMode;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
@@ -14,7 +16,6 @@ public class GameTracker {
 
     private final AbbaCavingPlugin plugin;
     private final List<Game> currentGames = new ArrayList<>();
-    private final Map<UUID, GamePlayer> playerCache = new HashMap<>();
 
     public GameTracker(final AbbaCavingPlugin plugin) {
         this.plugin = plugin;
@@ -70,11 +71,11 @@ public class GameTracker {
     }
 
     public GamePlayer gamePlayer(final UUID uuid) {
-        return this.playerCache.computeIfAbsent(uuid, _uuid -> new GamePlayer(this.plugin, _uuid));
+        return this.plugin.getPlayerCache().getLoaded(uuid);
     }
 
     public GamePlayer gamePlayer(final Player player) {
-        return this.playerCache.computeIfAbsent(player.getUniqueId(), uuid -> new GamePlayer(this.plugin, uuid));
+        return this.gamePlayer(player.getUniqueId());
     }
 
     public GamePlayer findPlayerInGame(final Player player) {
