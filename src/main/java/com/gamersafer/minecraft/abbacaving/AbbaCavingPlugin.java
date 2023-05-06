@@ -14,6 +14,7 @@ import com.gamersafer.minecraft.abbacaving.commands.RespawnCountCommand;
 import com.gamersafer.minecraft.abbacaving.commands.StatsCommand;
 import com.gamersafer.minecraft.abbacaving.datasource.DataSource;
 import com.gamersafer.minecraft.abbacaving.datasource.DummyDataSource;
+import com.gamersafer.minecraft.abbacaving.datasource.SQLDataSource;
 import com.gamersafer.minecraft.abbacaving.game.CaveLoot;
 import com.gamersafer.minecraft.abbacaving.game.CaveOre;
 import com.gamersafer.minecraft.abbacaving.game.Game;
@@ -100,7 +101,7 @@ public class AbbaCavingPlugin extends JavaPlugin {
             new GamePlaceholders(this).register();
         }
 
-        this.dataSource = new DummyDataSource();
+        this.dataSource = new SQLDataSource(this);
         this.dataSource.init();
 
         final ACLookupCommand acLookupCommand = new ACLookupCommand(this);
@@ -257,15 +258,19 @@ public class AbbaCavingPlugin extends JavaPlugin {
 
         for (final Map<?, ?> entry : this.pointsConfig.getMapList("ores")) {
             final Map<?, ?> value = (Map<?, ?>) entry.get("value");
-            this.ores.add(new CaveOre(
-                    (String) entry.get("name"),
-                    (Integer) value.get("exact"),
-                    (Integer) value.get("min"),
-                    (Integer) value.get("max"),
-                    (Double) value.get("probability"),
-                    Material.valueOf((String) entry.get("block")),
-                    new ItemStack(Material.valueOf((String) entry.get("drop")))
-            ));
+            try {
+                this.ores.add(new CaveOre(
+                        (String) entry.get("name"),
+                        (Integer) value.get("exact"),
+                        (Integer) value.get("min"),
+                        (Integer) value.get("max"),
+                        (Double) value.get("probability"),
+                        Material.valueOf((String) entry.get("block")),
+                        new ItemStack(Material.valueOf((String) entry.get("drop")))
+                ));
+            } catch (IllegalArgumentException exception) {
+                this.getLogger().warning("Failed to load cave ore from type: " + entry.get("drop"));
+            }
         }
 
         this.ores = this.ores.stream()
