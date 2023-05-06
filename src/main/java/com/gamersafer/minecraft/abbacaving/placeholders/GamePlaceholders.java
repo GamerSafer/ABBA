@@ -139,7 +139,7 @@ public class GamePlaceholders extends PlaceholderExpansion {
             }
         }
 
-        if (game.gameState() == GameState.RUNNING) {
+        if (game != null && game.gameState() == GameState.RUNNING) {
             if (identifier.startsWith("leaderboard_score_")) {
                 final int n = Integer.parseInt(identifier.replace("leaderboard_score_", ""));
                 final List<GamePlayer> sorted = new ArrayList<>(game.leaderboard().keySet());
