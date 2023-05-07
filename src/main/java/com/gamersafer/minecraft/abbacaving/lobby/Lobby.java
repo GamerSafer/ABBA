@@ -112,6 +112,7 @@ public class Lobby implements Listener {
 
         player.getInventory().clear();
         player.getInventory().setArmorContents(null);
+        player.setInvisible(false);
     }
 
     @EventHandler
@@ -296,16 +297,11 @@ public class Lobby implements Listener {
         return this.plugin.mapSettings("default-settings").getInt("maximum-players-per-round");
     }
 
-    public void sendToLobby( Player player) {
+    public void sendToLobby(Player player) {
         player.spigot().respawn();
-        new BukkitRunnable() {
-            @Override
-            public void run() {
-                player.teleport(Lobby.this.lobbySpawn());
-            }
-        }.runTaskLater(this.plugin, 10);
-        this.plugin.lobby().resetPlayer(player);
+        player.teleport(Lobby.this.lobbySpawn());
 
+        this.plugin.lobby().resetPlayer(player);
     }
 
     private Location lobbySpawn() {

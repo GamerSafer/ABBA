@@ -101,7 +101,7 @@ public class AbbaCavingPlugin extends JavaPlugin {
             new GamePlaceholders(this).register();
         }
 
-        this.dataSource = new SQLDataSource(this);
+        this.dataSource = new DummyDataSource();
         this.dataSource.init();
 
         final ACLookupCommand acLookupCommand = new ACLookupCommand(this);

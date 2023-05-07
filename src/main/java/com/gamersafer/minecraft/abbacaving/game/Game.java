@@ -236,6 +236,8 @@ public class Game {
         this.preparePlayer(gamePlayer.player());
         this.setupGUIs(gamePlayer);
         this.startingInventory(gamePlayer);
+        gamePlayer.data().negateRespawn();
+        gamePlayer.gameStats().isDead(false);
 
         gamePlayer.gameStats().game().broadcast(this.plugin.configMessage("player-respawned"),
                 Map.of("player", gamePlayer.player().displayName()));
@@ -276,7 +278,9 @@ public class Game {
                     "score", Integer.toString(gp.gameStats().score())
             ));
         }
-        gp.purgeGameStats();
+        if (quit) {
+            gp.purgeGameStats();
+        }
 
         return gp;
     }
@@ -688,6 +692,7 @@ public class Game {
         player.setLevel(0);
         player.setExp(0);
         player.getInventory().clear();
+        player.setInvisible(false);
     }
 
     public void updateLeaderboard() {

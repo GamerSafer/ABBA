@@ -18,6 +18,9 @@ import com.google.common.collect.Iterables;
 import io.papermc.paper.event.player.AsyncChatEvent;
 import java.util.Collection;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Consumer;
+
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.bukkit.GameMode;
@@ -31,6 +34,7 @@ import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityTargetEvent;
 import org.bukkit.event.entity.FoodLevelChangeEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
+import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.player.AsyncPlayerPreLoginEvent;
 import org.bukkit.event.player.PlayerBucketFillEvent;
 import org.bukkit.event.player.PlayerChangedWorldEvent;
@@ -57,7 +61,6 @@ public class PlayerListener implements Listener {
         backgroundPane.setPriority(Pane.Priority.LOWEST);
 
         this.gui.addPane(backgroundPane);
-
         final StaticPane buttonPane = new StaticPane(0, 0, 9, this.gui.getRows());
         buttonPane.setPriority(Pane.Priority.HIGHEST);
 
@@ -93,7 +96,19 @@ public class PlayerListener implements Listener {
         final GuiItem noButton = new GuiItem(noItem, onClick -> {
             onClick.getWhoClicked().closeInventory();
             this.plugin.lobby().sendToLobby((Player) onClick.getWhoClicked());
+            // Purge game stats on quit
+            this.plugin.getPlayerCache().getLoaded(onClick.getWhoClicked().getUniqueId()).purgeGameStats();
         });
+        this.gui.setOnClose(event -> {
+            final GamePlayer gamePlayer = this.plugin.gameTracker().gamePlayer(event.getPlayer().getUniqueId());
+            // will be false if respawned
+            if (gamePlayer.gameStats().isDead()) {
+                this.plugin.lobby().sendToLobby((Player) event.getPlayer());
+                // Purge game stats on quit
+                this.plugin.getPlayerCache().getLoaded(event.getPlayer().getUniqueId()).purgeGameStats();
+            }
+        });
+
         buttonPane.addItem(noButton, 6, 1);
 
         this.gui.addPane(buttonPane);
@@ -189,7 +204,11 @@ public class PlayerListener implements Listener {
 
         if (gamePlayer.gameStats().showRespawnGui()) {
             this.gui.show(player);
+            gamePlayer.player().setInvisible(true);
             gamePlayer.gameStats().showRespawnGui(false);
+        } else {
+            this.plugin.lobby().sendToLobby(player);
+            gamePlayer.purgeGameStats();
         }
     }
 
@@ -203,11 +222,6 @@ public class PlayerListener implements Listener {
             return;
         }
 
-        final boolean hasPermission = player.hasPermission("abbacaving.respawn");
-        final boolean hasRespawned = gamePlayer.gameStats().hasRespawned();
-
-        this.plugin.getLogger().info(player.getName() + " has died in a match [hasPermission=" + hasPermission + ", hasRespawned=" + hasRespawned + "]");
-
         game.broadcast(this.plugin.configMessage("player-died"), Map.of("player", player.displayName(),
                 "score", Component.text(gamePlayer.gameStats().score())));
 
@@ -220,21 +234,16 @@ public class PlayerListener implements Listener {
             ));
         }
 
-        if (hasPermission && !hasRespawned && gamePlayer.data().respawns() > 0) {
-            gamePlayer.gameStats().respawnLocation(event.getPlayer().getLocation());
-            gamePlayer.gameStats().hasRespawned(true);
-            gamePlayer.gameStats().showRespawnGui(true);
-            gamePlayer.gameStats().score(0);
-            game.updateLeaderboard();
-            game.startingInventory(gamePlayer);
-            gamePlayer.data().negateRespawn();
+        final boolean hasPermission = player.hasPermission("abbacaving.respawn");
+        final boolean hasRespawned = gamePlayer.gameStats().hasRespawned();
 
-            return;
+        if (hasPermission && !hasRespawned && gamePlayer.data().respawns() > 0) {
+            gamePlayer.gameStats().showRespawnGui(true);
+            gamePlayer.gameStats().respawnLocation(event.getPlayer().getLocation());
         }
 
         gamePlayer.gameStats().isDead(true);
         game.removePlayer(player, false);
-        this.plugin.lobby().sendToLobby(player);
     }
 
     @EventHandler

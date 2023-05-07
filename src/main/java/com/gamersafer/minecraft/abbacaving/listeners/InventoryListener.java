@@ -53,6 +53,7 @@ public class InventoryListener implements Listener {
         final GamePlayer gp = this.plugin.gameTracker().findPlayerInGame(player);
 
         if (gp == null) {
+            event.setCancelled(true);
             return;
         }
 
@@ -95,6 +96,7 @@ public class InventoryListener implements Listener {
         final CaveLoot lootItem = this.plugin.lootFromItem(currentItem.getType());
 
         if (lootItem == null) {
+            event.setCancelled(true);
             return;
         }
 
