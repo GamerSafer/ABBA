@@ -12,6 +12,8 @@ import com.gamersafer.minecraft.abbacaving.util.Sounds;
 import com.gamersafer.minecraft.abbacaving.util.Stats;
 import com.gamersafer.minecraft.abbacaving.util.Util;
 import java.util.Map;
+
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -19,9 +21,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryDragEvent;
 import org.bukkit.event.inventory.InventoryType;
-import org.bukkit.inventory.Inventory;
-import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.PlayerInventory;
+import org.bukkit.inventory.*;
 
 public class InventoryListener implements Listener {
 
@@ -93,26 +93,30 @@ public class InventoryListener implements Listener {
             return;
         }
 
-        final CaveLoot lootItem = this.plugin.lootFromItem(currentItem.getType());
+        InventoryHolder holder = event.getClickedInventory().getHolder();
+        if (holder instanceof BlockInventoryHolder || holder instanceof Entity) {
+            final CaveLoot lootItem = this.plugin.lootFromItem(currentItem.getType());
 
-        if (lootItem == null) {
-            event.setCancelled(true);
-            return;
+            if (lootItem == null) {
+                event.setCancelled(true);
+                return;
+            }
+
+            final Player player = (Player) event.getView().getPlayer();
+            final GamePlayer gp = this.plugin.gameTracker().findPlayerInGame(player);
+
+            if (gp == null) {
+                return;
+            }
+
+            final Game game = this.plugin.gameTracker().findGame(player);
+
+            gp.gameStats().addScore(lootItem.value(), lootItem.name());
+            game.increasePlayerScore(gp, lootItem.value());
+
+            event.setCurrentItem(null);
         }
 
-        final Player player = (Player) event.getView().getPlayer();
-        final GamePlayer gp = this.plugin.gameTracker().findPlayerInGame(player);
-
-        if (gp == null) {
-            return;
-        }
-
-        final Game game = this.plugin.gameTracker().findGame(player);
-
-        gp.gameStats().addScore(lootItem.value(), lootItem.name());
-        game.increasePlayerScore(gp, lootItem.value());
-
-        event.setCurrentItem(null);
     }
 
     private boolean isHotbarClick(final InventoryClickEvent event) {

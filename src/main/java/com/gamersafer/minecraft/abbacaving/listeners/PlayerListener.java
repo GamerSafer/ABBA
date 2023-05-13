@@ -202,7 +202,7 @@ public class PlayerListener implements Listener {
             return;
         }
 
-        if (gamePlayer.gameStats().showRespawnGui()) {
+        if (gamePlayer.gameStats().showRespawnGui() && !gamePlayer.gameStats().game().players().isEmpty()) {
             this.gui.show(player);
             gamePlayer.player().setInvisible(true);
             gamePlayer.gameStats().showRespawnGui(false);

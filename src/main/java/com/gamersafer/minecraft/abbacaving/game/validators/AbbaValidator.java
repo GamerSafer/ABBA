@@ -68,7 +68,11 @@ public class AbbaValidator extends LocationValidator {
         BlockData data = block.getBlockData();
 
         if (data instanceof Waterlogged waterlogged) {
-            return !waterlogged.isWaterlogged() || data.getMaterial() == Material.SEAGRASS || data.getMaterial() == Material.TALL_SEAGRASS;
+            return !waterlogged.isWaterlogged()
+                    || data.getMaterial() == Material.SEAGRASS
+                    || data.getMaterial() == Material.TALL_SEAGRASS
+                    || data.getMaterial() == Material.KELP
+                    || data.getMaterial() == Material.KELP_PLANT;
         } else {
             return true;
         }
