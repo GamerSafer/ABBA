@@ -20,12 +20,7 @@ import com.gamersafer.minecraft.abbacaving.game.CaveOre;
 import com.gamersafer.minecraft.abbacaving.game.Game;
 import com.gamersafer.minecraft.abbacaving.game.GameTracker;
 import com.gamersafer.minecraft.abbacaving.guis.CosmeticGui;
-import com.gamersafer.minecraft.abbacaving.listeners.BlockBreakListener;
-import com.gamersafer.minecraft.abbacaving.listeners.BlockPlaceListener;
-import com.gamersafer.minecraft.abbacaving.listeners.EntityListener;
-import com.gamersafer.minecraft.abbacaving.listeners.InventoryListener;
-import com.gamersafer.minecraft.abbacaving.listeners.PlayerKillEntityListener;
-import com.gamersafer.minecraft.abbacaving.listeners.PlayerListener;
+import com.gamersafer.minecraft.abbacaving.listeners.*;
 import com.gamersafer.minecraft.abbacaving.lobby.Lobby;
 import com.gamersafer.minecraft.abbacaving.placeholders.GamePlaceholders;
 import com.gamersafer.minecraft.abbacaving.player.PlayerCache;
@@ -96,6 +91,7 @@ public class AbbaCavingPlugin extends JavaPlugin {
         this.getServer().getPluginManager().registerEvents(new EntityListener(this), this);
         this.getServer().getPluginManager().registerEvents(new PlayerListener(this), this);
         this.getServer().getPluginManager().registerEvents(new PlayerKillEntityListener(this), this);
+        this.getServer().getPluginManager().registerEvents(new WorldListener(this), this);
 
         if (Bukkit.getPluginManager().isPluginEnabled("PlaceholderAPI")) {
             new GamePlaceholders(this).register();
