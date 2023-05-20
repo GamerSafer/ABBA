@@ -47,8 +47,6 @@ public class GamePlaceholders extends PlaceholderExpansion {
     @SuppressWarnings("checkstyle:FallThrough")
     @Override
     public String onPlaceholderRequest(final Player player, final String identifier) {
-        this.plugin.getLogger().info("PlaceholderAPI request: " + player.getName() + ", " + identifier);
-
         final GamePlayer gp = this.plugin.getPlayerCache().getLoaded(player.getUniqueId());
         final Game game = this.plugin.gameTracker().findGame(player);
 

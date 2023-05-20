@@ -258,8 +258,7 @@ public class SQLDataSource implements DataSource {
     public PlayerWinEntry globalWinEntry(int place) {
         try (final Connection conn = this.dataSource.getConnection()) {
             // Load game stats
-            try (final PreparedStatement stmt = conn.prepareStatement("SELECT player, score\n" +
-                    "FROM abba_round_leaderboard GROUP BY player ORDER BY score DESC LIMIT 1 OFFSET ?;")) {
+            try (final PreparedStatement stmt = conn.prepareStatement("SELECT player, MAX(score) AS score FROM abba_round_leaderboard GROUP BY player ORDER BY score DESC LIMIT 1 OFFSET ?;")) {
                 stmt.setInt(1, place - 1);
 
                 try (final ResultSet rs = stmt.executeQuery()) {

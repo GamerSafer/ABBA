@@ -437,6 +437,19 @@ public class Game {
 
             final List<GamePlayer> sorted = new ArrayList<>(sortedLeaderboards.keySet());
 
+            // Give rewards
+            for (int i = 0; i < sorted.size(); i++) {
+               String value = this.mapSetting("end-of-round.rewards." + (i + 1));
+               if (value == null) {
+                   value = this.mapSetting("end-of-round.rewards.else");
+               }
+
+               if (value != null) {
+                   Bukkit.dispatchCommand(Bukkit.getConsoleSender(), value.replaceAll("<player>", sorted.get(i).player().getName()));
+               }
+
+            }
+
             for (int i = 0; i < Math.min(sorted.size(), 5); i++) {
                 final GamePlayer gp = sorted.get(i);
                 this.broadcast(this.plugin.configMessage("top-player"),

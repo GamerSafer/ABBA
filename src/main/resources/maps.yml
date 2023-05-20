@@ -18,6 +18,10 @@ default-settings:
       - FIRE
   end-empty-games: true
   end-of-round:
+    rewards:
+      1: "say <player> Good job on first"
+      2: "say <player> Good job on second"
+      else: "say <player> Good job"
     title: "<green>Round has ended!"
     subtitle: ""
     schematic:
