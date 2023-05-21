@@ -55,4 +55,9 @@ public class DummyDataSource implements DataSource {
         return null;
     }
 
+    @Override
+    public PlayerWinEntry globalBlockPlaceEntry(int place) {
+        return null;
+    }
+
 }

@@ -27,5 +27,7 @@ public interface DataSource {
 
     PlayerWinEntry globalWinEntry(int place);
 
+    PlayerWinEntry globalBlockPlaceEntry(int place);
+
 }
 

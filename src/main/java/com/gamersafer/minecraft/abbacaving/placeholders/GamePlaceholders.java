@@ -136,6 +136,32 @@ public class GamePlaceholders extends PlaceholderExpansion {
                 }
             }
         }
+        if (identifier.startsWith("global_block_leaderboard_score_")) {
+            final String path = identifier.replace("global_block_leaderboard_score_", "");
+            final String[] tokens = path.split("_");
+            final int place = Integer.parseInt(tokens[0]);
+
+            final PlayerWinEntry winEntry = this.plugin.playerDataSource().globalBlockPlaceEntry(place);
+            if (winEntry == null) {
+                return "";
+            }
+
+            switch (tokens[1]) {
+
+                case "playername" -> {
+                    final PlayerProfile playerProfile = Bukkit.createProfile(winEntry.player());
+                    playerProfile.complete();
+
+                    return playerProfile.getName();
+                }
+                case "playeruuid" -> {
+                    return winEntry.player().toString();
+                }
+                case "score" -> {
+                    return Integer.toString(winEntry.score());
+                }
+            }
+        }
 
         if (game != null && game.gameState() == GameState.RUNNING) {
             if (identifier.startsWith("leaderboard_score_")) {

@@ -278,5 +278,27 @@ public class SQLDataSource implements DataSource {
         return null;
     }
 
+    @Override
+    public PlayerWinEntry globalBlockPlaceEntry(int place) {
+        try (final Connection conn = this.dataSource.getConnection()) {
+            // Load game stats
+            try (final PreparedStatement stmt = conn.prepareStatement("SELECT uuid, ores_mined FROM abba_caving_stats ORDER BY ores_mined DESC LIMIT 1 OFFSET ?;")) {
+                stmt.setInt(1, place - 1);
 
+                try (final ResultSet rs = stmt.executeQuery()) {
+                    if (rs.next()) {
+                        final int points = rs.getInt("ores_mined");
+                        final UUID player = UUID.fromString(rs.getString("uuid"));
+                        return new PlayerWinEntry(player, points);
+                    }
+
+                    return null;
+                }
+            }
+        } catch (final SQLException ex) {
+            ex.printStackTrace();
+        }
+
+        return null;
+    }
 }
