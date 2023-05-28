@@ -60,4 +60,9 @@ public class DummyDataSource implements DataSource {
         return null;
     }
 
+    @Override
+    public void purge() {
+
+    }
+
 }

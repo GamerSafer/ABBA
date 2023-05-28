@@ -29,5 +29,7 @@ public interface DataSource {
 
     PlayerWinEntry globalBlockPlaceEntry(int place);
 
+    void purge();
+
 }
 

@@ -76,13 +76,33 @@ public class GamePlaceholders extends PlaceholderExpansion {
                     default -> "";
                 };
             }
-
         }
         if (identifier.startsWith("game_")) {
             final String path = identifier.replace("game_", "");
             final String[] tokens = path.split("_");
             final String gameId = tokens[0];
-            if (tokens[1].equals("leaderboard")) {
+            // Game only
+            if (game != null) {
+                switch (identifier) {
+                    case "game_players" -> {
+                        return Integer.toString(game.players().size());
+                    }
+                    case "game_maxplayers" -> {
+                        return Integer.toString(game.maxPlayersPerRound());
+                    }
+                    case "map_name" -> {
+                        return game.mapName();
+                    }
+                    case "game_id" -> {
+                        return game.gameId();
+                    }
+                    case "game_state" -> {
+                        return game.gameState().displayName();
+                    }
+                }
+            }
+
+            if (tokens.length >= 2 && tokens[1].equals("leaderboard")) {
                 final int place = Integer.parseInt(tokens[2]);
                 final PlayerWinEntry winEntry = this.plugin.playerDataSource().winEntry(gameId, place + 1);
                 if (winEntry == null) {
@@ -186,27 +206,6 @@ public class GamePlaceholders extends PlaceholderExpansion {
                 }
                 case "current_ores_mined" -> {
                     return Util.addCommas(stats.currentOresMined());
-                }
-            }
-        }
-
-        // Game only
-        if (game != null) {
-            switch (identifier) {
-                case "game_players" -> {
-                    return Integer.toString(game.players().size());
-                }
-                case "game_maxplayers" -> {
-                    return Integer.toString(game.maxPlayersPerRound());
-                }
-                case "map_name" -> {
-                    return game.mapName();
-                }
-                case "game_id" -> {
-                    return game.gameId();
-                }
-                case "game_state" -> {
-                    return game.gameState().displayName();
                 }
             }
         }

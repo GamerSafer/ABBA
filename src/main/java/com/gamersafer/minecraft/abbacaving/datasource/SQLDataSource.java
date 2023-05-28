@@ -301,4 +301,20 @@ public class SQLDataSource implements DataSource {
 
         return null;
     }
+
+    @Override
+    public void purge() {
+        try (final Connection conn = this.dataSource.getConnection()) {
+            try (final Statement statement = conn.createStatement()) {
+                statement.execute("DELETE FROM abba_caving_stats;");
+                statement.execute("DELETE FROM abba_hotbar_layout;");
+                statement.execute("DELETE FROM abba_cosmetics;");
+                statement.execute("DELETE FROM abba_round_leaderboard;");
+            }
+        } catch (final SQLException ex) {
+            ex.printStackTrace();
+        }
+    }
+
+
 }
