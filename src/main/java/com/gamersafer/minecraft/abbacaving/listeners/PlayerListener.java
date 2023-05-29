@@ -101,8 +101,8 @@ public class PlayerListener implements Listener {
         });
         this.gui.setOnClose(event -> {
             final GamePlayer gamePlayer = this.plugin.gameTracker().gamePlayer(event.getPlayer().getUniqueId());
-            // will be false if respawned
-            if (gamePlayer.gameStats().isDead()) {
+            // will be false if respawned, can be null if game is ended
+            if (gamePlayer.gameStats() != null && gamePlayer.gameStats().isDead()) {
                 this.plugin.lobby().sendToLobby((Player) event.getPlayer());
                 // Purge game stats on quit
                 this.plugin.getPlayerCache().getLoaded(event.getPlayer().getUniqueId()).purgeGameStats();
@@ -170,10 +170,9 @@ public class PlayerListener implements Listener {
         }
 
         final Game game = gameStats.game();
-        if (game == null || game.gameState() == GameState.DONE) {
+        if (game == null) {
             return;
         }
-
         game.removePlayer(event.getPlayer(), true);
     }
 
