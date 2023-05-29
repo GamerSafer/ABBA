@@ -45,7 +45,8 @@ public class GamePlayer {
     }
 
     public void purgeGameStats() {
-        this.gameStats = null;
+        //this.gameStats = null;
+        // Don't purge for now, has some problems to fix
     }
 
     public GameStats gameStats() {

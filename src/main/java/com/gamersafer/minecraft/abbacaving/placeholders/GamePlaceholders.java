@@ -78,6 +78,27 @@ public class GamePlaceholders extends PlaceholderExpansion {
             }
         }
         if (identifier.startsWith("game_")) {
+            // Game only
+            if (game != null) {
+                switch (identifier) {
+                    case "game_name" -> {
+                        return game.mapName();
+                    }
+                    case "game_players" -> {
+                        return Integer.toString(game.players().size());
+                    }
+                    case "game_maxplayers" -> {
+                        return Integer.toString(game.maxPlayersPerRound());
+                    }
+                    case "game_id" -> {
+                        return game.gameId();
+                    }
+                    case "game_state" -> {
+                        return game.gameState().displayName();
+                    }
+                }
+            }
+
             final String path = identifier.replace("game_", "");
             final String[] tokens = path.split("_");
             final String gameId = tokens[0];
