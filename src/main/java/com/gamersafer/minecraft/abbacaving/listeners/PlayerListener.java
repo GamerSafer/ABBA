@@ -6,6 +6,8 @@ import com.gamersafer.minecraft.abbacaving.game.Game;
 import com.gamersafer.minecraft.abbacaving.player.GamePlayer;
 import com.gamersafer.minecraft.abbacaving.game.GameState;
 import com.gamersafer.minecraft.abbacaving.player.GameStats;
+import com.gamersafer.minecraft.abbacaving.tools.ToolTypes;
+import com.gamersafer.minecraft.abbacaving.tools.impl.SlottedHotbarTool;
 import com.gamersafer.minecraft.abbacaving.util.ItemBuilder;
 import com.gamersafer.minecraft.abbacaving.util.Messages;
 import com.gamersafer.minecraft.abbacaving.util.Util;
@@ -296,10 +298,10 @@ public class PlayerListener implements Listener {
 
     @EventHandler
     public void onPlayerEat(final PlayerItemConsumeEvent event) {
-        if (event.getItem().getType() == Material.COOKED_BEEF) {
-            final int slot = event.getPlayer().getInventory().first(Material.COOKED_BEEF);
-            event.getPlayer().getInventory().setItem(slot,
-                    Util.displayName(new ItemStack(Material.COOKED_BEEF), "<green><gold>Infinite Steak Supply"));
+        final ItemStack item = event.getItem();
+        final SlottedHotbarTool toolType = SlottedHotbarTool.stored(item);
+        if (toolType == ToolTypes.BEEF) {
+            event.setReplacement(item);
         }
     }
 
