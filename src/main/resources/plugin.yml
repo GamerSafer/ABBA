@@ -53,6 +53,10 @@ commands:
     description: Generic debugging command
     permission: abbacaving.debug
     permission-message: You are not allowed to run debug commands.
+  reset:
+    description: Reset the command
+    permission: abbacaving.reset
+    permission-message: You are not allowed to run the reset command.
 permissions:
   abbacaving.*:
     description: Gives access to all Abba Caving permissions.

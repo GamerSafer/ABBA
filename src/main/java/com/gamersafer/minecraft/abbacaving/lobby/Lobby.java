@@ -3,6 +3,7 @@ package com.gamersafer.minecraft.abbacaving.lobby;
 import com.gamersafer.minecraft.abbacaving.AbbaCavingPlugin;
 import com.gamersafer.minecraft.abbacaving.game.Game;
 import com.gamersafer.minecraft.abbacaving.game.GameState;
+import com.gamersafer.minecraft.abbacaving.player.GamePlayer;
 import com.gamersafer.minecraft.abbacaving.util.Messages;
 import com.gamersafer.minecraft.abbacaving.util.Sounds;
 import java.security.SecureRandom;
@@ -22,6 +23,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.attribute.Attribute;
+import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -188,14 +190,14 @@ public class Lobby implements Listener {
         } else {
             if (queue.counter() % 60 == 0 || queue.counter() == 30 || queue.counter() == 15
                     || queue.counter() == 10 || queue.counter() <= 5) {
-                for (final UUID uuid : queue.playerQueue()) {
-                    final Player player = Bukkit.getPlayer(uuid);
-
-                    if (player != null) {
-                        Messages.message(player, this.plugin.configMessage("game-starting"),
+                for (GamePlayer player : this.plugin.getPlayerCache().values()) {
+                    CommandSender sender = player.player();
+                    // If player in game, or game state is not finished
+                    if (player.gameStats() == null || player.gameStats().game().gameState() != GameState.DONE) {
+                        Messages.message(sender, this.plugin.configMessage("game-starting"),
                                 TagResolver.resolver("seconds", Tag.inserting(Component.text(queue.counter()))),
                                 TagResolver.resolver("optional-s", Tag.inserting(Component.text(queue.counter() != 1 ? "s" : ""))));
-                        Sounds.pling(player);
+                        Sounds.pling(sender);
                     }
                 }
             }

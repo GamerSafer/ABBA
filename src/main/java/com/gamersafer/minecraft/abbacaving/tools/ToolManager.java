@@ -10,6 +10,19 @@ import org.bukkit.inventory.ItemStack;
 
 public final class ToolManager {
 
+    private static final int[] SLOTS = {
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            40
+    };
+
     private ToolManager() {
 
     }
@@ -25,11 +38,11 @@ public final class ToolManager {
     public static Map<SlottedHotbarTool, Integer> serializeHotbarTools(final Player player) {
         final Map<SlottedHotbarTool, Integer> serialized = new HashMap<>();
 
-        for (int i = 0; i <= 8; i++) {
-            final ItemStack slotItem = player.getInventory().getItem(i);
+        for (int slot : SLOTS) {
+            final ItemStack slotItem = player.getInventory().getItem(slot);
             final SlottedHotbarTool tool = SlottedHotbarTool.stored(slotItem);
             if (tool != null) {
-                serialized.put(tool, i);
+                serialized.put(tool, slot);
             }
 
         }

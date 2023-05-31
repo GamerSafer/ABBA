@@ -1,17 +1,6 @@
 package com.gamersafer.minecraft.abbacaving;
 
-import com.gamersafer.minecraft.abbacaving.commands.ACLookupCommand;
-import com.gamersafer.minecraft.abbacaving.commands.ACReloadCommand;
-import com.gamersafer.minecraft.abbacaving.commands.BroadcastNPCommand;
-import com.gamersafer.minecraft.abbacaving.commands.CosmeticsCommand;
-import com.gamersafer.minecraft.abbacaving.commands.DebugCommand;
-import com.gamersafer.minecraft.abbacaving.commands.ForceStartCommand;
-import com.gamersafer.minecraft.abbacaving.commands.JoinCommand;
-import com.gamersafer.minecraft.abbacaving.commands.LeaveCommand;
-import com.gamersafer.minecraft.abbacaving.commands.NightVisionCommand;
-import com.gamersafer.minecraft.abbacaving.commands.PointsCommand;
-import com.gamersafer.minecraft.abbacaving.commands.RespawnCountCommand;
-import com.gamersafer.minecraft.abbacaving.commands.StatsCommand;
+import com.gamersafer.minecraft.abbacaving.commands.*;
 import com.gamersafer.minecraft.abbacaving.datasource.DataSource;
 import com.gamersafer.minecraft.abbacaving.datasource.DummyDataSource;
 import com.gamersafer.minecraft.abbacaving.datasource.SQLDataSource;
@@ -119,6 +108,7 @@ public class AbbaCavingPlugin extends JavaPlugin {
         this.getCommand("leave").setExecutor(new LeaveCommand(this));
         this.getCommand("nightvision").setExecutor(new NightVisionCommand(this));
         this.getCommand("points").setExecutor(new PointsCommand(this));
+        this.getCommand("reset").setExecutor(new ResetCommand(this));
 
         final StatsCommand statsCommand = new StatsCommand(this);
         this.getCommand("stats").setExecutor(statsCommand);

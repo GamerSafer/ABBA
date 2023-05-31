@@ -41,4 +41,8 @@ public class PlayerCache {
     public void unload(UUID uuid) {
         this.playerCache.remove(uuid);
     }
+
+    public Iterable<? extends GamePlayer> values() {
+        return this.playerCache.values();
+    }
 }
