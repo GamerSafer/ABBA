@@ -193,8 +193,9 @@ public class Lobby implements Listener {
                 for (GamePlayer player : this.plugin.getPlayerCache().values()) {
                     CommandSender sender = player.player();
                     // If player in game, or game state is not finished
-                    if (player.gameStats() == null || player.gameStats().game().gameState() != GameState.DONE) {
+                    if (player.gameStats() == null || player.gameStats().game().gameState() == GameState.DONE) {
                         Messages.message(sender, this.plugin.configMessage("game-starting"),
+                                TagResolver.resolver("map", Tag.inserting(Component.text(queue.mapName()))),
                                 TagResolver.resolver("seconds", Tag.inserting(Component.text(queue.counter()))),
                                 TagResolver.resolver("optional-s", Tag.inserting(Component.text(queue.counter() != 1 ? "s" : ""))));
                         Sounds.pling(sender);
