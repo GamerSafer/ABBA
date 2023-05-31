@@ -2,7 +2,7 @@ package com.gamersafer.minecraft.abbacaving.datasource;
 
 import com.gamersafer.minecraft.abbacaving.AbbaCavingPlugin;
 import com.gamersafer.minecraft.abbacaving.game.Game;
-import com.gamersafer.minecraft.abbacaving.game.PlayerWinEntry;
+import com.gamersafer.minecraft.abbacaving.game.PlayerScoreEntry;
 import com.gamersafer.minecraft.abbacaving.player.GamePlayer;
 import com.gamersafer.minecraft.abbacaving.player.PlayerData;
 import com.gamersafer.minecraft.abbacaving.tools.CosmeticRegistry;
@@ -230,7 +230,7 @@ public class SQLDataSource implements DataSource {
     }
 
     @Override
-    public PlayerWinEntry winEntry(final String gameId, final int place) {
+    public PlayerScoreEntry winEntry(final String gameId, final int place) {
         try (final Connection conn = this.dataSource.getConnection()) {
             // Load game stats
             try (final PreparedStatement stmt = conn.prepareStatement("SELECT player, score FROM abba_round_leaderboard WHERE round_id = ? AND place = ?;")) {
@@ -241,7 +241,7 @@ public class SQLDataSource implements DataSource {
                     if (rs.next()) {
                         final int points = rs.getInt("score");
                         final UUID player = UUID.fromString(rs.getString("player"));
-                        return new PlayerWinEntry(player, points);
+                        return new PlayerScoreEntry(player, points);
                     }
 
                     return null;
@@ -255,7 +255,7 @@ public class SQLDataSource implements DataSource {
     }
 
     @Override
-    public PlayerWinEntry globalWinEntry(int place) {
+    public PlayerScoreEntry globalScoreEntry(int place) {
         try (final Connection conn = this.dataSource.getConnection()) {
             // Load game stats
             try (final PreparedStatement stmt = conn.prepareStatement("SELECT player, MAX(score) AS score FROM abba_round_leaderboard GROUP BY player ORDER BY score DESC LIMIT 1 OFFSET ?;")) {
@@ -265,7 +265,32 @@ public class SQLDataSource implements DataSource {
                     if (rs.next()) {
                         final int points = rs.getInt("score");
                         final UUID player = UUID.fromString(rs.getString("player"));
-                        return new PlayerWinEntry(player, points);
+                        return new PlayerScoreEntry(player, points);
+                    }
+
+                    return null;
+                }
+            }
+        } catch (final SQLException ex) {
+            ex.printStackTrace();
+        }
+
+        return null;
+    }
+
+
+    @Override
+    public PlayerScoreEntry globalAverageRoundScore(int place) {
+        try (final Connection conn = this.dataSource.getConnection()) {
+            // Load game stats
+            try (final PreparedStatement stmt = conn.prepareStatement("SELECT player, AVG(score) AS score FROM abba_round_leaderboard GROUP BY player ORDER BY score DESC LIMIT 1 OFFSET ?;")) {
+                stmt.setInt(1, place - 1);
+
+                try (final ResultSet rs = stmt.executeQuery()) {
+                    if (rs.next()) {
+                        final int points = rs.getInt("score");
+                        final UUID player = UUID.fromString(rs.getString("player"));
+                        return new PlayerScoreEntry(player, points);
                     }
 
                     return null;
@@ -279,7 +304,55 @@ public class SQLDataSource implements DataSource {
     }
 
     @Override
-    public PlayerWinEntry globalBlockPlaceEntry(int place) {
+    public PlayerScoreEntry globalWinEntry(int place) {
+        try (final Connection conn = this.dataSource.getConnection()) {
+            // Load game stats
+            try (final PreparedStatement stmt = conn.prepareStatement("SELECT player, COUNT(*) AS score FROM abba_round_leaderboard WHERE place = 0 GROUP BY player ORDER BY score DESC LIMIT 1 OFFSET ?;")) {
+                stmt.setInt(1, place - 1);
+
+                try (final ResultSet rs = stmt.executeQuery()) {
+                    if (rs.next()) {
+                        final int points = rs.getInt("score");
+                        final UUID player = UUID.fromString(rs.getString("player"));
+                        return new PlayerScoreEntry(player, points);
+                    }
+
+                    return null;
+                }
+            }
+        } catch (final SQLException ex) {
+            ex.printStackTrace();
+        }
+
+        return null;
+    }
+
+    @Override
+    public PlayerScoreEntry globalRoundsEntry(int place) {
+        try (final Connection conn = this.dataSource.getConnection()) {
+            // Load game stats
+            try (final PreparedStatement stmt = conn.prepareStatement("SELECT player, COUNT(*) AS score FROM abba_round_leaderboard GROUP BY player ORDER BY score DESC LIMIT 1 OFFSET ?;")) {
+                stmt.setInt(1, place - 1);
+
+                try (final ResultSet rs = stmt.executeQuery()) {
+                    if (rs.next()) {
+                        final int points = rs.getInt("score");
+                        final UUID player = UUID.fromString(rs.getString("player"));
+                        return new PlayerScoreEntry(player, points);
+                    }
+
+                    return null;
+                }
+            }
+        } catch (final SQLException ex) {
+            ex.printStackTrace();
+        }
+
+        return null;
+    }
+
+    @Override
+    public PlayerScoreEntry globalBlockPlaceEntry(int place) {
         try (final Connection conn = this.dataSource.getConnection()) {
             // Load game stats
             try (final PreparedStatement stmt = conn.prepareStatement("SELECT uuid, ores_mined FROM abba_caving_stats ORDER BY ores_mined DESC LIMIT 1 OFFSET ?;")) {
@@ -289,7 +362,7 @@ public class SQLDataSource implements DataSource {
                     if (rs.next()) {
                         final int points = rs.getInt("ores_mined");
                         final UUID player = UUID.fromString(rs.getString("uuid"));
-                        return new PlayerWinEntry(player, points);
+                        return new PlayerScoreEntry(player, points);
                     }
 
                     return null;

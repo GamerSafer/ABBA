@@ -1,8 +1,7 @@
 package com.gamersafer.minecraft.abbacaving.datasource;
 
 import com.gamersafer.minecraft.abbacaving.game.Game;
-import com.gamersafer.minecraft.abbacaving.player.GamePlayer;
-import com.gamersafer.minecraft.abbacaving.game.PlayerWinEntry;
+import com.gamersafer.minecraft.abbacaving.game.PlayerScoreEntry;
 import com.gamersafer.minecraft.abbacaving.player.PlayerData;
 
 import java.util.UUID;
@@ -46,17 +45,32 @@ public class DummyDataSource implements DataSource {
     }
 
     @Override
-    public PlayerWinEntry winEntry(final String gameId, final int place) {
+    public PlayerScoreEntry winEntry(final String gameId, final int place) {
         return null;
     }
 
     @Override
-    public PlayerWinEntry globalWinEntry(int place) {
+    public PlayerScoreEntry globalScoreEntry(int place) {
         return null;
     }
 
     @Override
-    public PlayerWinEntry globalBlockPlaceEntry(int place) {
+    public PlayerScoreEntry globalWinEntry(int place) {
+        return null;
+    }
+
+    @Override
+    public PlayerScoreEntry globalRoundsEntry(int place) {
+        return null;
+    }
+
+    @Override
+    public PlayerScoreEntry globalAverageRoundScore(int place) {
+        return null;
+    }
+
+    @Override
+    public PlayerScoreEntry globalBlockPlaceEntry(int place) {
         return null;
     }
 

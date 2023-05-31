@@ -1,8 +1,7 @@
 package com.gamersafer.minecraft.abbacaving.datasource;
 
 import com.gamersafer.minecraft.abbacaving.game.Game;
-import com.gamersafer.minecraft.abbacaving.player.GamePlayer;
-import com.gamersafer.minecraft.abbacaving.game.PlayerWinEntry;
+import com.gamersafer.minecraft.abbacaving.game.PlayerScoreEntry;
 import com.gamersafer.minecraft.abbacaving.player.PlayerData;
 
 import java.util.UUID;
@@ -23,11 +22,17 @@ public interface DataSource {
 
     void saveFinishedGame(Game game);
 
-    PlayerWinEntry winEntry(String gameId, int place);
+    PlayerScoreEntry winEntry(String gameId, int place);
 
-    PlayerWinEntry globalWinEntry(int place);
+    PlayerScoreEntry globalScoreEntry(int place);
 
-    PlayerWinEntry globalBlockPlaceEntry(int place);
+    PlayerScoreEntry globalWinEntry(int place);
+
+    PlayerScoreEntry globalRoundsEntry(int place);
+
+    PlayerScoreEntry globalAverageRoundScore(int place);
+
+    PlayerScoreEntry globalBlockPlaceEntry(int place);
 
     void purge();
 
