@@ -167,11 +167,13 @@ public class PlayerListener implements Listener {
         });
 
         final GameStats gameStats = gp.gameStats();
+        System.out.println("PLAYER GAME STATS: " + gameStats);
         if (gameStats == null) {
             return;
         }
 
         final Game game = gameStats.game();
+        System.out.println("PLAYER GAME: " + game);
         if (game == null) {
             return;
         }

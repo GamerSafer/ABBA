@@ -763,4 +763,22 @@ public class Game {
         player.player().getInventory().setItem(25, REDSTONE);
     }
 
+    @Override
+    public String toString() {
+        return "Game{" +
+                "plugin=" + plugin +
+                ", world=" + world +
+                ", gameId='" + gameId + '\'' +
+                ", mapName='" + mapName + '\'' +
+                ", players=" + players +
+                ", leaderboard=" + leaderboard +
+                ", randomSpawns=" + randomSpawns +
+                ", counter=" + counter +
+                ", gracePeriod=" + gracePeriod +
+                ", state=" + state +
+                ", editSession=" + editSession +
+                ", blockValidator=" + blockValidator +
+                ", globalAudience=" + globalAudience +
+                '}';
+    }
 }

@@ -122,4 +122,21 @@ public final class GameStats {
         }
     }
 
+
+    @Override
+    public String toString() {
+        return "GameStats{" +
+                "gamePlayer=" + gamePlayer +
+                ", plugin=" + plugin +
+                ", game=" + game +
+                ", spawn=" + spawn +
+                ", respawnLocation=" + respawnLocation +
+                ", score=" + score +
+                ", currentOresMined=" + currentOresMined +
+                ", surpassedHighestScore=" + surpassedHighestScore +
+                ", isDead=" + isDead +
+                ", hasRespawned=" + hasRespawned +
+                ", showRespawnGui=" + showRespawnGui +
+                '}';
+    }
 }

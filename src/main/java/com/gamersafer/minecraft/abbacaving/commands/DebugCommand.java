@@ -1,6 +1,7 @@
 package com.gamersafer.minecraft.abbacaving.commands;
 
 import com.gamersafer.minecraft.abbacaving.AbbaCavingPlugin;
+import com.gamersafer.minecraft.abbacaving.game.Game;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.command.Command;
@@ -23,24 +24,8 @@ public class DebugCommand implements CommandExecutor {
             return true;
         }
 
-        if (args.length == 1 && args[0].equals("stop")) {
-            this.plugin.gameTracker().findGame(player).stop();
-        }
-
-//        if (args.length == 1 && args[0].equals("startNow")) {
-//            this.plugin.p
-//        }
-
-        final Block block = player.getLocation().getBlock().getRelative(BlockFace.DOWN);
-        if (args.length == 1) {
-            System.out.println(block);
-            System.out.println(block.isSolid());
-            System.out.println(this.isBlockSafe(block.getRelative(BlockFace.UP)));
-            System.out.println(this.isBlockSafe(block.getRelative(BlockFace.UP, 2)));
-        } else {
-            this.plugin.gameTracker().gamePlayer(player).gameStats().game().randomLocation(player).thenAccept(loc -> {
-                player.teleport(loc.toCenterLocation());
-            });
+        for (Game game : this.plugin.gameTracker().currentGames()) {
+            System.out.println(game);
         }
 
         return true;
