@@ -32,8 +32,6 @@ dependencies {
     compileOnly "com.github.LoneDev6:API-ItemsAdder:3.2.5"
     //compileOnly "net.luckperms:api:5.4"
     compileOnly "me.clip:placeholderapi:2.9.2"
-    compileOnly "com.sk89q.worldedit:worldedit-bukkit:7.2.12"
-    compileOnly "net.coreprotect:coreprotect:21.2"
 
     compileOnly(fileTree("libs").matching {
         include("**/*.jar")

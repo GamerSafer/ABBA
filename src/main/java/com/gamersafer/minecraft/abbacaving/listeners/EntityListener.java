@@ -27,18 +27,10 @@ public class EntityListener implements Listener {
         if (event.getEntityType() == EntityType.DROPPED_ITEM) {
             return;
         }
-
-        for (final Game game : this.plugin.gameTracker().currentGames()) {
-            if (game.world().equals(event.getEntity().getWorld())) {
-                if (game.gameState() != GameState.RUNNING) {
-                    event.setCancelled(true);
-                }
-
-                return;
-            }
+        Game game = this.plugin.gameTracker().getGame(event.getEntity().getWorld());
+        if (game != null) {
+            event.setCancelled(true);
         }
-
-        event.setCancelled(true);
     }
 
 }

@@ -1,6 +1,7 @@
 package com.gamersafer.minecraft.abbacaving.player;
 
 import com.gamersafer.minecraft.abbacaving.AbbaCavingPlugin;
+import org.bukkit.entity.Player;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -14,6 +15,10 @@ public class PlayerCache {
 
     public PlayerCache(AbbaCavingPlugin plugin) {
         this.plugin = plugin;
+    }
+
+    public GamePlayer getLoaded(Player player) {
+        return this.getLoaded(player.getUniqueId());
     }
 
     public GamePlayer getLoaded(UUID uuid) {
@@ -30,7 +35,7 @@ public class PlayerCache {
         this.playerCache.put(uuid, gamePlayer);
     }
 
-    public void unloadAndCompleteAsync(UUID uuid, Consumer<GamePlayer> playerConsumer) {
+    public void unloadAndComplete(UUID uuid, Consumer<GamePlayer> playerConsumer) {
         GamePlayer gamePlayer = this.playerCache.remove(uuid);
         if (gamePlayer != null) {
             playerConsumer.accept(gamePlayer);

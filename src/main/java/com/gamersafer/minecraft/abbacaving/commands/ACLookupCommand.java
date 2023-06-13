@@ -8,6 +8,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
+import com.gamersafer.minecraft.abbacaving.player.GameStats;
 import com.gamersafer.minecraft.abbacaving.util.Messages;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.feature.pagination.Pagination;
@@ -83,15 +84,17 @@ public class ACLookupCommand implements CommandExecutor, TabCompleter, Paginatio
 
     @Override
     public @NotNull Collection<Component> renderRow(final @Nullable GamePlayer value, final int index) {
+        Game game = this.plugin.gameTracker().findGame(value);
+        GameStats stats = game.getGameData(value);
         return List.of(Component.text().append(value.player().displayName()).append(Component.text(" - ", NamedTextColor.WHITE))
-                .append(Component.text(value.gameStats().score())).build());
+                .append(Component.text(stats.score())).build());
     }
 
     private List<String> mapNames() {
         final List<String> names = new ArrayList<>();
 
         for (final Game game : this.plugin.gameTracker().currentGames()) {
-            names.add(game.mapName());
+            names.add(game.getMap().getName());
         }
 
         return names;

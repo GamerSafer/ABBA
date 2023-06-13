@@ -11,10 +11,10 @@ import org.bukkit.event.entity.EntityDeathEvent;
 
 public class PlayerKillEntityListener implements Listener {
 
-    private final AbbaCavingPlugin cavingPlugin;
+    private final AbbaCavingPlugin plugin;
 
-    public PlayerKillEntityListener(final AbbaCavingPlugin cavingPlugin) {
-        this.cavingPlugin = cavingPlugin;
+    public PlayerKillEntityListener(final AbbaCavingPlugin plugin) {
+        this.plugin = plugin;
     }
 
     @EventHandler
@@ -24,16 +24,11 @@ public class PlayerKillEntityListener implements Listener {
             return;
         }
 
-        final GamePlayer gp = this.cavingPlugin.gameTracker().findPlayerInGame(player);
-
-        if (gp == null) {
-            return;
-        }
-
-        final Game game = gp.gameStats().game();
-        if (game.countMobKills()) {
-            gp.gameStats().addScore(1, "Mob Kill");
-            game.increasePlayerScore(gp, 1);
+        Game game = this.plugin.gameTracker().findGame(player);
+        if (game != null && game.countMobKills()) {
+            GamePlayer gamePlayer = this.plugin.getPlayerCache().getLoaded(player.getUniqueId());
+            game.getGameData(gamePlayer).addScore(1, "Mob Kill");
+            game.increasePlayerScore(gamePlayer, 1);
             Sounds.pling(player);
         }
     }

@@ -37,7 +37,10 @@ public class CosmeticRegistry {
                     type
             );
             cosmeticList.add(newCosmetic);
-            this.identifierToCosmetic.put(key, newCosmetic);
+            Cosmetic old = this.identifierToCosmetic.put(key, newCosmetic);
+            if (old != null) {
+                plugin.getLogger().warning("Overriding previous cosmetic!");
+            }
         }
     }
 

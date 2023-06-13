@@ -21,7 +21,7 @@ public class PointsCommand implements CommandExecutor {
 
     @Override
     public boolean onCommand(@NotNull final CommandSender sender, @NotNull final Command command, @NotNull final String label, @NotNull final String[] args) {
-        final Set<CaveOre> ores = this.plugin.ores();
+        final Set<CaveOre> ores = this.plugin.getLootHandler().getOres();
 
         if (ores == null) {
             Messages.message(sender, this.plugin.configMessage("points-not-available"));

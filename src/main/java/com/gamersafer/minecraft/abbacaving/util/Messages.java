@@ -1,5 +1,7 @@
 package com.gamersafer.minecraft.abbacaving.util;
 
+import net.kyori.adventure.audience.Audience;
+import net.kyori.adventure.identity.Identity;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.kyori.adventure.text.minimessage.tag.Tag;
@@ -44,7 +46,7 @@ public class Messages {
         Bukkit.getServer().sendMessage(MiniMessage.miniMessage().deserialize(message, placeholders));
     }
 
-    public static void message(final CommandSender sender, String message) {
+    public static void message(final Audience sender, String message) {
         if (message == null) {
             message = "";
         }
@@ -52,7 +54,7 @@ public class Messages {
         sender.sendMessage(MiniMessage.miniMessage().deserialize(message));
     }
 
-    public static void message(final CommandSender sender, String message, final Map<String, String> placeholders) {
+    public static void message(final Audience sender, String message, final Map<String, String> placeholders) {
         if (message == null) {
             message = "";
         }
@@ -66,15 +68,26 @@ public class Messages {
         message(sender, message, resolvers.toArray(new TagResolver[]{}));
     }
 
-    public static void message(final CommandSender sender, String message, final TagResolver... placeholders) {
+    public static void messageComponents(final Audience sender, String message, final Map<String, Component> placeholders) {
         if (message == null) {
             message = "";
         }
 
-        final TagResolver name = TagResolver.resolver("name", Tag.inserting(Component.text(sender.getName())));
-        final TagResolver resolvers = TagResolver.resolver(TagResolver.resolver(placeholders), name);
+        final List<TagResolver> resolvers = new ArrayList<>();
 
-        sender.sendMessage(MiniMessage.miniMessage().deserialize(message, resolvers));
+        for (final Map.Entry<String, Component> entry : placeholders.entrySet()) {
+            resolvers.add(TagResolver.resolver(entry.getKey(), Tag.inserting(entry.getValue())));
+        }
+
+        message(sender, message, resolvers.toArray(new TagResolver[]{}));
+    }
+
+    public static void message(final Audience sender, String message, final TagResolver... placeholders) {
+        if (message == null) {
+            message = "";
+        }
+
+        sender.sendMessage(MiniMessage.miniMessage().deserialize(message, placeholders));
     }
 
 }

@@ -30,7 +30,7 @@ public class BlockPlaceListener implements Listener {
             return;
         }
 
-        final Game game = this.plugin.gameTracker().findGame(event.getBlock().getWorld());
+        final Game game = this.plugin.gameTracker().getGame(event.getBlock().getWorld());
 
         if (game == null) {
             if (!canBuild) {

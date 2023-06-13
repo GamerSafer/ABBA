@@ -5,6 +5,7 @@ import com.gamersafer.minecraft.abbacaving.game.CaveOre;
 import com.gamersafer.minecraft.abbacaving.game.Game;
 import com.gamersafer.minecraft.abbacaving.player.GamePlayer;
 import com.gamersafer.minecraft.abbacaving.game.GameState;
+import com.gamersafer.minecraft.abbacaving.player.GameStats;
 import com.gamersafer.minecraft.abbacaving.util.Messages;
 import com.gamersafer.minecraft.abbacaving.util.Sounds;
 import net.kyori.adventure.text.minimessage.tag.Tag;
@@ -33,7 +34,7 @@ public class BlockBreakListener implements Listener {
             return;
         }
 
-        final Game game = this.plugin.gameTracker().findGame(event.getBlock().getWorld());
+        final Game game = this.plugin.gameTracker().getGame(event.getBlock().getWorld());
 
         if (game == null || game.gameState() != GameState.RUNNING) {
             if (!canBuild) {
@@ -42,20 +43,17 @@ public class BlockBreakListener implements Listener {
             return;
         }
 
-        final CaveOre ore = this.plugin.caveOreFromBlock(event.getBlock().getType());
+        final CaveOre ore = this.plugin.getLootHandler().caveOreFromBlock(event.getBlock().getType());
         if (ore != null) {
             final Player player = event.getPlayer();
-            final GamePlayer gp = this.plugin.gameTracker().findPlayerInGame(player);
+            GamePlayer gamePlayer = this.plugin.getPlayerCache().getLoaded(player);
 
-            if (gp == null) {
-                return;
-            }
-
+            GameStats stats = game.getGameData(gamePlayer);
             if (ore.value() > 0) {
-                gp.gameStats().currentOresMined(gp.gameStats().currentOresMined() + 1);
-                gp.data().incrementMinedOres();
-                gp.gameStats().addScore(ore.value(), ore.name());
-                game.increasePlayerScore(gp, ore.value());
+                stats.currentOresMined(stats.currentOresMined() + 1);
+                gamePlayer.data().incrementMinedOres();
+                stats.addScore(ore.value(), ore.name());
+                game.increasePlayerScore(gamePlayer, ore.value());
                 Sounds.pling(player);
             } else {
                 Messages.message(player, this.plugin.configMessage("ore-not-worth-points"),

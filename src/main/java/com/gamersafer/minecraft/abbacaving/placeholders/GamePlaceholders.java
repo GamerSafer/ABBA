@@ -5,6 +5,7 @@ import com.gamersafer.minecraft.abbacaving.AbbaCavingPlugin;
 import com.gamersafer.minecraft.abbacaving.game.Game;
 import com.gamersafer.minecraft.abbacaving.game.GameState;
 import com.gamersafer.minecraft.abbacaving.game.PlayerScoreEntry;
+import com.gamersafer.minecraft.abbacaving.game.map.GameMap;
 import com.gamersafer.minecraft.abbacaving.lobby.LobbyQueue;
 import com.gamersafer.minecraft.abbacaving.player.GamePlayer;
 import com.gamersafer.minecraft.abbacaving.player.GameStats;
@@ -74,15 +75,19 @@ public class GamePlaceholders extends PlaceholderExpansion {
             final String mapName = trimmed.substring(0, trimmed.lastIndexOf("_"));
             final String suffix = trimmed.substring(trimmed.lastIndexOf("_") + 1);
 
-            final LobbyQueue queue = this.plugin.lobby().lobbyQueue(mapName);
+            GameMap gameMap = this.plugin.getMapPool().getMap(mapName);
+            if (gameMap != null) {
+                final LobbyQueue queue = this.plugin.lobby().lobbyQueue(gameMap);
+                if (queue == null) {
+                    return "";
+                }
 
-            if (queue != null) {
                 return switch (suffix) {
-                    case "state" -> queue.state().displayName();
-                    case "players" -> Integer.toString(queue.playerQueue().size());
-                    case "slots" -> Integer.toString(queue.maxPlayers());
-                    case "counter" -> Integer.toString(queue.counter());
-                    case "required" -> Integer.toString(queue.startPlayeramount());
+                    case "state" -> queue.getState().displayName();
+                    case "players" -> Integer.toString(queue.getPlayerQueue().size());
+                    case "slots" -> Integer.toString(queue.getMap().maxPlayers());
+                    case "counter" -> Integer.toString(queue.getCounter());
+                    case "required" -> Integer.toString(queue.getMap().getStartTime());
                     default -> "";
                 };
             }
@@ -92,7 +97,7 @@ public class GamePlaceholders extends PlaceholderExpansion {
             if (game != null) {
                 switch (identifier) {
                     case "game_name" -> {
-                        return game.mapName();
+                        return game.getMap().getName();
                     }
                     case "game_players" -> {
                         return Integer.toString(game.players().size());
@@ -122,7 +127,7 @@ public class GamePlaceholders extends PlaceholderExpansion {
                         return Integer.toString(game.maxPlayersPerRound());
                     }
                     case "map_name" -> {
-                        return game.mapName();
+                        return game.getMap().getName();
                     }
                     case "game_id" -> {
                         return game.gameId();
@@ -181,9 +186,9 @@ public class GamePlaceholders extends PlaceholderExpansion {
             }
         }
 
-        GameStats stats = gp.gameStats();
         // Game stats only
-        if (stats != null) {
+        if (game != null) {
+            GameStats stats = game.getGameData(gp);
             switch (identifier) {
                 case "current_score" -> {
                     return Util.addCommas(stats.score());

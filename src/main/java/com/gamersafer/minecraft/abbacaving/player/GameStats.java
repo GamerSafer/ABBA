@@ -17,8 +17,6 @@ public final class GameStats {
     private final AbbaCavingPlugin plugin;
     private final Game game;
 
-    private Location spawn;
-    private Location respawnLocation = null;
     private int score;
     private int currentOresMined;
     private boolean surpassedHighestScore;
@@ -26,11 +24,10 @@ public final class GameStats {
     private boolean hasRespawned;
     private boolean showRespawnGui = false;
 
-    GameStats(final GamePlayer gamePlayer, final AbbaCavingPlugin plugin, final Game game, final Location spawn) {
+    public GameStats(final GamePlayer gamePlayer, final AbbaCavingPlugin plugin, final Game game) {
         this.gamePlayer = gamePlayer;
         this.plugin = plugin;
         this.game = game;
-        this.spawn = spawn;
     }
 
     public Game game() {
@@ -61,28 +58,12 @@ public final class GameStats {
         return this.hasRespawned;
     }
 
-    public Location spawnLocation() {
-        return this.spawn;
-    }
-
-    public void spawnLocation(final Location spawn) {
-        this.spawn = spawn;
-    }
-
     public void isDead(final boolean isDead) {
         this.isDead = isDead;
     }
 
     public void hasRespawned(final boolean hasRespawned) {
         this.hasRespawned = hasRespawned;
-    }
-
-    public void respawnLocation(final Location location) {
-        this.respawnLocation = location;
-    }
-
-    public Location respawnLocation() {
-        return Objects.requireNonNullElse(this.respawnLocation, this.spawn);
     }
 
     public boolean showRespawnGui() {
@@ -129,8 +110,6 @@ public final class GameStats {
                 "gamePlayer=" + gamePlayer +
                 ", plugin=" + plugin +
                 ", game=" + game +
-                ", spawn=" + spawn +
-                ", respawnLocation=" + respawnLocation +
                 ", score=" + score +
                 ", currentOresMined=" + currentOresMined +
                 ", surpassedHighestScore=" + surpassedHighestScore +

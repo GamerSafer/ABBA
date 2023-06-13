@@ -3,6 +3,7 @@ package com.gamersafer.minecraft.abbacaving.listeners;
 import com.destroystokyo.paper.event.player.PlayerPostRespawnEvent;
 import com.gamersafer.minecraft.abbacaving.AbbaCavingPlugin;
 import com.gamersafer.minecraft.abbacaving.game.Game;
+import com.gamersafer.minecraft.abbacaving.lobby.LobbyQueue;
 import com.gamersafer.minecraft.abbacaving.player.GamePlayer;
 import com.gamersafer.minecraft.abbacaving.game.GameState;
 import com.gamersafer.minecraft.abbacaving.player.GameStats;
@@ -10,7 +11,6 @@ import com.gamersafer.minecraft.abbacaving.tools.ToolTypes;
 import com.gamersafer.minecraft.abbacaving.tools.impl.SlottedHotbarTool;
 import com.gamersafer.minecraft.abbacaving.util.ItemBuilder;
 import com.gamersafer.minecraft.abbacaving.util.Messages;
-import com.gamersafer.minecraft.abbacaving.util.Util;
 import com.github.stefvanschie.inventoryframework.adventuresupport.ComponentHolder;
 import com.github.stefvanschie.inventoryframework.gui.GuiItem;
 import com.github.stefvanschie.inventoryframework.gui.type.ChestGui;
@@ -20,8 +20,6 @@ import com.google.common.collect.Iterables;
 import io.papermc.paper.event.player.AsyncChatEvent;
 import java.util.Collection;
 import java.util.Map;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.function.Consumer;
 
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
@@ -36,13 +34,11 @@ import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityTargetEvent;
 import org.bukkit.event.entity.FoodLevelChangeEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
-import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.player.AsyncPlayerPreLoginEvent;
 import org.bukkit.event.player.PlayerBucketFillEvent;
 import org.bukkit.event.player.PlayerChangedWorldEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerItemConsumeEvent;
-import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.inventory.ItemStack;
@@ -68,10 +64,12 @@ public class PlayerListener implements Listener {
 
         final ItemStack yesItem = new ItemBuilder(Material.EMERALD_BLOCK).name(Component.text("Yes, Continue!")).build();
         final GuiItem yesButton = new GuiItem(yesItem, onClick -> {
-            final GamePlayer gamePlayer = this.plugin.gameTracker().gamePlayer(onClick.getWhoClicked().getUniqueId());
-            final Game game = gamePlayer.gameStats().game();
+            Player player = (Player) onClick.getWhoClicked();
+            Game game = this.plugin.gameTracker().findGame(player);
+            GamePlayer gamePlayer = this.plugin.getPlayerCache().getLoaded(player.getUniqueId());
+
             if (game.gameState() == GameState.RUNNING) {
-                game.respawnPlayer(gamePlayer);
+                game.respawn(gamePlayer);
             }
         });
         buttonPane.addItem(yesButton, 2, 1);
@@ -85,29 +83,33 @@ public class PlayerListener implements Listener {
                 return;
             }
 
-            final GamePlayer gamePlayer = this.plugin.gameTracker().gamePlayer(onClick.getWhoClicked().getUniqueId());
-            final Game game = gamePlayer.gameStats().game();
-            final Player player = Iterables.getFirst(game.players(), null).player();
+            Player player = (Player) onClick.getWhoClicked();
+            Game game = this.plugin.gameTracker().findGame(player);
+            final Player teleportPlayer = Iterables.getFirst(game.players(), null).player();
 
-            clicker.teleport(player);
+            clicker.teleport(teleportPlayer);
             clicker.setGameMode(GameMode.SPECTATOR);
         });
         buttonPane.addItem(spectateButton, 4, 1);
 
         final ItemStack noItem = new ItemBuilder(Material.REDSTONE_BLOCK).name(Component.text("No, return to lobby.")).build();
         final GuiItem noButton = new GuiItem(noItem, onClick -> {
-            onClick.getWhoClicked().closeInventory();
-            this.plugin.lobby().sendToLobby((Player) onClick.getWhoClicked());
-            // Purge game stats on quit
-            this.plugin.getPlayerCache().getLoaded(onClick.getWhoClicked().getUniqueId()).purgeGameStats();
+            Player player = (Player) onClick.getWhoClicked();
+            player.closeInventory();
+
+            Game game = this.plugin.gameTracker().findGame(player);
+            if (game != null) {
+                this.plugin.lobby().sendToLobby(player); // Will reset the player
+            }
         });
         this.gui.setOnClose(event -> {
-            final GamePlayer gamePlayer = this.plugin.gameTracker().gamePlayer(event.getPlayer().getUniqueId());
+            Player player = (Player) event.getPlayer();
+            Game game = this.plugin.gameTracker().findGame(player);
+            GamePlayer gamePlayer = this.plugin.getPlayerCache().getLoaded(player);
+
             // will be false if respawned, can be null if game is ended
-            if (gamePlayer.gameStats() != null && gamePlayer.gameStats().isDead()) {
-                this.plugin.lobby().sendToLobby((Player) event.getPlayer());
-                // Purge game stats on quit
-                this.plugin.getPlayerCache().getLoaded(event.getPlayer().getUniqueId()).purgeGameStats();
+            if (game != null && game.getGameData(gamePlayer).isDead()) {
+                this.plugin.lobby().sendToLobby(player); // Will reset the player
             }
         });
 
@@ -125,13 +127,14 @@ public class PlayerListener implements Listener {
 
     @EventHandler
     public void onPlayerChat(final AsyncChatEvent event) {
-        final GamePlayer gamePlayer = this.plugin.gameTracker().findPlayerInGame(event.getPlayer());
+        final Game game = this.plugin.gameTracker().findGame(event.getPlayer());
 
         // Lobby players should only speak to other lobby players
-        if (gamePlayer == null || this.plugin.lobby().playerInLobby(event.getPlayer())) {
+        if (game == null) {
             event.viewers().removeIf(viewer -> {
                 if (viewer instanceof Player recipient) {
-                    return !this.plugin.lobby().playerInLobby(recipient);
+                    GamePlayer gamePlayer = this.plugin.getPlayerCache().getLoaded(recipient);
+                    return gamePlayer.game() != null;
                 }
 
                 return false;
@@ -154,99 +157,100 @@ public class PlayerListener implements Listener {
     @EventHandler
     public void onPlayerQuit(final PlayerQuitEvent event) {
         event.quitMessage(null);
-
-        final GamePlayer gp = this.plugin.gameTracker().gamePlayer(event.getPlayer());
+        final GamePlayer gp = this.plugin.getPlayerCache().getLoaded(event.getPlayer());
 
         if (gp == null) {
             this.plugin.getLogger().info("Could not save stats for [" + event.getPlayer().getName() + "]");
             return;
         }
 
-        this.plugin.getPlayerCache().unloadAndCompleteAsync(gp.playerUUID(), (stats) -> {
+        Game game = gp.game();
+        if (game != null) {
+            game.playerChosenDisconnect(event.getPlayer());
+        }
+
+        LobbyQueue queue = gp.queue();
+        if (queue != null) {
+            this.plugin.lobby().leave(queue, event.getPlayer());
+        }
+        this.plugin.getPlayerCache().unloadAndComplete(gp.playerUUID(), (stats) -> {
             gp.data().saveAll();
         });
-
-        final GameStats gameStats = gp.gameStats();
-        System.out.println("PLAYER GAME STATS: " + gameStats);
-        if (gameStats == null) {
-            return;
-        }
-
-        final Game game = gameStats.game();
-        System.out.println("PLAYER GAME: " + game);
-        if (game == null) {
-            return;
-        }
-        game.removePlayer(event.getPlayer(), true);
     }
 
     @EventHandler
     public void onPlayerRespawn(final PlayerRespawnEvent event) {
         final Player player = event.getPlayer();
-        final GamePlayer gamePlayer = this.plugin.gameTracker().gamePlayer(player);
+        final Game game = this.plugin.gameTracker().findGame(player);
+        final GamePlayer gamePlayer = this.plugin.getPlayerCache().getLoaded(player);
 
-        if (gamePlayer == null || gamePlayer.gameStats() == null) {
-            this.plugin.getLogger().info("Skipping game respawn for " + player.getName() + " due to missing gameStats");
+        if (game == null) {
+            this.plugin.getLogger().info("Skipping respawn-gui for " + player.getName() + " due to missing game");
             return;
         }
 
-        if (gamePlayer.gameStats().showRespawnGui()) {
-            event.setRespawnLocation(gamePlayer.gameStats().respawnLocation());
+        GameStats stats = game.getGameData(gamePlayer);
+
+        if (stats.showRespawnGui()) {
+            event.setRespawnLocation(game.getSpawnLocations().get(player.getUniqueId()));
         }
     }
 
     @EventHandler
     public void onPlayerSpawn(final PlayerPostRespawnEvent event) {
         final Player player = event.getPlayer();
-        final GamePlayer gamePlayer = this.plugin.gameTracker().gamePlayer(player);
+        final Game game = this.plugin.gameTracker().findGame(player);
+        final GamePlayer gamePlayer = this.plugin.getPlayerCache().getLoaded(player);
 
-        if (gamePlayer == null || gamePlayer.gameStats() == null) {
-            this.plugin.getLogger().info("Skipping respawn-gui for " + player.getName() + " due to missing gameStats");
+        if (game == null) {
+            this.plugin.getLogger().info("Skipping respawn-gui for " + player.getName() + " due to missing game");
             return;
         }
 
-        if (gamePlayer.gameStats().showRespawnGui() && !gamePlayer.gameStats().game().players().isEmpty()) {
+        GameStats stats = game.getGameData(gamePlayer);
+        if (stats.showRespawnGui()) {
             this.gui.show(player);
             gamePlayer.player().setInvisible(true);
-            gamePlayer.gameStats().showRespawnGui(false);
-        } else {
-            this.plugin.lobby().sendToLobby(player);
-            gamePlayer.purgeGameStats();
+            stats.showRespawnGui(false);
         }
     }
 
     @EventHandler
     public void onPlayerDeath(final PlayerDeathEvent event) {
         final Player player = event.getEntity();
-        final GamePlayer gamePlayer = this.plugin.gameTracker().findPlayerInGame(player);
         final Game game = this.plugin.gameTracker().findGame(player);
+        final GamePlayer gamePlayer = this.plugin.getPlayerCache().getLoaded(player);
 
         if (gamePlayer == null || game == null) {
             return;
         }
 
-        game.broadcast(this.plugin.configMessage("player-died"), Map.of("player", player.displayName(),
-                "score", Component.text(gamePlayer.gameStats().score())));
+        final GameStats stats = game.getGameData(gamePlayer);
+
+        Messages.messageComponents(
+                game.getGlobalAudience(),
+                this.plugin.configMessage("player-died"), Map.of("player", player.displayName(), "score", Component.text(stats.score()))
+        );
 
         final Collection<GamePlayer> players = game.players();
-
         if (players.size() - 1 >= 1) {
-            game.broadcast(this.plugin.configMessage("remaining-players"), Map.of(
-                    "count", Component.text(players.size() - 1),
-                    "optional-s", Component.text(players.size() != 1 ? "s" : "")
-            ));
+            Messages.messageComponents(
+                    game.getGlobalAudience(),
+                    this.plugin.configMessage("remaining-players"), Map.of(
+                            "count", Component.text(players.size() - 1),
+                            "optional-s", Component.text(players.size() != 1 ? "s" : "")
+                    )
+            );
         }
 
         final boolean hasPermission = player.hasPermission("abbacaving.respawn");
-        final boolean hasRespawned = gamePlayer.gameStats().hasRespawned();
+        final boolean hasRespawned = stats.hasRespawned();
 
         if (hasPermission && !hasRespawned && gamePlayer.data().respawns() > 0) {
-            gamePlayer.gameStats().showRespawnGui(true);
-            gamePlayer.gameStats().respawnLocation(event.getPlayer().getLocation());
+            stats.showRespawnGui(true);
         }
 
-        gamePlayer.gameStats().isDead(true);
-        game.removePlayer(player, false);
+        stats.isDead(true);
     }
 
     @EventHandler
@@ -262,7 +266,7 @@ public class PlayerListener implements Listener {
     }
 
     private void handleEntityEvent(final Entity target, final Cancellable cancellable) {
-        final Game game = this.plugin.gameTracker().findGame(target.getWorld());
+        final Game game = this.plugin.gameTracker().getGame(target.getWorld());
 
         if (game == null || game.isGracePeriod() || game.gameState() == GameState.DONE) {
             cancellable.setCancelled(true);
@@ -270,9 +274,10 @@ public class PlayerListener implements Listener {
         }
 
         if (target instanceof Player player) {
-            final GamePlayer gp = game.player(player);
+            final GamePlayer gp = this.plugin.getPlayerCache().getLoaded(player);
+            final GameStats stats = game.getGameData(gp);
 
-            if (gp != null && gp.gameStats() != null && gp.gameStats().isDead()) {
+            if (stats.isDead()) {
                 cancellable.setCancelled(true);
             }
         }
@@ -309,14 +314,15 @@ public class PlayerListener implements Listener {
 
     @EventHandler
     public void onPlayerWorldChange(final PlayerChangedWorldEvent event) {
-        final Game game = this.plugin.gameTracker().findGame(event.getPlayer());
+        final Player player = event.getPlayer();
+        final Game game = this.plugin.gameTracker().findGame(player);
 
         if (game == null || game.gameState() == GameState.DONE) {
             return;
         }
 
-        if (!event.getPlayer().getWorld().equals(game.world()) && !game.player(event.getPlayer()).gameStats().isDead()) {
-            game.removePlayer(event.getPlayer(), true);
+        if (!event.getPlayer().getWorld().equals(game.getMap().getWorld())) {
+            game.playerChosenDisconnect(event.getPlayer());
         }
     }
 

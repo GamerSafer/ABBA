@@ -1,105 +1,74 @@
 package com.gamersafer.minecraft.abbacaving.game;
 
-import com.gamersafer.minecraft.abbacaving.AbbaCavingPlugin;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
-
+import com.gamersafer.minecraft.abbacaving.game.map.GameMap;
 import com.gamersafer.minecraft.abbacaving.player.GamePlayer;
-import org.bukkit.GameMode;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
+import org.jetbrains.annotations.Nullable;
+
+import java.util.*;
 
 public class GameTracker {
 
-    private final AbbaCavingPlugin plugin;
     private final List<Game> currentGames = new ArrayList<>();
-
-    public GameTracker(final AbbaCavingPlugin plugin) {
-        this.plugin = plugin;
-    }
+    private final Map<String, Game> mapNameToGame = new HashMap<>();
+    private final Map<GameMap, Game> mapToGame = new HashMap<>();
+    private final Map<World, Game> worldToGame = new HashMap<>();
+    private final Map<UUID, Game> playerToGame = new HashMap<>();
 
     public List<Game> currentGames() {
         return this.currentGames;
     }
 
-    public void addPlayerToGame(final Game game, final Player player) {
-        player.setGameMode(GameMode.ADVENTURE);
-        game.addPlayer(this.gamePlayer(player));
-    }
-
-    public Game gameById(final String gameId) {
-        for (final Game game : this.currentGames()) {
-            if (game.gameId().equals(gameId.toUpperCase())) {
-                return game;
-            }
-        }
-
-        return null;
-    }
-
+    @Nullable
     public Game gameByMapName(final String mapName) {
-        for (final Game game : this.currentGames()) {
-            if (game.mapName().equals(mapName)) {
-                return game;
-            }
-        }
-
-        return null;
+        return this.mapNameToGame.get(mapName);
     }
 
-    public Game findGame(final World world) {
-        for (final Game game : this.currentGames()) {
-            if (game.world().equals(world)) {
-                return game;
-            }
-        }
-
-        return null;
+    @Nullable
+    public Game findGame(final GamePlayer player) {
+        return this.findGame(player.player().getUniqueId());
     }
 
+    @Nullable
     public Game findGame(final Player player) {
-        for (final Game game : this.currentGames()) {
-            if (game.player(player) != null) {
-                return game;
-            }
-        }
-
-        return null;
+        return this.findGame(player.getUniqueId());
     }
 
-    public GamePlayer gamePlayer(final UUID uuid) {
-        return this.plugin.getPlayerCache().getLoaded(uuid);
+    @Nullable
+    public Game findGame(final UUID player) {
+        return this.playerToGame.get(player);
     }
 
-    public GamePlayer gamePlayer(final Player player) {
-        return this.gamePlayer(player.getUniqueId());
+    @Nullable
+    public Game getGame(GameMap map) {
+        return this.mapToGame.get(map);
     }
 
-    public GamePlayer findPlayerInGame(final Player player) {
-        for (final Game game : this.currentGames()) {
-            final GamePlayer gamePlayer = game.player(player);
-
-            if (gamePlayer != null) {
-                return gamePlayer;
-            }
-        }
-
-        return null;
+    @Nullable
+    public Game getGame(World world) {
+        return this.worldToGame.get(world);
     }
 
-    public GamePlayer removePlayer(final Player player, final boolean quit) {
-        for (final Game game : this.currentGames()) {
-            final GamePlayer gamePlayer = game.removePlayer(player, quit);
-
-            if (gamePlayer != null) {
-                return gamePlayer;
-            }
-        }
-
-        return null;
+    public void addGame(GameMap map, Game game) {
+        this.currentGames.add(game);
+        this.mapNameToGame.put(map.getName(), game);
+        this.mapToGame.put(map, game);
+        this.worldToGame.put(map.getWorld(), game);
     }
 
+    public void remove(GameMap map) {
+        Game game = this.mapToGame.remove(map);
+        this.currentGames.remove(game);
+        this.mapNameToGame.remove(map.getName());
+        this.worldToGame.remove(map.getWorld());
+    }
+
+    public void registerPlayerGame(UUID uuid, Game game) {
+        this.playerToGame.put(uuid, game);
+    }
+
+    public void unregisterPlayerGame(UUID uuid, Game game) {
+        this.playerToGame.remove(uuid, game);
+    }
 }

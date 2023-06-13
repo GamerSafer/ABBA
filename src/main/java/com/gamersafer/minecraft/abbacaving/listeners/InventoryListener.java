@@ -5,14 +5,10 @@ import com.gamersafer.minecraft.abbacaving.game.CaveLoot;
 import com.gamersafer.minecraft.abbacaving.game.Game;
 import com.gamersafer.minecraft.abbacaving.player.GamePlayer;
 import com.gamersafer.minecraft.abbacaving.player.GameStats;
-import com.gamersafer.minecraft.abbacaving.player.PlayerData;
 import com.gamersafer.minecraft.abbacaving.tools.ToolManager;
 import com.gamersafer.minecraft.abbacaving.util.Messages;
 import com.gamersafer.minecraft.abbacaving.util.Sounds;
 import com.gamersafer.minecraft.abbacaving.util.Stats;
-import com.gamersafer.minecraft.abbacaving.util.Util;
-import java.util.Map;
-
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.Player;
@@ -43,24 +39,26 @@ public class InventoryListener implements Listener {
         event.setCancelled(true);
         event.setCursor(null);
 
-        final CaveLoot lootItem = this.plugin.lootFromItem(cursorItem.getType());
+        final CaveLoot lootItem = this.plugin.getLootHandler().lootFromItem(cursorItem.getType());
 
         if (lootItem == null) {
             return;
         }
 
         final Player player = (Player) event.getView().getPlayer();
-        final GamePlayer gp = this.plugin.gameTracker().findPlayerInGame(player);
+        final Game game = this.plugin.gameTracker().findGame(player);
 
-        if (gp == null) {
+        if (game == null) {
             event.setCancelled(true);
             return;
         }
 
-        final Game game = this.plugin.gameTracker().findGame(player);
+        final GamePlayer gamePlayer = this.plugin.getPlayerCache().getLoaded(player);
+        GameStats stats = game.getGameData(gamePlayer);
 
-        gp.gameStats().addScore(lootItem.value(), lootItem.name());
-        game.increasePlayerScore(gp, lootItem.value());
+        int score = lootItem.value() * cursorItem.getAmount();
+        stats.addScore(score, lootItem.name());
+        game.increasePlayerScore(gamePlayer, score);
 
         // game.broadcast(this.plugin.configMessage("player-found-item"), Map.of(
         //         "player", player.displayName(),
@@ -95,7 +93,7 @@ public class InventoryListener implements Listener {
 
         InventoryHolder holder = event.getClickedInventory().getHolder();
         if (holder instanceof BlockInventoryHolder || holder instanceof Entity) {
-            final CaveLoot lootItem = this.plugin.lootFromItem(currentItem.getType());
+            final CaveLoot lootItem = this.plugin.getLootHandler().lootFromItem(currentItem.getType());
 
             if (lootItem == null) {
                 event.setCancelled(true);
@@ -103,16 +101,17 @@ public class InventoryListener implements Listener {
             }
 
             final Player player = (Player) event.getView().getPlayer();
-            final GamePlayer gp = this.plugin.gameTracker().findPlayerInGame(player);
-
-            if (gp == null) {
-                return;
-            }
-
             final Game game = this.plugin.gameTracker().findGame(player);
 
-            gp.gameStats().addScore(lootItem.value(), lootItem.name());
-            game.increasePlayerScore(gp, lootItem.value());
+            if (game == null) {
+                return;
+            }
+            final GamePlayer gamePlayer = this.plugin.getPlayerCache().getLoaded(player);
+            GameStats stats = game.getGameData(gamePlayer);
+
+            int score = lootItem.value() * currentItem.getAmount();
+            stats.addScore(score, lootItem.name());
+            game.increasePlayerScore(gamePlayer, score);
 
             event.setCurrentItem(null);
         }
@@ -147,10 +146,9 @@ public class InventoryListener implements Listener {
             return;
         }
 
-        final GamePlayer gamePlayer = this.plugin.gameTracker().findPlayerInGame(player);
         final Game game = this.plugin.gameTracker().findGame(player);
-
-        if (game != null && gamePlayer != null) {
+        if (game != null) {
+            final GamePlayer gamePlayer = this.plugin.getPlayerCache().getLoaded(player);
             if (isShiftClick) {
                 gamePlayer.data().getHotbarLayout().clear();
             } else {
@@ -174,15 +172,17 @@ public class InventoryListener implements Listener {
         player.closeInventory();
         Sounds.pling(player);
 
-        Stats.dumpGameStats(this.plugin.getPlayerCache().getLoaded(player.getUniqueId()));
+        Game game = this.plugin.gameTracker().findGame(player);
+        if (game != null) {
+            Stats.dumpGameStats(player, game, game.getGameData(this.plugin.getPlayerCache().getLoaded(player)));
+        }
     }
 
     private void returnToLobby(final Player player) {
         final Game game = this.plugin.gameTracker().findGame(player);
 
         if (game != null) {
-            game.removePlayer(player, true);
-            this.plugin.lobby().sendToLobby(player);
+            game.playerChosenDisconnect(player);
         }
     }
 

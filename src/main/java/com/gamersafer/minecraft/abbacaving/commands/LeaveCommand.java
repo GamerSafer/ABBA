@@ -5,6 +5,7 @@ import com.gamersafer.minecraft.abbacaving.game.Game;
 import com.gamersafer.minecraft.abbacaving.lobby.LobbyQueue;
 import java.util.Map;
 
+import com.gamersafer.minecraft.abbacaving.player.GamePlayer;
 import com.gamersafer.minecraft.abbacaving.util.Messages;
 import com.gamersafer.minecraft.abbacaving.util.Sounds;
 import org.bukkit.Bukkit;
@@ -41,22 +42,18 @@ public class LeaveCommand implements CommandExecutor {
             }
         }
 
-        if (this.plugin.lobby().playerInLobby(player)) {
-            final LobbyQueue queue = this.plugin.lobby().lobbyQueue(player);
-
+        GamePlayer gamePlayer = this.plugin.getPlayerCache().getLoaded(player);
+        LobbyQueue queue = gamePlayer.queue();
+        Game game = gamePlayer.game();
+        if (game == null) {
             if (queue != null) {
-                queue.removePlayer(player.getUniqueId());
-                Messages.message(player, this.plugin.configMessage("leave-lobby"), Map.of("map", queue.mapName()));
+                this.plugin.lobby().leave(queue, player);
+                Messages.message(player, this.plugin.configMessage("leave-lobby"), Map.of("map", queue.getMap().getName()));
             } else {
                 Messages.message(sender, this.plugin.configMessage("not-in-queue"));
             }
         } else {
-            final Game game = this.plugin.gameTracker().findGame(player);
-
-            if (game != null) {
-                game.removePlayer(player, true);
-                this.plugin.lobby().sendToLobby(player);
-            }
+            game.playerChosenDisconnect(player);
         }
 
         Sounds.pling(player);

@@ -37,10 +37,10 @@ public class RespawnCountCommand implements CommandExecutor, TabCompleter {
                 return false;
             }
 
-            gamePlayer = this.plugin.gameTracker().gamePlayer(target);
+            gamePlayer = this.plugin.getPlayerCache().getLoaded(target);
         } else {
             if (sender instanceof Player player) {
-                gamePlayer = this.plugin.gameTracker().gamePlayer(player);
+                gamePlayer = this.plugin.getPlayerCache().getLoaded(player);
             } else {
                 sender.sendMessage(Component.text("No target player set."));
                 return true;

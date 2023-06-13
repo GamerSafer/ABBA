@@ -1,6 +1,7 @@
 package com.gamersafer.minecraft.abbacaving.guis;
 
 import com.gamersafer.minecraft.abbacaving.AbbaCavingPlugin;
+import com.gamersafer.minecraft.abbacaving.game.Game;
 import com.gamersafer.minecraft.abbacaving.tools.ToolSpecies;
 import com.gamersafer.minecraft.abbacaving.player.GamePlayer;
 import com.gamersafer.minecraft.abbacaving.game.GameState;
@@ -63,19 +64,24 @@ public class CosmeticGui {
         final List<GuiItem> items = new ArrayList<>();
 
         items.add(new GuiItem(type.icon(), event -> {
-            final GamePlayer gamePlayer = this.plugin.gameTracker().gamePlayer(event.getWhoClicked().getUniqueId());
+            Player player = (Player) event.getWhoClicked();
+            Game game = this.plugin.gameTracker().findGame(player);
+            GamePlayer gamePlayer = this.plugin.getPlayerCache().getLoaded(player);
 
-            Messages.message(gamePlayer.player(), this.plugin.configMessage("cosmetic-select"), Map.of("cosmetic", "default"));
+            Messages.message(player, this.plugin.configMessage("cosmetic-select"), Map.of("cosmetic", "default"));
             gamePlayer.data().removeSelectedCosmetic(type);
-            if (gamePlayer.gameStats() != null && gamePlayer.gameStats().game().gameState() == GameState.RUNNING) {
+            if (game != null) {
                 Messages.message(gamePlayer.player(), this.plugin.configMessage("cosmetic-apply-after-game"));
             }
         }));
 
         for (final CosmeticRegistry.Cosmetic cosmetic : this.plugin.cosmeticRegistry().get(type)) {
-            items.add(new GuiItem(cosmetic.itemStack(), inventoryClickEvent -> {
-                final GamePlayer gamePlayer = this.plugin.gameTracker().gamePlayer(inventoryClickEvent.getWhoClicked().getUniqueId());
+            items.add(new GuiItem(cosmetic.itemStack(), event -> {
+                Player player = (Player) event.getWhoClicked();
+                GamePlayer gamePlayer = this.plugin.getPlayerCache().getLoaded(player);
+
                 if (!gamePlayer.player().hasPermission(cosmetic.permission())) {
+                    plugin.getLogger().info("Player does not have cosmetic perm: " + cosmetic.permission());
                     Messages.message(gamePlayer.player(), this.plugin.configMessage("no-permission"));
                     return;
                 }
@@ -89,10 +95,9 @@ public class CosmeticGui {
                     Messages.message(gamePlayer.player(), this.plugin.configMessage("cosmetic-select"), Map.of("cosmetic", cosmetic.identifier()));
                 }
 
-                if (gamePlayer.gameStats() != null) {
-                    if (gamePlayer.gameStats().game().gameState() == GameState.RUNNING) {
-                        Messages.message(gamePlayer.player(), this.plugin.configMessage("cosmetic-apply-after-game"));
-                    }
+                Game game = this.plugin.gameTracker().findGame(player);
+                if (game != null) {
+                    Messages.message(gamePlayer.player(), this.plugin.configMessage("cosmetic-apply-after-game"));
                 }
             }));
         }

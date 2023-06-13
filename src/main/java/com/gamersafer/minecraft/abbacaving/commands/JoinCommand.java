@@ -1,6 +1,7 @@
 package com.gamersafer.minecraft.abbacaving.commands;
 
 import com.gamersafer.minecraft.abbacaving.AbbaCavingPlugin;
+import com.gamersafer.minecraft.abbacaving.game.map.GameMap;
 import com.gamersafer.minecraft.abbacaving.lobby.LobbyQueue;
 import com.gamersafer.minecraft.abbacaving.lobby.QueueState;
 import java.util.ArrayList;
@@ -43,13 +44,13 @@ public class JoinCommand implements CommandExecutor, TabCompleter {
             queue = lobbyQueue;
         } else {
             final String input = args[0];
-
-            if (this.plugin.mapSettings(input) == null) {
+            GameMap map = this.plugin.getMapPool().getMap(input);
+            if (map == null) {
                 Messages.message(sender, this.plugin.configMessage("join-invalid-map"));
                 return false;
             }
 
-            queue = this.plugin.lobby().lobbyQueue(input);
+            queue = this.plugin.lobby().lobbyQueue(map);
         }
 
         final Player player;
@@ -74,7 +75,7 @@ public class JoinCommand implements CommandExecutor, TabCompleter {
             return false;
         }
 
-        if (queue.state() == QueueState.LOCKED) {
+        if (queue.getState() == QueueState.LOCKED) {
             Messages.message(sender, this.plugin.configMessage("join-running-map"));
             return false;
         }
@@ -84,16 +85,20 @@ public class JoinCommand implements CommandExecutor, TabCompleter {
             return false;
         }
 
-        final LobbyQueue oldQueue = this.plugin.lobby().lobbyQueue(player);
+        final LobbyQueue oldQueue = this.plugin.getPlayerCache().getLoaded(player).queue();
 
         if (oldQueue != null) {
-            oldQueue.removePlayer(player.getUniqueId());
+            this.plugin.lobby().leave(queue, player);
+        }
+
+        if (oldQueue == queue) {
+            return true;
         }
 
         this.plugin.lobby().join(queue, player);
         Sounds.pling(player);
 
-        Messages.message(sender, this.plugin.configMessage("join-lobby"), Map.of("map", queue.mapName()));
+        Messages.message(sender, this.plugin.configMessage("join-lobby"), Map.of("map", queue.getMap().getName()));
 
         return true;
     }
@@ -103,7 +108,7 @@ public class JoinCommand implements CommandExecutor, TabCompleter {
 
         for (final LobbyQueue queue : this.plugin.lobby().activeQueues()) {
             if (queue.acceptingNewPlayers()) {
-                names.add(queue.mapName());
+                names.add(queue.getMap().getName());
             }
         }
 

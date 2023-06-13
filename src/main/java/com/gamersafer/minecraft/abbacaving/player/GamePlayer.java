@@ -2,6 +2,7 @@ package com.gamersafer.minecraft.abbacaving.player;
 
 import com.gamersafer.minecraft.abbacaving.AbbaCavingPlugin;
 import com.gamersafer.minecraft.abbacaving.game.Game;
+import com.gamersafer.minecraft.abbacaving.lobby.LobbyQueue;
 import com.gamersafer.minecraft.abbacaving.tools.CosmeticRegistry;
 import com.gamersafer.minecraft.abbacaving.tools.ToolManager;
 import com.gamersafer.minecraft.abbacaving.tools.ToolType;
@@ -20,11 +21,12 @@ public class GamePlayer {
     private final AbbaCavingPlugin plugin;
     private final UUID playerUUID;
 
-    @Nullable
-    private GameStats gameStats = null;
-
     @NotNull
     private final PlayerData playerData;
+    @Nullable
+    private LobbyQueue lobbyQueue;
+    @Nullable
+    private Game game;
 
     public GamePlayer(final AbbaCavingPlugin plugin, final UUID playerUUID, PlayerData playerData) {
         this.plugin = plugin;
@@ -40,22 +42,27 @@ public class GamePlayer {
         return Bukkit.getPlayer(this.playerUUID);
     }
 
-    public void gameStats(final Game game, final Location spawnLocation) {
-        this.gameStats = new GameStats(this, this.plugin, game, spawnLocation);
-    }
-
-    public void purgeGameStats() {
-        //this.gameStats = null;
-        // Don't purge for now, has some problems to fix
-    }
-
-    public GameStats gameStats() {
-        return this.gameStats;
-    }
-
     public PlayerData data() {
         return playerData;
     }
 
+
+    @Nullable
+    public LobbyQueue queue() {
+        return this.lobbyQueue;
+    }
+
+    public void queue(@Nullable LobbyQueue lobbyQueue) {
+        this.lobbyQueue = lobbyQueue;
+    }
+
+    @Nullable
+    public Game game() {
+        return this.game;
+    }
+
+    public void game(@Nullable Game game) {
+        this.game = game;
+    }
 
 }

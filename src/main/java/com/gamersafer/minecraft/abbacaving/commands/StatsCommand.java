@@ -1,6 +1,7 @@
 package com.gamersafer.minecraft.abbacaving.commands;
 
 import com.gamersafer.minecraft.abbacaving.AbbaCavingPlugin;
+import com.gamersafer.minecraft.abbacaving.game.Game;
 import com.gamersafer.minecraft.abbacaving.player.GamePlayer;
 import com.gamersafer.minecraft.abbacaving.player.PlayerData;
 import com.gamersafer.minecraft.abbacaving.util.Messages;
@@ -40,10 +41,10 @@ public class StatsCommand implements CommandExecutor, TabCompleter {
                 return false;
             }
 
-            gamePlayer = this.plugin.gameTracker().gamePlayer(target);
+            gamePlayer = this.plugin.getPlayerCache().getLoaded(target);
             Messages.message(player, this.plugin.configMessage("stats-other"), Map.of("player", target.getName().toUpperCase()));
         } else {
-            gamePlayer = this.plugin.gameTracker().gamePlayer(player);
+            gamePlayer = this.plugin.getPlayerCache().getLoaded(player);
             Messages.message(player, this.plugin.configMessage("stats-own"));
         }
 
@@ -54,13 +55,12 @@ public class StatsCommand implements CommandExecutor, TabCompleter {
         Messages.message(player, this.plugin.configMessage("stats-score"), Map.of("score", Util.addCommas(data.highestScore())));
         Messages.message(player, this.plugin.configMessage("stats-ores"), Map.of("ores", Util.addCommas(data.totalOresMined())));
 
-        if (gamePlayer.gameStats() == null) {
+        Game game = this.plugin.gameTracker().findGame(gamePlayer);
+        if (game == null) {
             return true;
         }
 
-
-        Stats.dumpGameStats(gamePlayer);
-
+        Stats.dumpGameStats(player, game, game.getGameData(gamePlayer));
         return true;
     }
 

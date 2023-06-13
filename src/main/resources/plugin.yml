@@ -3,7 +3,7 @@ main: com.gamersafer.minecraft.abbacaving.AbbaCavingPlugin
 version: '${version}'
 author: GamerSafer
 api-version: 1.16
-depend: [ WorldEdit, CoreProtect, RandomTeleport, ItemsAdder ]
+depend: [ RandomTeleport, ItemsAdder ]
 softdepend: [ PlaceholderAPI, RandomTeleport ]
 commands:
   acreload:
@@ -57,6 +57,10 @@ commands:
     description: Reset the command
     permission: abbacaving.reset
     permission-message: You are not allowed to run the reset command.
+  save-world:
+    description: Toggle world saving
+    permission: abbacaving.save-world
+    permission-message: You are not allowed to run the save-world command.
 permissions:
   abbacaving.*:
     description: Gives access to all Abba Caving permissions.

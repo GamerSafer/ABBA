@@ -8,6 +8,8 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.logging.Logger;
+
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
@@ -19,10 +21,9 @@ public class AbbaValidator extends LocationValidator {
 
     private final Set<Material> invalidBlocks = new HashSet<>();
 
-    public AbbaValidator(final AbbaCavingPlugin plugin, final Game game) {
+    public AbbaValidator(final Logger logger, List<String> materials) {
         super("abba_block");
 
-        final List<String> materials = game.mapSetting("random-teleport.invalid-blocks");
         final List<String> invalidMaterials = new ArrayList<>();
 
         for (final String materialName : materials) {
@@ -36,7 +37,7 @@ public class AbbaValidator extends LocationValidator {
         }
 
         if (!invalidMaterials.isEmpty()) {
-            plugin.getLogger().warning("Invalid material names for [" + String.join(",", invalidMaterials) + "] in RTP invalid-blocks");
+            logger.warning("Invalid material names for [" + String.join(",", invalidMaterials) + "] in RTP invalid-blocks");
         }
     }
 
