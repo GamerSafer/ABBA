@@ -28,7 +28,7 @@ public class EntityListener implements Listener {
             return;
         }
         Game game = this.plugin.gameTracker().getGame(event.getEntity().getWorld());
-        if (game != null) {
+        if (game == null) {
             event.setCancelled(true);
         }
     }

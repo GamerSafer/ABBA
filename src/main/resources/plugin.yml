@@ -61,6 +61,14 @@ commands:
     description: Toggle world saving
     permission: abbacaving.save-world
     permission-message: You are not allowed to run the save-world command.
+  force-save-world:
+    description: Delete a player's data
+    permission: abbacaving.delete-data
+    permission-message: You are not allowed to run the delete-data command.
+  delete-data:
+    description: Delete a player's data
+    permission: abbacaving.delete-data
+    permission-message: You are not allowed to run the delete-data command.
 permissions:
   abbacaving.*:
     description: Gives access to all Abba Caving permissions.

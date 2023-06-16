@@ -3,6 +3,7 @@ package com.gamersafer.minecraft.abbacaving.player;
 import com.gamersafer.minecraft.abbacaving.AbbaCavingPlugin;
 import org.bukkit.entity.Player;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -47,7 +48,7 @@ public class PlayerCache {
         this.playerCache.remove(uuid);
     }
 
-    public Iterable<? extends GamePlayer> values() {
+    public Collection<? extends GamePlayer> values() {
         return this.playerCache.values();
     }
 }

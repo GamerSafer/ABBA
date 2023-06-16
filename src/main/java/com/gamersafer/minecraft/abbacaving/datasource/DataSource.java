@@ -36,5 +36,6 @@ public interface DataSource {
 
     void purge();
 
+    void delete(UUID uuid);
 }
 

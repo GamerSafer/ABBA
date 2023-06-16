@@ -96,7 +96,9 @@ public class AbbaCavingPlugin extends JavaPlugin {
 
         this.getCommand("respawns").setExecutor(new RespawnCountCommand(this));
         this.getCommand("debug").setExecutor(new DebugCommand(this));
+        this.getCommand("delete-data").setExecutor(new DeleteDataCommand(this));
         this.getCommand("save-world").setExecutor(new SaveWorldCommand(this));
+        this.getCommand("force-save-world").setExecutor(new ForceSaveWorldCommand(this));
         this.gameTracker = new GameTracker();
         this.mapPool = new MapPool(this.getLogger(), this.fileConfiguration("maps.yml"), this);
         this.lobby = new Lobby(this);
@@ -110,7 +112,7 @@ public class AbbaCavingPlugin extends JavaPlugin {
     public void onDisable() {
         super.onDisable();
 
-        for (GamePlayer player : this.getPlayerCache().values()) {
+        for (GamePlayer player : new ArrayList<>(this.getPlayerCache().values())) {
             this.getPlayerCache().unloadAndComplete(player.playerUUID(), (stats) -> {
                 player.data().saveAll();
             });

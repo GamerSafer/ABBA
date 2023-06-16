@@ -389,5 +389,29 @@ public class SQLDataSource implements DataSource {
         }
     }
 
+    @Override
+    public void delete(UUID uuid) {
+        try (final Connection conn = this.dataSource.getConnection()) {
+            try (final PreparedStatement stmt = conn.prepareStatement("DELETE FROM abba_caving_stats WHERE uuid = ?;")) {
+                stmt.setString(1, uuid.toString());
+                stmt.executeQuery();
+            }
+            try (final PreparedStatement stmt = conn.prepareStatement("DELETE FROM abba_hotbar_layout WHERE uuid = ?;")) {
+                stmt.setString(1, uuid.toString());
+                stmt.executeQuery();
+            }
+            try (final PreparedStatement stmt = conn.prepareStatement("DELETE FROM abba_cosmetics WHERE uuid = ?;")) {
+                stmt.setString(1, uuid.toString());
+                stmt.executeQuery();
+            }
+            try (final PreparedStatement stmt = conn.prepareStatement("DELETE FROM abba_round_leaderboard WHERE player = ?;")) {
+                stmt.setString(1, uuid.toString());
+                stmt.executeQuery();
+            }
+        } catch (final SQLException ex) {
+            ex.printStackTrace();
+        }
+    }
+
 
 }

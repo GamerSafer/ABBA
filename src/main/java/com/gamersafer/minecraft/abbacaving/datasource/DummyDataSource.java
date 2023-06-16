@@ -79,4 +79,9 @@ public class DummyDataSource implements DataSource {
 
     }
 
+    @Override
+    public void delete(UUID uuid) {
+
+    }
+
 }
