@@ -14,6 +14,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Map;
+import java.util.Objects;
 import java.util.UUID;
 
 public class GamePlayer {
@@ -65,4 +66,16 @@ public class GamePlayer {
         this.game = game;
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        GamePlayer player = (GamePlayer) o;
+        return Objects.equals(playerUUID, player.playerUUID);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(playerUUID);
+    }
 }

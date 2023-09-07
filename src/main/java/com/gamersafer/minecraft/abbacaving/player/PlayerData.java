@@ -158,11 +158,14 @@ public final class PlayerData {
 
     @Override
     public String toString() {
-        return "PlayerStats[" +
-                "wins=" + wins + ", " +
-                "highestScore=" + highestScore + ", " +
-                "totalOresMined=" + totalOresMined + ", " +
-                "respawns=" + respawns + ']';
+        return "PlayerData{" +
+                "owner=" + owner +
+                ", wins=" + wins +
+                ", highestScore=" + highestScore +
+                ", totalOresMined=" + totalOresMined +
+                ", respawns=" + respawns +
+                ", hotbarLayout=" + hotbarLayout +
+                ", cosmetics=" + cosmetics +
+                '}';
     }
-
 }

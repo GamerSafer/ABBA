@@ -63,7 +63,7 @@ commands:
     permission-message: You are not allowed to run the save-world command.
   force-save-world:
     description: Delete a player's data
-    permission: abbacaving.delete-data
+    permission: abbacaving.force-save-world
     permission-message: You are not allowed to run the delete-data command.
   delete-data:
     description: Delete a player's data

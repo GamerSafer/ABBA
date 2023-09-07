@@ -126,7 +126,7 @@ public class GamePlaceholders extends PlaceholderExpansion {
                     case "game_maxplayers" -> {
                         return Integer.toString(game.maxPlayersPerRound());
                     }
-                    case "map_name" -> {
+                    case "game_name" -> {
                         return game.getMap().getName();
                     }
                     case "game_id" -> {

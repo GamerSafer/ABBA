@@ -20,7 +20,7 @@ cosmetics:
   axolotlsword:
     item: "abba:axolotlsword"
     tool: SWORD
-    permission: abbacaving.weapon.axolotlsword # Removing this defaults to abbacaving.cosmetic.[key]
+    permission: abbacaving.cosmetics.axolotlsword # Removing this defaults to abbacaving.cosmetic.[key]
   spidershovel:
     item: "abba:spidershovel"
     tool: SHOVEL

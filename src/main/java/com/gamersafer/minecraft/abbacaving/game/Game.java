@@ -105,6 +105,8 @@ public class Game {
         this.players.remove(gamePlayer);
         gamePlayer.game(null);
         this.plugin.gameTracker().unregisterPlayerGame(gamePlayer.playerUUID(), this);
+        this.leaderboard.remove(gamePlayer);
+        this.updateLeaderboard();
     }
 
     public void respawn(final GamePlayer gamePlayer) {
@@ -139,8 +141,6 @@ public class Game {
         final GamePlayer gp = this.plugin.getPlayerCache().getLoaded(player);
 
         this.unregisterPlayer(gp);
-        this.leaderboard.remove(gp);
-        this.updateLeaderboard();
 
         this.plugin.lobby().sendToLobby(player);
     }
@@ -175,6 +175,17 @@ public class Game {
                 return;
             }
         }
+        // TEMPORARY
+        for (GamePlayer player : new ArrayList<>(this.players)) {
+            if (player.player() == null) {
+                this.plugin.getLogger().warning("IMPROPER PLAYER CLEANUP DETECTED: " + player.playerUUID());
+                this.plugin.getLogger().warning("PLAYER DATA DUMP: " + player.data());
+                this.plugin.getLogger().warning("QUEUE: " + player.queue());
+                this.plugin.getLogger().warning("GAME: " + player.game() + " THIS: " + this);
+                this.unregisterPlayer(player);
+            }
+        }
+
         for (GamePlayer gamePlayer : this.players) {
             Block targetBlock = gamePlayer.player().getTargetBlock(5);
             if (targetBlock != null && targetBlock.getType().name().toLowerCase().contains("deepslate")) {

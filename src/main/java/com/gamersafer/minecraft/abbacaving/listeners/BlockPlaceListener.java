@@ -8,6 +8,7 @@ import dev.lone.itemsadder.api.Events.CustomBlockPlaceEvent;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockPlaceEvent;
+import org.bukkit.event.player.PlayerBucketEmptyEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitRunnable;
 
@@ -17,6 +18,19 @@ public class BlockPlaceListener implements Listener {
 
     public BlockPlaceListener(final AbbaCavingPlugin plugin) {
         this.plugin = plugin;
+    }
+
+    @EventHandler
+    public void onLiquidPlace(PlayerBucketEmptyEvent event) {
+        final boolean canBuild = event.getPlayer().hasPermission("abbacaving.build");
+
+        final Game game = this.plugin.gameTracker().getGame(event.getBlock().getWorld());
+
+        if (game == null) {
+            if (!canBuild) {
+                event.setCancelled(true);
+            }
+        }
     }
 
     @EventHandler
