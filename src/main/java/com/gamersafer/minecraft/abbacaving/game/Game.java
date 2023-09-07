@@ -28,6 +28,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
+import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 import org.intellij.lang.annotations.Subst;
 
@@ -383,11 +384,16 @@ public class Game {
         Messages.messageComponents(this.globalAudience, this.plugin.configMessage("game-end-lobby"), Map.of("counter", Component.text(postGameGracePeriod)));
 
         this.plugin.getServer().getScheduler().runTaskLater(this.plugin, () -> {
-            this.plugin.getMapPool().releaseGame(this);
-
             for (final GamePlayer gp : new ArrayList<>(this.players)) {
                 Game.this.playerExit(gp.player());
             }
+            new BukkitRunnable(){
+
+                @Override
+                public void run() {
+                    plugin.getMapPool().releaseGame(Game.this);
+                }
+            }.runTaskLater(this.plugin, 100);
         }, 20L * postGameGracePeriod);
         this.task.cancel();
     }

@@ -2,20 +2,13 @@ package com.gamersafer.minecraft.abbacaving.game.map;
 
 import com.gamersafer.minecraft.abbacaving.AbbaCavingPlugin;
 import com.gamersafer.minecraft.abbacaving.game.Game;
-import com.gamersafer.minecraft.abbacaving.game.GameState;
-import com.gamersafer.minecraft.abbacaving.game.GameTracker;
 import com.gamersafer.minecraft.abbacaving.lobby.LobbyQueue;
 import com.gamersafer.minecraft.abbacaving.lobby.QueueState;
-import org.bukkit.Bukkit;
-import org.bukkit.Chunk;
-import org.bukkit.World;
 import org.bukkit.configuration.ConfigurationSection;
-import org.bukkit.entity.Entity;
-import org.bukkit.entity.Player;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
-import java.util.concurrent.CompletableFuture;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class MapPool {
@@ -29,6 +22,7 @@ public class MapPool {
     public MapPool(Logger logger, ConfigurationSection mapSettings, AbbaCavingPlugin plugin) {
         this.logger = logger;
         this.mapSettings = mapSettings;
+        GameMap.purgeOldWorlds();
         for (final String mapName : this.configuredMapNames()) {
             GameMap game = new GameMap(mapName, this.mapSettings, this.logger);
             this.mapPool.add(game);
@@ -73,20 +67,21 @@ public class MapPool {
         GameMap map = game.getMap();
         this.plugin.gameTracker().remove(map);
 
-        World world = map.getWorld();
-        for (Entity entity : world.getEntities()) {
-            if (!(entity instanceof Player)) {
-                entity.remove();
-            }
-        }
-        for (Chunk chunk : world.getLoadedChunks()) {
-            chunk.unload(false);
-        }
+        map.reloadMap()
+                .thenAccept((action) -> {
 
-        final LobbyQueue queue = this.plugin.lobby().lobbyQueue(map);
+                    final LobbyQueue queue = this.plugin.lobby().lobbyQueue(map);
 
-        if (queue != null) {
-            queue.setState(QueueState.WAITING);
-        }
+                    if (queue != null) {
+                        queue.setState(QueueState.WAITING);
+                    }
+                })
+                .exceptionally((e) -> {
+                    logger.log(Level.INFO, "Failed to load world, unregistering map.", e);
+                    this.gameMapLookup.remove(map.getName());
+                    this.mapPool.remove(map);
+                    return null;
+                });
+
     }
 }

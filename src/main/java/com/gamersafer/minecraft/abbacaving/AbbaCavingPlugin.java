@@ -30,7 +30,6 @@ public class AbbaCavingPlugin extends JavaPlugin {
 
     private final PlayerCache cache = new PlayerCache(this);
     private Lobby lobby;
-    private Set<String> mapsToSave = new HashSet<>();
     private DataSource dataSource;
     private FileConfiguration messagesConfig = new YamlConfiguration();
     private CosmeticGui cosmeticGui;
@@ -60,7 +59,6 @@ public class AbbaCavingPlugin extends JavaPlugin {
         this.getServer().getPluginManager().registerEvents(new EntityListener(this), this);
         this.getServer().getPluginManager().registerEvents(new PlayerListener(this), this);
         this.getServer().getPluginManager().registerEvents(new PlayerKillEntityListener(this), this);
-        this.getServer().getPluginManager().registerEvents(new WorldListener(this), this);
 
         if (Bukkit.getPluginManager().isPluginEnabled("PlaceholderAPI")) {
             new GamePlaceholders(this).register();
@@ -97,15 +95,11 @@ public class AbbaCavingPlugin extends JavaPlugin {
         this.getCommand("respawns").setExecutor(new RespawnCountCommand(this));
         this.getCommand("debug").setExecutor(new DebugCommand(this));
         this.getCommand("delete-data").setExecutor(new DeleteDataCommand(this));
-        this.getCommand("save-world").setExecutor(new SaveWorldCommand(this));
-        this.getCommand("force-save-world").setExecutor(new ForceSaveWorldCommand(this));
         this.gameTracker = new GameTracker();
         this.mapPool = new MapPool(this.getLogger(), this.fileConfiguration("maps.yml"), this);
         this.lobby = new Lobby(this);
         this.cosmeticRegistry = new CosmeticRegistry(this);
         this.lootHandler = new LootHandler(this.getLogger(), this.fileConfiguration("points.yml"));
-
-        this.mapsToSave.addAll(this.getConfig().getStringList("save-worlds"));
     }
 
     @Override
@@ -182,9 +176,5 @@ public class AbbaCavingPlugin extends JavaPlugin {
 
     public PlayerCache getPlayerCache() {
         return cache;
-    }
-
-    public Set<String> getWorldsToSave() {
-        return this.mapsToSave;
     }
 }
