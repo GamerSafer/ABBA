@@ -1,5 +1,6 @@
 package com.gamersafer.minecraft.abbacaving.lobby;
 
+import be.maximvdw.featherboard.api.FeatherBoardAPI;
 import com.gamersafer.minecraft.abbacaving.AbbaCavingPlugin;
 import com.gamersafer.minecraft.abbacaving.game.map.GameMap;
 import org.bukkit.Bukkit;
@@ -96,6 +97,8 @@ public class Lobby implements Listener {
         player.getInventory().clear();
         player.getInventory().setArmorContents(null);
         player.setInvisible(false);
+
+        FeatherBoardAPI.showScoreboard(player, "spawn");
     }
 
     private Location lobbySpawn() {

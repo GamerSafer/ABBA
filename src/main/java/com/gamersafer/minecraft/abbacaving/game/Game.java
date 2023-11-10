@@ -1,5 +1,6 @@
 package com.gamersafer.minecraft.abbacaving.game;
 
+import be.maximvdw.featherboard.api.FeatherBoardAPI;
 import com.gamersafer.minecraft.abbacaving.AbbaCavingPlugin;
 import com.gamersafer.minecraft.abbacaving.game.map.GameMap;
 import com.gamersafer.minecraft.abbacaving.player.GamePlayer;
@@ -151,6 +152,7 @@ public class Game {
         this.preparePlayer(gamePlayer.player());
         this.setupGUIs(gamePlayer);
         this.startingInventory(gamePlayer);
+        FeatherBoardAPI.showScoreboard(gamePlayer.player(), "ingame");
     }
 
     public void increasePlayerScore(final GamePlayer gamePlayer, final int amount) {
